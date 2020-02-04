@@ -1,0 +1,9 @@
+{
+  "name": "@entangled/interface",
+  "version": "0.0.0",
+  "main": "lib/index.js",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^3.7.5"
+  }
+}

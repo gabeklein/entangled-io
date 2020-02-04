@@ -1,0 +1,17 @@
+{
+  "name": "@entangled/webpack",
+  "version": "0.0.0",
+  "main": "lib/index.js",
+  "license": "ISC",
+  "dependencies": {
+    "webpack": "^4.41.5",
+    "@entangled/interface": "0.0.0"
+  },
+  "devDependencies": {
+    "@types/detect-indent": "0.1.30",
+    "@types/glob": "5.0.30",
+    "@types/node": "8.0.0",
+    "@types/webpack": "^4.41.4",
+    "typescript": "^3.7.5"
+  }
+}

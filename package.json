@@ -1,0 +1,14 @@
+{
+  "name": "entangled",
+  "private": true,
+  "workspaces": [
+    "lib/*",
+    "tests/*"
+  ],
+  "scripts": {
+    "serve": "yarn workspace @entangled/demo-service start"
+  },
+  "devDependencies": {
+    "lerna": "^3.13.4"
+  }
+}

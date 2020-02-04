@@ -1,0 +1,21 @@
+{
+  "version": "0.0.0",
+  "name": "@entangled/bonjour",
+  "private": true,
+  "main": "lib/index.js",
+  "types": "index.d.ts",
+  "license": "ISC",
+  "scripts": {
+    "start": "node ./lib",
+    "build": "tsc -b"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.2",
+    "@typescript-eslint/parser": "2.18.0",
+    "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "@entangled/express": "0.0.0",
+    "express": "4.17.1"
+  }
+}

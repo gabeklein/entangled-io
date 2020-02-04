@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src/",
+    "outDir": "lib/",
+    "jsx": "react",
+    "lib": ["es2018", "dom"]
+  },
+  "references": [
+    { "path": "../service" }
+  ]
+}

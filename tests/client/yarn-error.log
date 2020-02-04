@@ -1,0 +1,58 @@
+Arguments: 
+  /usr/local/Cellar/node/13.5.0/bin/node /usr/local/Cellar/yarn/1.21.1/libexec/bin/yarn.js add react react-dom
+
+PATH: 
+  /Users/gabeklein/Downloads/google-cloud-sdk/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Library/Apple/bin:/Users/gabeklein/Downloads/google-cloud-sdk/bin
+
+Yarn version: 
+  1.21.1
+
+Node version: 
+  13.5.0
+
+Platform: 
+  darwin x64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/@entangled%2fwebpack: Not found
+      at Request.params.callback [as _callback] (/usr/local/Cellar/yarn/1.21.1/libexec/lib/cli.js:66947:18)
+      at Request.self.callback (/usr/local/Cellar/yarn/1.21.1/libexec/lib/cli.js:140665:22)
+      at Request.emit (events.js:305:20)
+      at Request.<anonymous> (/usr/local/Cellar/yarn/1.21.1/libexec/lib/cli.js:141637:10)
+      at Request.emit (events.js:305:20)
+      at IncomingMessage.<anonymous> (/usr/local/Cellar/yarn/1.21.1/libexec/lib/cli.js:141559:12)
+      at Object.onceWrapper (events.js:411:28)
+      at IncomingMessage.emit (events.js:317:22)
+      at endReadableNT (_stream_readable.js:1215:12)
+      at processTicksAndRejections (internal/process/task_queues.js:84:21)
+
+npm manifest: 
+  {
+    "name": "@entangled/test-client",
+    "version": "0.0.0",
+    "private": true,
+    "main": "lib/index.js",
+    "license": "ISC",
+    "devDependencies": {
+      "@types/react": "^16.9.19",
+      "@types/react-dom": "^16.9.5",
+      "@entangled/test-service": "0.0.0",
+      "ts-loader": "^6.2.1",
+      "typescript": "^3.7.5",
+      "webpack": "^4.41.5",
+      "webpack-cli": "^3.3.10",
+      "webpack-dev-server": "^3.10.2"
+    },
+    "dependencies": {
+      "@entangled/webpack": "0.0.0",
+      "html-webpack-plugin": "^3.2.0",
+      "react": "^16.12.0",
+      "react-dom": "^16.12.0"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
