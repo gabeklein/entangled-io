@@ -1,9 +1,15 @@
-import { listen, serve } from '@entangled/express';
-import * as bonjour from '@entangled/test-bonjour';
+import { serve, listen } from '@entangled/express';
 
-import * as greetings from './hello-world';
+import * as greetings from "./hello-service"
 
-const api = serve({ greetings, bonjour });
+/**
+ * This does sometthing fun
+ */
+function something(name: string){
+  return 5
+}
+
+const api = serve({ greetings, something });
 
 listen(api, 8080);
 

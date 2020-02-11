@@ -7,6 +7,7 @@
   },
   "references": [
     { "path": "../../lib/express" },
+    { "path": "../../lib/interface" },
     { "path": "../bonjour" }
   ]
 }

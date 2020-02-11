@@ -14,11 +14,9 @@
     "noImplicitReturns": true,
     "baseUrl": "./",
     "paths": {
-      "@entangled/test-*": [
-        "tests/*/src"
-      ],
       "@entangled/*": [
         "lib/*/src",
+        "tests/*/src"
       ]
     }
   }

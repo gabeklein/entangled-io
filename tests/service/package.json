@@ -1,6 +1,6 @@
 {
   "version": "0.0.0",
-  "name": "@entangled/test-service",
+  "name": "@entangled/service",
   "private": true,
   "main": "lib/index.js",
   "license": "ISC",
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@entangled/express": "0.0.0",
+    "@entangled/interface": "0.0.0",
     "@entangled/bonjour": "0.0.0",
     "express": "4.17.1"
   }

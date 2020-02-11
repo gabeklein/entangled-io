@@ -21,9 +21,7 @@ module.exports = {
     path: dir("public")
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      title: "Teleport Test"
-    }),
+    new HtmlWebpackPlugin({ title: "Teleport Test" }),
     new RemoteFunctionReplacementPlugin()
   ],
   module: {
