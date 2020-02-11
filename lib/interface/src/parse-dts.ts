@@ -2,14 +2,14 @@
  * This logic is heavily adapted from dts-bundle by TypeStrong
  * https://github.com/TypeStrong/dts-bundle
  */
-
 import detectIndent from 'detect-indent';
 import fs from 'fs';
 import glob from 'glob';
 import os from 'os';
-import { basename, dirname, join, relative, resolve, sep } from 'path';
+import { dirname, join, relative, resolve } from 'path';
 
-'use strict';
+
+type BunchOf<T> = { [ key: string ]: T }
 
 const bomOptExp = /^\uFEFF?/;
 const externalExp = /^([ \t]*declare module )(['"])(.+?)(\2[ \t]*{?.*)$/;
@@ -47,38 +47,51 @@ export interface Result {
   fileExists: boolean;
 }
 
-export function bundle(main: string, exportName: string) {
-  const baseDir = dirname(main)
-  let mainFile = resolve(main.replace(/\//g, sep));
+export function bundle(root: string, entry: string, exportName: string) {
+  const entryAbs = resolve(root, entry);
+  const baseDir = dirname(entryAbs)
+  let mainFile = resolve(entryAbs);
 
-  const getModName = (file: string) => relative(baseDir, dirname(file) + sep + basename(file).replace(/\.d\.ts$/, ''));
-  const expName = (file: string) => file === mainFile ? exportName : expNameRaw(file);
-  const expNameRaw = (file: string) => exportName + separator + cleanupName(getModName(file));
-  const libName = (ref: string) => expNameRaw(mainFile) + separator + separator + ref;
-  const cleanupName = (name: string) => name.replace(/\.\./g, '--').replace(/[\\\/]/g, "/");
+  const getModName = (file: string) => {
+    return relative(baseDir, file.replace(/\.d\.ts$/, ''));
+  }
+    
+  const expNameRaw = (file: string) => {
+    return join(exportName, getModName(file).replace(/\.\./g, '--'));
+  }
+    
+  const expName = (file: string) => {
+    return file === mainFile ? exportName : expNameRaw(file);
+  }
+
+  const libName = (ref: string) => {
+    return expNameRaw(mainFile) + separator + separator + ref;
+  }
 
   // turn relative paths into absolute paths
   const sourceTypings = glob.sync('**/*.d.ts', { cwd: baseDir }).map(file => resolve(baseDir, file));
 
   const inSourceTypings = (file: string) =>
-    sourceTypings.indexOf(file) !== -1 || sourceTypings.indexOf(join(file, 'index.d.ts')) !== -1;
+    sourceTypings.indexOf(file) >= 0 || 
+    sourceTypings.indexOf(join(file, 'index.d.ts')) >= 0;
   // if file reference is a directory assume commonjs index.d.ts
 
-  let fileMap: { [name: string]: Result; } = Object.create(null);
+  let fileMap: BunchOf<Result> = {}
   let globalExternalImports: string[] = [];
   let mainParse: Result | undefined; // will be parsed result of first parsed file
   let externalTypings: string[] = [];
 
   {
-    let queue: string[] = [mainFile];
-    let queueSeen: { [name: string]: boolean; } = Object.create(null);
+    let queue: string[] = [ mainFile ];
+    let processed: BunchOf<Boolean> = {}
 
     while (queue.length > 0) {
       let target = queue.shift()!;
-      if (queueSeen[target])
+
+      if (processed[target])
         continue;
 
-      queueSeen[target] = true;
+      processed[target] = true;
 
       // parse the file
       let parse = parseFile(
@@ -89,15 +102,19 @@ export function bundle(main: string, exportName: string) {
         externalTypings
       );
 
+      const { relativeImports, refs } = parse;
+
       if (!mainParse)
         mainParse = parse;
 
       fileMap[parse.file] = parse;
-      pushUniqueArr(queue, parse.refs, parse.relativeImports);
+
+      for(const v of [...refs, ...relativeImports])
+        addIfNoneExist(queue, v)
     }
   }
 
-  let exportMap = Object.create(null);
+  let exportMap = {} as any;
 
   for(const file of Object.keys(fileMap)){
     let parse = fileMap[file];
@@ -110,19 +127,19 @@ export function bundle(main: string, exportName: string) {
 
   {
     let queue = [mainParse];
-    let queueSeen: { [name: string]: boolean; } = Object.create(null);
+    let processed: BunchOf<Boolean> = {}
 
     while (queue.length > 0) {
       let parse = queue.shift()!;
-      if (queueSeen[parse.file])
+      if (processed[parse.file])
         continue;
-      queueSeen[parse.file] = true;
+      processed[parse.file] = true;
 
       usedTypings.push(parse);
 
       for(const name of parse.externalImports){
         let p = exportMap[name];
-        pushUnique(externalDependencies, !p ? name : p.file);
+        addIfNoneExist(externalDependencies, p ? p.file : name);
       }
 
       for(const file of parse.relativeImports){
@@ -164,18 +181,19 @@ export function bundle(main: string, exportName: string) {
     )
 
   // add wrapped modules to output
-  content += usedTypings
-    .filter(parse => parse.lines.length > 0)
-    .map(parse => {
-      const { file } = parse;
-      const lines = parse.lines.map(line => getIndenter(parse.indent, indent)(line));
+  for(const parse of usedTypings){
+    if(parse.lines.length == 0)
+      continue;
 
-      return inSourceTypings(file)
-        ? formatModule(file, lines, expName(file))
-        : lines.join(newline).concat(newline)
-    })
-    .join(newline)
-    .concat(newline);
+    const { file } = parse;
+    const lines = parse.lines.map(line => getIndenter(parse.indent, indent)(line));
+
+    const line = inSourceTypings(file)
+      ? formatModule(file, lines, expName(file))
+      : lines.join(newline).concat(newline)
+
+    content += line + newline;
+  }
 
   return content;
 }
@@ -197,7 +215,6 @@ function parseFile(
   sourceTypings: string[],
   externalTypings: string[]): Result {
 
-  const inExternalTypings = (file: string) => externalTypings.indexOf(file) !== -1;
   const inSourceTypings = (file: string) => 
     sourceTypings.indexOf(file) !== -1 || 
     sourceTypings.indexOf(join(file, 'index.d.ts')) !== -1;
@@ -298,10 +315,9 @@ function parseFile(
       let ref = extractReference(line);
       if (ref) {
         let refPath = resolve(dirname(file), ref);
-        if (!inSourceTypings(refPath) && !inExternalTypings(refPath)) {
+        if (!inSourceTypings(refPath) && externalTypings.indexOf(file) < 0)
           externalTypings.push(refPath);
-        }
-        pushUnique(res.refs, refPath);
+        addIfNoneExist(res.refs, refPath);
         continue;
       }
     }
@@ -318,14 +334,14 @@ function parseFile(
 
     popJSDoc();
 
-    let match = 
+    let foundImport = 
       line.indexOf("from") >= 0 ? line.match(importEs6Exp) :
       line.indexOf("require") >= 0 ? line.match(importExp) :
       null;
 
     // import() statement or es6 import
-    if (match) {
-      const [, lead, quote, moduleName, trail] = match!;
+    if (foundImport) {
+      const [, lead, quote, moduleName, trail] = foundImport!;
 
       const impPath = resolve(dirname(file), moduleName);
 
@@ -341,61 +357,60 @@ function parseFile(
 
         let full = resolve(dirname(file), impPath);
         // If full is not an existing file, then let's assume the extension .d.ts
-        if (!fs.existsSync(full) || fs.existsSync(full + '.d.ts')) {
+        if (!fs.existsSync(full) || fs.existsSync(full + '.d.ts'))
           full += '.d.ts';
-        }
-        pushUnique(res.relativeImports, full);
+
+        addIfNoneExist(res.relativeImports, full);
         res.importLineRef.push(modLine);
       }
       // identifier
       else {
         let modLine: ModLine = { original: line };
 
-        pushUnique(res.externalImports, moduleName);
+        addIfNoneExist(res.externalImports, moduleName);
         res.lines.push(modLine);
       }
+
+      continue
     }
+
+    foundImport = line.match(externalExp);
 
     // declaring an external module
     // this triggers when we're e.g. parsing external module declarations, such as node.d.ts
-    else if (match = line.match(externalExp)) {
-      const moduleName = match[3]
+    if (foundImport) {
+      const moduleName = foundImport[3]
 
-      pushUnique(res.exports, moduleName);
+      addIfNoneExist(res.exports, moduleName);
       let modLine: ModLine = { original: line };
       res.relativeRef.push(modLine); // TODO
       res.lines.push(modLine);
+
+      continue
     }
 
     // clean regular lines
-    else {
-      // remove public keyword
-      if ((match = line.match(publicExp))) {
-        let [, sp, static1, , static2, ident] = match;
-        line = sp + static1 + static2 + ident;
-      }
+    foundImport = line.match(publicExp);
 
-      // for internal typings, remove the 'declare' keyword (but leave 'export' intact)
-      if (inSourceTypings(file))
-        line = line.replace(/^(export )?declare /g, '$1');
-
-      res.lines.push({ original: line });
+    // remove public keyword
+    if (foundImport) {
+      let [, sp, static1, , static2, ident] = foundImport;
+      line = sp + static1 + static2 + ident;
     }
+
+    // for internal typings, remove the 'declare' keyword (but leave 'export' intact)
+    if (inSourceTypings(file))
+      line = line.replace(/^(export )?declare /g, '$1');
+
+    res.lines.push({ original: line });
   }
 
   return res;
 }
 
-function pushUnique<T>(arr: T[], value: T) {
+function addIfNoneExist<T>(arr: T[], value: T) {
   if (arr.indexOf(value) < 0)
     arr.push(value);
-  return arr;
-}
-
-function pushUniqueArr<T>(arr: T[], ...values: T[][]) {
-  for (const vs of values)
-    for (const v of vs)
-      pushUnique(arr, v)
   return arr;
 }
 
