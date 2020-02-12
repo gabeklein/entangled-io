@@ -14,4 +14,4 @@ export namespace Entangled {
   }
 }
 
-export { bundle } from "./parse-dts"
+export { collateTypes } from "./parse"

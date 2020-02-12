@@ -26,7 +26,7 @@ function applyPath(
   prefix = ""){
 
   if(typeof handle == "function"){
-    console.log(`registered ${prefix}`)
+    // console.log(`registered ${prefix}`)
     app.post(prefix, abstract(handle))
   }
   else 
