@@ -1,3 +1,6 @@
+import './parse'
+import { Module } from './module';
+
 export namespace Entangled {
   type TypeofFunction = (...args: any) => any;
   type ArgumentsOf<T> = T extends (... args: infer U ) => infer R ? U: never;
@@ -15,4 +18,6 @@ export namespace Entangled {
   }
 }
 
-export { collateTypes } from "./parse"
+export function collateTypes(root: string){
+  return new Module(root);
+}
