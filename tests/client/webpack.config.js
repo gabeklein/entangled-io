@@ -8,7 +8,7 @@ const dir = path => resolve(currentDir, path);
 module.exports = {
   mode: "development",
   devtool: "source-map",
-  entry: "./src/index.tsx",
+  entry: "./src",
   resolve: {
     modules: [
       dir("../../node_modules")
@@ -29,6 +29,9 @@ module.exports = {
       {
         test: /\.tsx?$/,
         loader: "ts-loader",
+        options: {
+          transpileOnly: true
+        },
         exclude: [
           dir("node_modules"), 
           dir("../../node_modules")
