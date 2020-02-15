@@ -1,39 +1,38 @@
-import { Compiler } from "webpack";
-import path from "path";
-import { collateTypes } from "@entangled/interface"
+import { collateTypes } from '@entangled/interface';
+import path from 'path';
+import { Compiler } from 'webpack';
 
-const resolve = require("enhanced-resolve");
-// import { bundle } from "@entangled/interface"
 import { appendToFilesystem } from './stats';
 
-const PLUGINID = "RemoteFunctionReplacementPlugin";
+const PLUGINID = "EntangledAPIProxyPlugin";
 
 export const toArray = <T> (value: T | Array<T>): Array<T> =>
     value ? Array.isArray(value) ? value : [value] : [];
 
-module.exports = class RemoteFunctionReplacementPlugin {
+const typeResolver = require("enhanced-resolve").create.sync({
+    extensions: [".d.ts"],
+    mainFields: ["types", "main"],
+    resolveToContext: false,
+    symlinks: true
+});
 
-    devDeps = new Map<string, string>();
+module.exports = class EntangledAPIProxyPlugin {
+
+    remoteModules = new Map<string, { location?: string, injected?: string }>();
 
     constructor(options: any){
         for(const mod of ["@entangled/service"])
-            this.devDeps.set(mod, "")
+            this.remoteModules.set(mod, {})
     }
 
     apply(compiler: Compiler) {
         compiler.hooks.entryOption.tap(PLUGINID, 
             (context: string, entries: any) => {
-                const typeResolver = resolve.create.sync({
-                    extensions: [".d.ts"],
-                    mainFields: ["types", "main"],
-                    resolveToContext: false,
-                    symlinks: true
-                });
                 
-                for(const request of this.devDeps.keys())
+                for(const request of this.remoteModules.keys())
                     try {
                         let resolved = typeResolver(context, request).replace(/\/lib\/index\.[^\\\/]+$/, "")
-                        this.devDeps.set(request, resolved);
+                        this.remoteModules.set(request, resolved);
                     }
                     catch(err){
                         throw new Error("Couldn't find types")
@@ -43,24 +42,41 @@ module.exports = class RemoteFunctionReplacementPlugin {
 
         compiler.hooks.normalModuleFactory.tap(PLUGINID, (compilation: any) => {
             compilation.hooks.beforeResolve.tap(PLUGINID, (result: any) => {
-                if(this.devDeps!.has(result.request)){
-                    const context = this.devDeps.get(result.request)!;
-                    const virtual = path.join(context, "entangled-agent.js");
-                    const stuff = collateTypes(context);
+                /** 
+                 * Fetch-agent is installed as a dependancy of _this_ module.
+                 * Resolve from here so webpack can see it.
+                 * */
+                if(result.request == "@entangled/agent"){
+                    result.request = require.resolve("@entangled/agent");
+                    return
+                }
 
-                    void stuff;
-                    debugger
-                    const initContent = "module.exports = { foo: \'bar\' }"
+                if(this.remoteModules!.has(result.request)){
+                    let mod = this.remoteModules.get(result.request)!;
 
-                    appendToFilesystem(
-                        compiler.inputFileSystem, 
-                        virtual, 
-                        initContent
-                    );
+                    if(!mod.injected)
+                        mod.injected = injectAgent(compiler, mod.location!);
+                    else
+                        console.log("OK yea this gets called more than once.")
 
-                    result.request = virtual;
+                    result.request = mod.injected
                 }
             })
         });
     }
+}
+
+function findAPIParameter(parameterized: any){
+    return parameterized.params[0]
+}
+
+function injectAgent(compiler: any, location: string){
+    const fakeURI = path.join(location, "entangled-agent.js");
+    const schema = findAPIParameter(collateTypes(location).output);
+    const inject = JSON.stringify(schema);
+    const initContent = `module.exports = require("@entangled/agent").define(${inject})`
+
+    appendToFilesystem(compiler.inputFileSystem, fakeURI, initContent);
+
+    return fakeURI;
 }

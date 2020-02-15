@@ -5,6 +5,7 @@
   "license": "ISC",
   "dependencies": {
     "@entangled/interface": "0.0.0",
+    "@entangled/agent": "0.0.0",
     "enhanced-resolve": "^4.1.1",
     "webpack": "^4.41.5"
   },
