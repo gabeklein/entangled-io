@@ -39,27 +39,30 @@ export function tryReadJSON(loc: string, basename?: string){
 }
 
 export function resolveMainTypes(root: string){
-  const pkg = tryReadJSON(root, "package.json")
+  const pkg = tryReadJSON(root, "package.json");
+  const exists = (...segments: string[]) => {
+    const uri = path.resolve(root, ...segments)
+    return existsSync(uri) && uri;
+  }
 
   if(!pkg)
     throw new Error("No package JSON found :(")
 
   let { types, main, name } = pkg;
 
-  if(!types){
-    const match = /^(.+?)(\.js)?$/.exec(main);
-    if(match){
-      let relative = !match[2]
-        ? path.join(match[1], "index.d.ts")
-        : match[1] + ".d.ts";
+  if(types)
+    types = exists(types);
 
-      types = path.resolve(root, relative);
-    }
+  else {
+    const match = /^(.+?)(\.js)?$/.exec(main)!;
+
+    types = exists(match[1] + ".d.ts");
+
+    if(!types)
+      types = exists(match[2], "index.d.ts")
   }
-  else
-    types = path.resolve(root, types);
 
-  if(!existsSync(types))
+  if(!types)
     return {
       main: ""
     }
