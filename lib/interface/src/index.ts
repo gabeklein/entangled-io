@@ -6,6 +6,7 @@ export namespace Entangled {
   export type Template = { [name: string]: Resource }
   export type Resource = Function | Template
 
+  /*Entangled.API*/
   export type API<T> = {
     [P in keyof T]: 
       T[P] extends TypeofFunction 
