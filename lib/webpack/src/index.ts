@@ -32,8 +32,8 @@ module.exports = class RemoteFunctionReplacementPlugin {
                 
                 for(const request of this.devDeps.keys())
                     try {
-                        let resolved = typeResolver(context, request)
-                        this.devDeps.set(request, resolved.replace("/lib/index.d.ts", ""));
+                        let resolved = typeResolver(context, request).replace(/\/lib\/index\.[^\\\/]+$/, "")
+                        this.devDeps.set(request, resolved);
                     }
                     catch(err){
                         throw new Error("Couldn't find types")
