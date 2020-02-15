@@ -4,6 +4,8 @@ import { dirname, resolve } from 'path';
 
 import { resolveMainTypes, tryParseWithBabel, tryReadFile } from './util';
 
+type BunchOf<T> = { [key: string]: T };
+
 export function collateTypes(root: string){
   return new Module(root);
 }

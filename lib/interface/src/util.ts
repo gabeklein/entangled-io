@@ -4,6 +4,8 @@ import path from "path";
 const babel = require("@babel/core");
 const babel_ts = require("@babel/plugin-syntax-typescript");
 
+type BunchOf<T> = { [key: string]: T };
+
 export function tryParseWithBabel(code: string){
   return babel
     .parseSync(code, { plugins: [babel_ts] })
