@@ -1,56 +1,11 @@
 import getWorkspace from 'find-yarn-workspace-root';
-import { existsSync } from 'fs';
+import { existsSync, lstatSync } from 'fs';
 import { dirname, resolve } from 'path';
 
 import { resolveMainTypes, tryParseWithBabel, tryReadFile } from './util';
 
-const loadedModules = new Map<string, Module>();
-
-export async function collateTypes(root: string){
-  const mod = new Module(root);
-
-  mod.parse()
-
-  debugger
-  void 0
-}
-
-function registerModule(mod: Module){
-  loadedModules.set(mod.root, mod);
-
-  return (request: string) => resolveModule(mod, request)
-}
-
-function resolveModule(from: Module, request: string){
-  const loaded = loadedModules;
-  let target: Module | undefined;
-
-  if(/^\./.test(request)){
-    const file = resolve(dirname(from.file), request) + ".d.ts";
-    target = loaded.get(file);
-
-    if(!target){
-      target = new Module(file, from.paths);
-      loaded.set(file, target);
-    }
-  }
-  else {
-    const root = from.paths
-      .map(r => resolve(r, "node_modules", request))
-      .find(r => existsSync(r));
-
-    if(!root)
-      throw new Error(`${request} does not resolve to a directory`)
-    
-    target = loaded.get(root);
-
-    if(!target){
-      target = new Module(root);
-      loaded.set(root, target);
-    }
-  }
-
-  return target;
+export function collateTypes(root: string){
+  return new Module(root);
 }
 
 class Module {
@@ -60,9 +15,12 @@ class Module {
 
   constructor(
     public root: string,
+    private cache = new Map<string, Module>(),
     paths?: string[]
   ){
     const isFile = /^(.+?)(\.d\.ts)$/.test(root);
+
+    this.cache = cache;
 
     if(isFile){
       this.file = root;
@@ -81,6 +39,49 @@ class Module {
     }
   }
 
+  resolve(request: string){
+    const loaded = this.cache;
+    let target: Module | undefined;
+  
+    if(/^\./.test(request)){
+      let dir = resolve(dirname(this.file), request)
+  
+      dir = dir.replace(/\/src$/g, "/lib");
+  
+      if(existsSync(dir) && lstatSync(dir).isDirectory()) 
+        dir += "/index";
+  
+      dir += ".d.ts";
+  
+      if(!existsSync(dir))
+        throw new Error();
+  
+      target = loaded.get(dir);
+  
+      if(!target){
+        target = new Module(dir, loaded, this.paths);
+        loaded.set(dir, target);
+      }
+    }
+    else {
+      const root = this.paths
+        .map(r => resolve(r, "node_modules", request))
+        .find(r => existsSync(r));
+  
+      if(!root)
+        throw new Error(`${request} does not resolve to a directory`)
+      
+      target = loaded.get(root);
+  
+      if(!target){
+        target = new Module(root, loaded);
+        loaded.set(root, target);
+      }
+    }
+  
+    return target;
+  }
+
   getter(...resolve: string[]): any {
     let current = this.output;
     for(const key of resolve){
@@ -92,7 +93,11 @@ class Module {
   }
 
   get output(){
-    const value = this.parse();
+    let value = this.parse();
+
+    while(typeof value == "function")
+      value = value()
+    
     Object.defineProperty(this, "output", { value })
     return value;
   }
@@ -104,37 +109,67 @@ class Module {
       throw new Error("Could not find main types file");
   
     const queue = tryParseWithBabel(code);
-    const resolve = registerModule(this);
+    this.cache.set(this.root, this);
+  
+    const resolve = (request: string) => this.resolve(request)
     const parse = new Parser(resolve).run(queue);
 
-    cloneValueOrGetter(parse, "output", this)
+    return parse.output;
   }
 }
 
 class Parser {
   queue = [] as any[];
   output = {} as BunchOf<any>;
-  private scope = Object.create(this.output);
+  scope = Object.create(this.output);
 
   constructor(
-    public resolve: (abs: string) => Module
+    public resolve: (abs: string) => Module,
+    private closure: BunchOf<any> = {}
   ){}
 
   run(queue: any[]){
     this.queue = queue;
-    for(const node of queue)
-      (this as any)[node.type](node);
+    for(const node of queue){
+      const handler = (this as any)[node.type];
+      if(typeof handler !== "function")
+        throw new Error(`Unhandled type ${node.type}`)
+      else handler.call(this, node)
+    }
+    return this;
+  }
+
+  TSModuleDeclaration(node: any){
+    const parent = node.into || this.scope;
+    parent[node.id.name] = new Parser(this.resolve, this.scope).run(node.body.body).output;
+  }
+
+  TSInterfaceDeclaration(node: any){
+    const parent = node.into || this.scope;
+    const type = new InterfaceType();
+
+    if(node.leadingComments)
+      type.comment = node.leadingComments[0].value;
+      
+    parent[node.id.name] = type;
+  }
+
+  TSTypeAliasDeclaration(node: any){
+    const { name } = node.id;
+    const parent = node.into || this.scope;
+    const alias = parent[name] = new TypeAlias();
+    alias.comment = `TypeAlias:${name}`
   }
   
   ImportDeclaration(node: any){
     const external = this.resolve(node.source.value);
     
     for(const spec of node.specifiers){
-      const local = spec.local?.name;
+      const localName = spec.local?.name;
       const importedName = spec.imported?.name ||
         spec.type === "ImportDefaultSpecifier" ? "default" : "*";
 
-      setGet(this.scope, local, external.getter(importedName))
+      this.scope[localName] = external.getter(importedName);
     }
   }
 
@@ -153,21 +188,11 @@ class Parser {
   }
 
   TSExportAssignment(node: any){
-    cloneValueOrGetter(
-      this.scope,
-      node.expression.name
-      (this as any),
-      "output"
-    )
+    this.output = this.scope[node.expression.name];
   }
 
   ExportDefaultDeclaration(node: any){
-    cloneValueOrGetter(
-      this.scope,
-      node.declaration.name,
-      this.output,
-      "default"
-    )
+    this.output.default = this.scope[node.expression.name];
   }
 
   ExportNamedDeclaration(node: any){
@@ -176,16 +201,12 @@ class Parser {
       this.queue.push(node.declaration)
     }
     else for(const spec of node.specifiers)
-      cloneValueOrGetter(
-        this.scope,
-        spec.local.name,
-        this.output,
-        spec.exported.name
-      )
+      this.output[spec.exported.name] = 
+        this.scope[spec.local.name]
   }
 
   TSTypeLiteral(typeAnnotation: any){
-    const object: BunchOf<any> = {};
+    const object = new ObjectLiteral();
   
     for(const entry of typeAnnotation.members){
       const key = entry.key.name;
@@ -201,16 +222,23 @@ class Parser {
     return object
   }
 
-  TSTypeAnnotation(typeAnnotation: any){
-    const { scope } = this;
+  TSLiteralType(typeAnnotation: any){
+    return 
+  }
 
+  TSTypeAnnotation(typeAnnotation: any){
     while(typeAnnotation.type == "TSTypeAnnotation")
       ({ typeAnnotation } = typeAnnotation)
   
     const { type } = typeAnnotation;
+
+    if(type == "TSTypeQuery"){
+      const { name } = typeAnnotation.exprName;
+      return this.scope[name] | this.closure[name];
+    }
   
     if(type == "TSLiteralType")
-      return "literal"
+      return typeAnnotation.literal.value
   
     if(type == "TSFunctionType")
       return "function"
@@ -221,17 +249,17 @@ class Parser {
     const tp = typeAnnotation.typeParameters?.params;
     const params: any[] = tp?.map((a: any) => this.TSTypeAnnotation(a))
   
-    params.forEach((x, i) => {
-      if(typeof x == "function")
-        setGet(params, i, x)
-    })
+    if(params)
+      params.forEach((x, i) => {
+        if(typeof x == "function")
+          setGet(params, i, x)
+      })
   
     let value: any;
       
-    if(type == "TSTypeReference"){
-      const resolve = flattenQualified(typeAnnotation.typeName)
-      value = () => resolve.reduce((x: any, k: string) => x[k], scope)
-    }
+    if(type == "TSTypeReference")
+      value = this.TSTypeReference(typeAnnotation)
+
     else if(type == "TSImportType"){
       const resolve = flattenQualified(typeAnnotation.qualifier);
       value = () => this.resolve(typeAnnotation.argument.value).getter(...resolve);
@@ -245,20 +273,23 @@ class Parser {
     else
       return value;
   }
+
+  TSTypeReference(typeAnnotation: any){
+    const [ head, ...rest ] = flattenQualified(typeAnnotation.typeName)
+    const item: any = this.scope[head] | this.closure[head];
+    if(typeof item == "function")
+      return () => drill(item(), rest)
+    else
+      return drill(item, rest)
+  }
+}
+
+function drill(from: any, resolve: string[] = []){
+  return resolve.reduce((o, k) => o[k], from);
 }
 
 function setGet(obj: any, key: string | number, getter: () => any){
   return Object.defineProperty(obj, key, { get: getter, enumerable: true });
-}
-
-function cloneValueOrGetter(
-  from: any, key: string, to: any, toKey?: string){
-
-  const getter = findGet(from, key);
-  if(getter)
-    setGet(to, toKey || key, getter)
-  else
-    to[toKey || key]
 }
 
 function flattenQualified(left: any){
@@ -271,19 +302,21 @@ function flattenQualified(left: any){
   return list as string[];
 }
 
-function findGet(obj: any, key: string){
-  do {
-    const getter = Object.getOwnPropertyDescriptor(obj, key)?.get;
-    if(getter)
-      return getter
-  }
-  while(obj = Object.getPrototypeOf(obj));
-  return undefined;
-}
-
 class ParameterizedType {
   constructor(
     public modifier: any,
     public params: any[]
   ){}
+}
+
+class TypeAlias {
+  comment?: string;
+}
+
+class InterfaceType {
+  comment?: string;
+}
+
+class ObjectLiteral {
+  [ key: string ]: any
 }

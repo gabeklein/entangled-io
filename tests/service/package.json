@@ -2,7 +2,7 @@
   "version": "0.0.0",
   "name": "@entangled/service",
   "private": true,
-  "main": "lib/index.js",
+  "main": "lib/index",
   "license": "ISC",
   "scripts": {
     "start": "node ./lib",
