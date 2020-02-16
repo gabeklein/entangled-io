@@ -4,4 +4,4 @@
 **/yarn-error.log
 */*/lib
 tests/client/public
-.vscode
+.vscode/settings.json

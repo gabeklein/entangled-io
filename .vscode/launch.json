@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run Service",
+      "cwd": "${workspaceFolder}/tests/service",
+      "runtimeArgs": [
+        "--nolazy",
+        "-r", "source-map-support/register", 
+        "-r", "./lib"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run Parser",
+      "cwd": "${workspaceFolder}/lib/interface",
+      "runtimeArgs": [
+        "--nolazy", 
+        "-r", "source-map-support/register", 
+        "-r", "./lib/test.js"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run Webpack",
+      "cwd": "${workspaceFolder}/tests/client",
+      "program": "${workspaceFolder}/node_modules/webpack-dev-server/bin/webpack-dev-server.js",
+      "console": "externalTerminal",
+      "runtimeArgs": [
+        "-r", "source-map-support/register"
+      ]
+    }
+  ]
+}

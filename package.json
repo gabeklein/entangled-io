@@ -10,5 +10,8 @@
   },
   "devDependencies": {
     "lerna": "^3.13.4"
+  },
+  "dependencies": {
+    "source-map-support": "^0.5.16"
   }
 }
