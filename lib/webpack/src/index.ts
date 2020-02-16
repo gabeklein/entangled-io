@@ -32,7 +32,7 @@ module.exports = class EntangledAPIProxyPlugin {
                 for(const request of this.remoteModules.keys())
                     try {
                         let resolved = typeResolver(context, request).replace(/\/lib\/index\.[^\\\/]+$/, "")
-                        this.remoteModules.set(request, resolved);
+                        this.remoteModules.get(request)!.location = resolved;
                     }
                     catch(err){
                         throw new Error("Couldn't find types")
@@ -54,8 +54,16 @@ module.exports = class EntangledAPIProxyPlugin {
                 if(this.remoteModules!.has(result.request)){
                     let mod = this.remoteModules.get(result.request)!;
 
-                    if(!mod.injected)
-                        mod.injected = injectAgent(compiler, mod.location!);
+                    if(!mod.injected){
+                        try {
+                            mod.injected = injectAgent(compiler, mod.location!);
+                        }
+                        catch(err){
+                            debugger
+                            console.error(err);
+                            throw err;
+                        }
+                    }
                     else
                         console.log("OK yea this gets called more than once.")
 

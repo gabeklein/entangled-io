@@ -18,7 +18,7 @@ export class Parser {
       const handler = (this as any)[node.type];
       if(typeof handler !== "function"){
         debugger
-        // throw new Error(`Unhandled type ${node.type}`)
+        throw new Error(`Unhandled type ${node.type}`)
       }
       else handler.call(this, node)
     }
@@ -91,10 +91,20 @@ export class Parser {
     if(node.declaration){
       node.declaration.into = this.output;
       this.queue.push(node.declaration)
+      return
     }
-    else for(const spec of node.specifiers)
-      this.output[spec.exported.name] = 
-        this.scope[spec.local.name]
+
+    if(node.source){
+      const external = this.resolve(node.source.value);
+      for(const spec of node.specifiers)
+        this.output[spec.exported.name] =
+          external.getter(spec.local.name);
+    }
+    else {
+      for(const spec of node.specifiers)
+        this.output[spec.exported.name] = 
+          this.scope[spec.local.name]
+    }
   }
 
   TSTypeLiteral(typeAnnotation: any){

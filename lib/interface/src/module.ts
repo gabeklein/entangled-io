@@ -51,7 +51,7 @@ export class Module {
       dir += ".d.ts";
   
       if(!existsSync(dir))
-        throw new Error();
+        throw new Error(`File "${dir} wasn't found fam."`);
   
       target = loaded.get(dir);
   
