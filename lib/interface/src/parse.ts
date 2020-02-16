@@ -67,7 +67,7 @@ export class Parser {
 
   TSDeclareFunction(node: any){
     const parent = node.into || this.scope;
-    parent[node.id.name] = "function";
+    parent[node.into_as || node.id.name] = "function";
   }
 
   VariableDeclaration(node: any){
@@ -84,6 +84,12 @@ export class Parser {
   }
 
   ExportDefaultDeclaration(node: any){
+    if(node.declaration){
+      node.declaration.into = this.output;
+      node.declaration.into_as = "default";
+      this.queue.push(node.declaration)
+      return
+    }
     this.output.default = this.scope[node.expression.name];
   }
 
