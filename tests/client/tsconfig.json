@@ -3,10 +3,13 @@
   "compilerOptions": {
     "rootDir": "src/",
     "outDir": "lib/",
+    "noEmit": true,
     "jsx": "react",
     "lib": ["es2018", "dom"]
   },
   "references": [
-    { "path": "../service" }
+    { "path": "../service" },
+    { "path": "../../lib/webpack" },
+    { "path": "../../lib/agent" },
   ]
 }

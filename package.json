@@ -6,7 +6,8 @@
     "tests/*"
   ],
   "scripts": {
-    "serve": "yarn workspace @entangled/demo-service start"
+    "serve": "yarn workspace @entangled/service start",
+    "watch": "yarn workspace @entangled/client watch"
   },
   "devDependencies": {
     "lerna": "^3.13.4"
