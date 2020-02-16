@@ -5,7 +5,7 @@ import { abstract } from './abstract';
 
 import { origin } from './gates';
 
-export function serve<R extends Entangled.Template>(routes: R){
+export function serve<R extends {}>(routes: R){
   const api = express();
 
   api.use(origin())
@@ -22,7 +22,7 @@ export function listen(api: Entangled.API<{}>, port: number){
 
 function applyPath(
   app: Express, 
-  handle: Entangled.Resource, 
+  handle: Entangled.DefineRoute, 
   prefix = ""){
 
   if(typeof handle == "function"){
