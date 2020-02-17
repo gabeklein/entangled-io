@@ -2,7 +2,7 @@ import { collateTypes } from '@entangled/interface';
 import path from 'path';
 import { Compiler } from 'webpack';
 
-import { appendToFilesystem } from './stats';
+import VirtualModulesPlugin from './virtual-modules-plugin';
 
 const PLUGINID = "EntangledAPIProxyPlugin";
 
@@ -19,6 +19,7 @@ const typeResolver = require("enhanced-resolve").create.sync({
 module.exports = class EntangledAPIProxyPlugin {
 
   remoteModules = new Map<string, { location?: string, injected?: string }>();
+  virtual = new VirtualModulesPlugin()
 
   constructor(options: any){
     for(const mod of ["@entangled/service"])
@@ -26,6 +27,9 @@ module.exports = class EntangledAPIProxyPlugin {
   }
 
   apply(compiler: Compiler) {
+    const { virtual } = this;
+    virtual.apply(compiler);
+
     compiler.hooks.entryOption.tap(PLUGINID, 
       (context: string, entries: any) => {
         
@@ -56,10 +60,14 @@ module.exports = class EntangledAPIProxyPlugin {
 
           if(!mod.injected){
             try {
-              mod.injected = injectAgent(compiler, mod.location!);
+              const uri = mod.injected = path.join(mod.location!, "entangled-agent.js");
+              const schema = collateTypes(mod.location!).output.parameterized.params[0];
+              const injectSchema = JSON.stringify(schema);
+              const initContent = `module.exports = require("@entangled/fetch").define(${injectSchema})`
+
+              virtual.writeModule(uri, initContent)
             }
             catch(err){
-              debugger
               console.error(err);
               throw err;
             }
@@ -72,19 +80,4 @@ module.exports = class EntangledAPIProxyPlugin {
       })
     });
   }
-}
-
-function findAPIParameter(parameterized: any){
-  return parameterized.params[0]
-}
-
-function injectAgent(compiler: any, location: string){
-  const fakeURI = path.join(location, "entangled-agent.js");
-  const schema = findAPIParameter(collateTypes(location).output);
-  const injectSchema = JSON.stringify(schema);
-  const initContent = `module.exports = require("@entangled/fetch").define(${injectSchema})`
-
-  appendToFilesystem(compiler.inputFileSystem, fakeURI, initContent);
-
-  return fakeURI;
 }
