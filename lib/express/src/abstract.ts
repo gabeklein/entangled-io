@@ -52,7 +52,7 @@ function responder(response: Response, status: number, content: any){
     content = { response: content };
   }
   
-  response.send(content)
+  response.json(content)
 }
 
 export const handle404: RequestHandler = 
