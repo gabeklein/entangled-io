@@ -9,7 +9,7 @@ export namespace Entangled {
     | Parameter
     | { [ key: string ]: Data }
 
-  type GetFunction = (...params: Parameter[]) => any;
+  type GetFunction = (...params: any[]) => any;
   type PostFunction = (data: Data) => any;
   
   type IOF = GetFunction | PostFunction;
@@ -18,8 +18,11 @@ export namespace Entangled {
   type ArgumentsOf<T> = T extends (... args: infer U ) => infer R ? U: never;
   type RemoteCallable<F extends IOF> = (...args: ArgumentsOf<F>) => Promise<ReturnType<F>>
 
-  type Item<T> =
-    T extends IOF ? RemoteCallable<T> : 
+  type Item<T> = 
+    T extends Function ? 
+      T extends IOF ? 
+        RemoteCallable<T> :
+        never :
     T extends {} ? API<T> : 
     never;
 
