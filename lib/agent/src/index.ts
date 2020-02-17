@@ -1,13 +1,15 @@
+let endpoint = "http://localhost:8080";
+
 export function define(schema: {}){
-  return traverse(schema, "/")
+  return traverse(schema)
 }
 
-function traverse(target: any, path: string) {
+function traverse(target: any, path = "") {
   if(typeof target == "object"){
     const { default: root, ...api } = target;
-    const route: any = root ? newHandler(path) : {};
+    const route: any = root ? newHandler(path + "/") : {};
     for(const key in api)
-      route[key] = traverse(api[key], path + "/" + key)
+      route[key] = traverse(api[key], path + "/" + key);
     return route;
   }
   else
@@ -32,6 +34,8 @@ type RestArgument =
 function fetchJson(url: string, args: RestArgument[]){
   const post = args.length === 1 && typeof args[0] === "object";
 
+  url = endpoint + url;
+
   const body = post 
     ? args[0] as any 
     : args.map(val => {
@@ -45,19 +49,18 @@ function fetchJson(url: string, args: RestArgument[]){
     headers,
     method: "POST",
     cache: "no-cache",
-    body
+    body: JSON.stringify(body)
   } as const;
 
-  return fetch(url, init).then((response: Response) => {
+  return fetch(url, init).then(async (response: Response) => {
     const { status } = response;
 
-    const output = response.json().then(obj => {
-      Object.defineProperty(obj, "statusCode", { value: status })
-      return obj;
-    })
+    const output = await response.json();
 
     if(status >= 300)
       throw output;
+    else if(output.response)
+      return output.response;
     else
       return output;
   })
