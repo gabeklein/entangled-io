@@ -43,11 +43,11 @@ module.exports = class EntangledAPIProxyPlugin {
         compiler.hooks.normalModuleFactory.tap(PLUGINID, (compilation: any) => {
             compilation.hooks.beforeResolve.tap(PLUGINID, (result: any) => {
                 /** 
-                 * Fetch-agent is installed as a dependancy of _this_ module.
+                 * Fetch-agent is installed as a dependancy of this plugin.
                  * Resolve from here so webpack can see it.
                  * */
-                if(result.request == "@entangled/agent"){
-                    result.request = require.resolve("@entangled/agent");
+                if(result.request == "@entangled/fetch"){
+                    result.request = require.resolve("@entangled/fetch");
                     return
                 }
 
@@ -81,8 +81,8 @@ function findAPIParameter(parameterized: any){
 function injectAgent(compiler: any, location: string){
     const fakeURI = path.join(location, "entangled-agent.js");
     const schema = findAPIParameter(collateTypes(location).output);
-    const inject = JSON.stringify(schema);
-    const initContent = `module.exports = require("@entangled/agent").define(${inject})`
+    const injectSchema = JSON.stringify(schema);
+    const initContent = `module.exports = require("@entangled/fetch").define(${injectSchema})`
 
     appendToFilesystem(compiler.inputFileSystem, fakeURI, initContent);
 

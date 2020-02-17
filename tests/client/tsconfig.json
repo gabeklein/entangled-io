@@ -10,6 +10,6 @@
   "references": [
     { "path": "../service" },
     { "path": "../../lib/webpack" },
-    { "path": "../../lib/agent" },
+    { "path": "../../lib/fetch" }
   ]
 }
