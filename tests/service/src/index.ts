@@ -3,13 +3,14 @@ import { serve, listen } from '@entangled/express';
 import * as greetings from "./hello-service"
 
 /**
- * This does sometthing fun
+ * This does something fun
  */
-function something(name: string){
-  return 5
+function echo(quote: string){
+  console.log(quote)
+  return quote;
 }
 
-const api = serve({ greetings, something });
+const api = serve({ echo, greetings });
 
 listen(api, 8080);
 
