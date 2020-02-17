@@ -25,11 +25,13 @@ function applyPath(
   handle: Entangled.DefineRoute, 
   prefix = ""){
 
-  if(typeof handle == "function"){
-    // console.log(`registered ${prefix}`)
+  if(typeof handle == "function")
     app.post(prefix, abstract(handle))
-  }
-  else 
-    for(const name in handle)
-      applyPath(app, handle[name], `${prefix}/${name}`);
+  else
+    for(const name in handle){
+      let route = prefix;
+      if(name !== "default")
+        route += `/${name}`;
+      applyPath(app, handle[name], route);
+    }
 }
