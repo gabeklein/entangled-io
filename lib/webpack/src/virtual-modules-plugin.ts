@@ -8,21 +8,21 @@ import { Compiler } from 'webpack';
 
 import VirtualStats from './virtual-stats';
 
-const PLUGINID = "EntangledVirtualModulePlugin";
-
 export default class EntangledVirtualModulePlugin {
   compiler!: Compiler & { inputFileSystem: any }
   _watcher!: any;
 
   apply(compiler: Compiler){
+    const NAME = this.constructor.name;
+
     this.compiler = compiler;
 
-    compiler.hooks.afterEnvironment.tap(PLUGINID, () => {
+    compiler.hooks.afterEnvironment.tap(NAME, () => {
       if(!("_writeVirtualFile" in compiler.inputFileSystem))
         this.patchFileSystem();
     });
     
-    compiler.hooks.watchRun.tap(PLUGINID, (watcher: any) => {
+    compiler.hooks.watchRun.tap(NAME, (watcher: any) => {
       this._watcher = watcher.compiler || watcher;
     });
   }

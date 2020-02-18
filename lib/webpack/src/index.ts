@@ -4,8 +4,6 @@ import { Compiler } from 'webpack';
 
 import VirtualModulesPlugin from './virtual-modules-plugin';
 
-const PLUGINID = "EntangledAPIProxyPlugin";
-
 export const toArray = <T> (value: T | Array<T>): Array<T> =>
   value ? Array.isArray(value) ? value : [value] : [];
 
@@ -27,10 +25,12 @@ module.exports = class EntangledAPIProxyPlugin {
   }
 
   apply(compiler: Compiler) {
+    const NAME = this.constructor.name;
+
     const { virtual } = this;
     virtual.apply(compiler);
 
-    compiler.hooks.entryOption.tap(PLUGINID, 
+    compiler.hooks.entryOption.tap(NAME, 
       (context: string, entries: any) => {
         
         for(const request of this.remoteModules.keys())
@@ -44,8 +44,8 @@ module.exports = class EntangledAPIProxyPlugin {
       }
     )
 
-    compiler.hooks.normalModuleFactory.tap(PLUGINID, (compilation: any) => {
-      compilation.hooks.beforeResolve.tap(PLUGINID, (result: any) => {
+    compiler.hooks.normalModuleFactory.tap(NAME, (compilation: any) => {
+      compilation.hooks.beforeResolve.tap(NAME, (result: any) => {
         /** 
          * Fetch-agent is installed as a dependancy of this plugin.
          * Resolve from here so webpack can see it.
