@@ -4,82 +4,135 @@ import { Compiler } from 'webpack';
 
 import VirtualModulesPlugin from './virtual-modules-plugin';
 
-export const toArray = <T> (value: T | Array<T>): Array<T> =>
-  value ? Array.isArray(value) ? value : [value] : [];
-
-const typeResolver = require("enhanced-resolve").create.sync({
+/** Customized webpack resolver to look for .d.ts files. */
+const specialResolver = require("enhanced-resolve").create.sync({
   extensions: [".d.ts"],
   mainFields: ["types", "main"],
   resolveToContext: false,
   symlinks: true
 });
 
+type RemoteModule = {
+  location?: string
+  injected?: string
+  watched: Set<string>
+};
+
+interface Options {
+  /** Names of modules to replace with an agent. */
+  modules?: string[]
+}
+
 class ApiReplacementPlugin {
 
-  remoteModules = new Map<string, { location?: string, injected?: string }>();
-  virtual = new VirtualModulesPlugin()
+  /** Simple cache of requires tagged for replacement. */
+  remoteModules = new Map<string, RemoteModule>();
 
-  constructor(options: any){
-    for(const mod of ["@entangled/service"])
-      this.remoteModules.set(mod, {})
+  /** A seperate plugin for adding generated files to bundle. */
+  virtualPlugin = new VirtualModulesPlugin();
+
+  constructor(options: Options = {}){
+    const {
+      modules = []
+    } = options;
+
+    for(const mod of modules)
+      this.remoteModules.set(mod, { watched: new Set() })
+  }
+  
+  generateAgentModule(mod: RemoteModule){
+    const uri = path.join(mod.location!, "entangled-agent.js");
+    const parsed = collateTypes(mod.location!);
+    const injectSchema = JSON.stringify(parsed.output.params[0]);
+    const initContent = `module.exports = require("@entangled/fetch").define(${injectSchema})`
+
+    this.virtualPlugin.writeModule(uri, initContent);
+
+    mod.injected = uri;
+    parsed.cache.forEach(
+      x => mod.watched.add(x.file)
+    );
   }
 
   apply(compiler: Compiler) {
     const NAME = this.constructor.name;
 
-    const { virtual } = this;
-    virtual.apply(compiler);
+    this.virtualPlugin.apply(compiler);
 
-    compiler.hooks.entryOption.tap(NAME, 
-      (context: string, entries: any) => {
-        
-        for(const request of this.remoteModules.keys())
-          try {
-            let resolved = typeResolver(context, request).replace(/\/lib\/index\.[^\\\/]+$/, "")
-            this.remoteModules.get(request)!.location = resolved;
-          }
-          catch(err){
-            throw new Error("Couldn't find types")
-          }
-      }
-    )
+    compiler.hooks.entryOption.tap(NAME, (context) => {
+      this.remoteModules.forEach((mod, request) => {
+        let resolved;
+
+        try {
+          resolved = specialResolver(context, request);
+        }
+        catch(err){
+          console.error(err)
+          throw new Error("Couldn't find types")
+        }
+
+        const resolvedContext = 
+          resolved.replace(/\/lib\/index\.[^\\\/]+$/, "");
+
+        mod.location = resolvedContext;
+      })
+    })
 
     compiler.hooks.normalModuleFactory.tap(NAME, (compilation: any) => {
       compilation.hooks.beforeResolve.tap(NAME, (result: any) => {
-        /** 
-         * Fetch-agent is installed as a dependancy of this plugin.
-         * Resolve from here so webpack can see it.
-         * */
+        /*
+         * API polyfill is installed as a dependancy of this plugin.
+         * Explicitly resolve from here so webpack can bundle it.
+         */
         if(result.request == "@entangled/fetch"){
           result.request = require.resolve("@entangled/fetch");
-          return
+          return;
         }
 
-        if(this.remoteModules!.has(result.request)){
-          let mod = this.remoteModules.get(result.request)!;
+        let mod = this.remoteModules.get(result.request);
 
-          if(!mod.injected){
-            try {
-              const uri = mod.injected = path.join(mod.location!, "entangled-agent.js");
-              const schema = collateTypes(mod.location!).output.params[0];
-              const injectSchema = JSON.stringify(schema);
-              const initContent = `module.exports = require("@entangled/fetch").define(${injectSchema})`
+        if(!mod) return;
 
-              virtual.writeModule(uri, initContent)
-            }
-            catch(err){
-              console.error(err);
-              throw err;
-            }
+        if(!mod.injected)
+          try { this.generateAgentModule(mod) }
+          catch(err){
+            console.error(err);
+            throw err;
           }
-          else
-            console.log("OK yea this gets called more than once.")
 
-          result.request = mod.injected
-        }
+        result.request = mod.injected
       })
     });
+
+    compiler.hooks.afterCompile.tap(NAME, (compilation) => {
+      /* 
+       * Hook is also called by html-webpack-plugin but we want to skip that one.
+       * `compilation.name` is defined by the plugin, so we can bailout.
+       */
+      if((compilation as any).name)
+        return
+
+      this.remoteModules.forEach(mod => {
+        mod.watched.forEach(file => {
+          compilation.fileDependencies.add(file)
+        })
+      })
+    })
+
+    compiler.hooks.watchRun.tap(NAME, (compilation) => {
+      const { watchFileSystem } = compilation as any;
+      const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
+      const filesUpdated = Object.keys(watcher.mtimes);
+
+      this.remoteModules.forEach(mod => {
+        const watchFilesUpdated = 
+          filesUpdated.filter(x => mod.watched.has(x));
+
+        if(watchFilesUpdated.length)
+          this.generateAgentModule(mod);
+      })
+    })
   }
 }
 
-module.exports = ApiReplacementPlugin
+module.exports = ApiReplacementPlugin;

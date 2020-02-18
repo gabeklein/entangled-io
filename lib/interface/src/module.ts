@@ -12,7 +12,7 @@ export class Module {
 
   constructor(
     public root: string,
-    private cache = new Map<string, Module>(),
+    public cache = new Map<string, Module>(),
     paths?: string[]
   ){
     const isFile = /^(.+?)(\.d\.ts)$/.test(root);

@@ -22,7 +22,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({ title: "Teleport Test" }),
-    new ApiReplacementPlugin()
+    new ApiReplacementPlugin({ modules: ["@entangled/service"] })
   ],
   module: {
     rules: [
