@@ -61,7 +61,7 @@ module.exports = class EntangledAPIProxyPlugin {
           if(!mod.injected){
             try {
               const uri = mod.injected = path.join(mod.location!, "entangled-agent.js");
-              const schema = collateTypes(mod.location!).output.parameterized.params[0];
+              const schema = collateTypes(mod.location!).output.params[0];
               const injectSchema = JSON.stringify(schema);
               const initContent = `module.exports = require("@entangled/fetch").define(${injectSchema})`
 
