@@ -14,7 +14,7 @@ const typeResolver = require("enhanced-resolve").create.sync({
   symlinks: true
 });
 
-module.exports = class EntangledAPIProxyPlugin {
+class ApiReplacementPlugin {
 
   remoteModules = new Map<string, { location?: string, injected?: string }>();
   virtual = new VirtualModulesPlugin()
@@ -81,3 +81,5 @@ module.exports = class EntangledAPIProxyPlugin {
     });
   }
 }
+
+module.exports = ApiReplacementPlugin

@@ -1,6 +1,6 @@
 const { resolve } = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const RemoteFunctionReplacementPlugin = require("@entangled/webpack")
+const ApiReplacementPlugin = require("@entangled/webpack")
 
 const currentDir = process.cwd();
 const dir = path => resolve(currentDir, path);
@@ -22,7 +22,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({ title: "Teleport Test" }),
-    new RemoteFunctionReplacementPlugin()
+    new ApiReplacementPlugin()
   ],
   module: {
     rules: [
