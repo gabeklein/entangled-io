@@ -81,7 +81,12 @@ class ApiReplacementPlugin {
           return;
         }
 
-        let mod = this.remoteModules.get(result.request);
+        //TODO improve handling of these requests
+        const match = /^((?:@\w+\/)?\w+)/.exec(result.request);
+
+        if(!match) return;
+
+        let mod = this.remoteModules.get(match[1]);
 
         if(!mod) return;
 
