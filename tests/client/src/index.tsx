@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import ReactDOM from "react-dom"
 
-import { echo } from "@entangled/service";
+import API from "@entangled/service";
 
 window.onload = async () => {
   const container = document.createElement("div");
@@ -14,7 +14,7 @@ const App = () => {
 
   return (
     <div onClick={async () => {
-      const response = await echo("Echo!! Echo!!");
+      const response = await API.echo("Echo!! Echo!!");
       setText(response);
     }}>
       {text}
