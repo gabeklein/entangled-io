@@ -59,7 +59,7 @@ export class Parser {
     for(const spec of node.specifiers){
       const localName = spec.local?.name;
       const importedName = spec.imported?.name ||
-        spec.type === "ImportDefaultSpecifier" ? "default" : "*";
+        (spec.type === "ImportDefaultSpecifier" ? "default" : "*");
 
       this.scope[localName] = external.getter(importedName);
     }
@@ -67,7 +67,7 @@ export class Parser {
 
   TSDeclareFunction(node: any){
     const parent = node.into || this.scope;
-    parent[node.into_as || node.id.name] = "function";
+    parent[node.into_as || node.id.name] = true;
   }
 
   VariableDeclaration(node: any){
@@ -81,6 +81,14 @@ export class Parser {
 
   TSExportAssignment(node: any){
     this.output = this.scope[node.expression.name];
+  }
+
+  ExportAllDeclaration(node: any){
+    const external = this.resolve(node.source.value);
+
+    for(const item in external.output){
+      this.output[item] = external.output[item];
+    }
   }
 
   ExportDefaultDeclaration(node: any){
@@ -120,11 +128,19 @@ export class Parser {
       const key = entry.key.name;
       const target = entry.typeAnnotation.typeAnnotation;
       
-      const value = this.TSTypeAnnotation(target)
+      if(entry.type === "TSMethodSignature"){
+        object[key] = true;
+        continue;
+      }
+      let value = this.TSTypeAnnotation(target)
       if(typeof value == "function")
         setGet(object, key, () => unwrap(value))
-      else
+      else {
+        if(typeof value == "object")
+          value = unwrapObject(value)
+
         object[key] = value;
+      }
     }
   
     return object
@@ -141,7 +157,12 @@ export class Parser {
     const { type } = typeAnnotation;
 
     if(type == "TSTypeQuery"){
-      const { name } = typeAnnotation.exprName;
+      const expr = typeAnnotation.exprName;
+
+      if(expr.type == "TSQualifiedName")
+        return this.TSQualifiedType(expr);
+        
+      const { name } = expr;
       return this.scope[name] || this.closure[name];
     }
   
@@ -166,7 +187,7 @@ export class Parser {
     let value: any;
       
     if(type == "TSTypeReference")
-      value = this.TSTypeReference(typeAnnotation)
+      value = this.TSQualifiedType(typeAnnotation.typeName)
 
     else if(type == "TSImportType"){
       const resolve = flattenQualified(typeAnnotation.qualifier);
@@ -184,9 +205,9 @@ export class Parser {
       return value;
   }
 
-  TSTypeReference(typeAnnotation: any){
-    const [ head, ...rest ] = flattenQualified(typeAnnotation.typeName)
-    const item: any = this.scope[head] | this.closure[head];
+  TSQualifiedType(typeAnnotation: any){
+    const [ head, ...rest ] = flattenQualified(typeAnnotation)
+    const item: any = this.scope[head] || this.closure[head];
     if(typeof item == "function")
       return () => drill(unwrap(item), rest)
     else
@@ -197,7 +218,34 @@ export class Parser {
 function unwrap(x: any){
   while(typeof x === "function")
     x = x()
+
+  if(typeof x == "object")
+    x = unwrapObject(x);
+
   return x;
+}
+
+function unwrapObject(node: { [key: string]: any }){
+  if(node instanceof InterfaceType)
+    return undefined
+
+  const output = {} as any;
+
+  for(const key in node){
+    const value = node[key];
+
+    if(typeof value == "function")
+      setGet(output, key, () => unwrap(value));
+    else if(typeof value == "object")
+      output[key] = unwrapObject(value);
+    else
+      output[key] = value;
+  }
+
+  if(Object.keys(output).length === 0)
+    return undefined;
+  
+  return output;
 }
 
 function drill(from: any, resolve: string[] = []){
