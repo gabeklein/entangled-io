@@ -18,11 +18,6 @@ type RemoteModule = {
   watched: Set<string>
 };
 
-interface Options {
-  /** Names of modules to replace with an agent. */
-  modules?: string[]
-}
-
 class ApiReplacementPlugin {
 
   /** Simple cache of requires tagged for replacement. */
@@ -31,19 +26,16 @@ class ApiReplacementPlugin {
   /** A seperate plugin for adding generated files to bundle. */
   virtualPlugin = new VirtualModulesPlugin();
 
-  constructor(options: Options = {}){
-    const {
-      modules = []
-    } = options;
-
-    for(const mod of modules)
+  constructor(mods: string[] = []){
+    for(const mod of mods)
       this.remoteModules.set(mod, { watched: new Set() })
   }
   
   generateAgentModule(mod: RemoteModule){
     const uri = path.join(mod.location!, "entangled-agent.js");
     const parsed = collateTypes(mod.location!);
-    const injectSchema = JSON.stringify(parsed.output.params[0]);
+    const computed = parsed.output.params[0];
+    const injectSchema = JSON.stringify(computed);
     const initContent = `module.exports = require("@entangled/fetch").define(${injectSchema})`
 
     this.virtualPlugin.writeModule(uri, initContent);
