@@ -9,7 +9,7 @@
   },
   "references": [
     { "path": "../service" },
-    { "path": "../../lib/webpack" },
-    { "path": "../../lib/fetch" }
+    { "path": "../../packages/webpack" },
+    { "path": "../../packages/fetch" }
   ]
 }

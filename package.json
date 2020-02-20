@@ -2,7 +2,7 @@
   "name": "entangled",
   "private": true,
   "workspaces": [
-    "lib/*",
+    "packages/*",
     "tests/*"
   ],
   "scripts": {
