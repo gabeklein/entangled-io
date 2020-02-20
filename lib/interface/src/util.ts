@@ -48,7 +48,7 @@ export function resolveMainTypes(root: string){
   }
 
   if(!pkg)
-    throw new Error("No package JSON found :(")
+    return {}
 
   let { types, main, name } = pkg;
 
