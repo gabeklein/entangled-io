@@ -15,7 +15,7 @@
     "paths": {
       "@entangled/*": [
         "packages/*/src",
-        "tests/*/src"
+        "example/*/src"
       ]
     }
   }

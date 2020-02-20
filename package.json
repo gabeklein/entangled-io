@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "tests/*"
+    "example/*"
   ],
   "scripts": {
     "serve": "yarn workspace @entangled/service start",

@@ -1,6 +1,6 @@
 {
-  "version": "0.0.0",
   "name": "@entangled/service",
+  "version": "0.0.0",
   "private": true,
   "main": "lib/index",
   "license": "ISC",

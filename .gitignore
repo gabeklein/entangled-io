@@ -3,5 +3,5 @@
 **/tsconfig.tsbuildinfo
 **/yarn-error.log
 */*/lib
-tests/client/public
+example/client/public
 .vscode/settings.json
