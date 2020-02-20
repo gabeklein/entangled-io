@@ -1,4 +1,3 @@
-
 export default function greetings(){
   return `Greetings lone traveller!`
 }
