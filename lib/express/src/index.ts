@@ -16,6 +16,19 @@ export function serve<R extends {}>(routes: R){
   return api as unknown as Entangled.API<R>
 }
 
+export function applied<R extends {}>(express: Express, routes: R){
+  applyPath(express, routes);
+  return void 0 as unknown as Entangled.API<R>
+}
+
+export function apply<R extends Entangled.API<any> | {}>(express: Express, routes: R){
+  applyPath(express, routes);
+}
+
+export function cast<R extends {}>(routes: R){
+  return routes as unknown as Entangled.API<R>
+}
+
 export function listen(api: Entangled.API<{}>, port: number){
   return (api as unknown as Express).listen(port);
 }
