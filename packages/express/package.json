@@ -4,7 +4,8 @@
   "main": "lib/index.js",
   "license": "ISC",
   "files": [
-    "/lib"
+    "/lib/*.js",
+    "/lib/*.d.ts"
   ],
   "publishConfig": {
     "access": "public"
