@@ -3,6 +3,9 @@
   "version": "1.0.1-alpha.0",
   "main": "lib/index.js",
   "license": "ISC",
+  "files": [
+    "/lib"
+  ],
   "publishConfig": {
     "access": "public"
   },
