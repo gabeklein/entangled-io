@@ -1,5 +1,5 @@
 import getWorkspace from 'find-yarn-workspace-root';
-import { existsSync, lstatSync } from 'fs';
+import { existsSync, lstatSync, realpathSync } from 'fs';
 import { dirname, resolve } from 'path';
 
 import { Parser } from './parse';
@@ -27,7 +27,7 @@ export class Module {
       const { main, name } = resolveMainTypes(root);
       const workspace = getWorkspace(root)
 
-      this.file = main;
+      this.file = main || "";
       this.name = name;
       this.paths = [root];
 
@@ -61,12 +61,18 @@ export class Module {
       }
     }
     else {
-      const root = this.paths
-        .map(r => resolve(r, "node_modules", request))
-        .find(r => existsSync(r));
+      let root = this.paths
+        .map(r => {
+          r = resolve(r, "node_modules", request);
+          return (existsSync(r) || existsSync(r += ".d.ts") ) && r
+        })
+        .find(r => r);
   
-      if(!root)
+      if(!root){
         throw new Error(`${request} does not resolve to a directory`)
+      }
+
+      root = realpathSync(root);
       
       target = loaded.get(root);
   
@@ -92,6 +98,9 @@ export class Module {
   }
 
   get output(){
+    if(!this.file)
+      return {}
+
     let value = this.parse();
 
     while(typeof value == "function")
