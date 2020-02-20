@@ -3,6 +3,9 @@
   "version": "1.0.0-alpha.0",
   "main": "lib/index.js",
   "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@entangled/fetch": "^1.0.0-alpha.0",
     "@entangled/interface": "^1.0.0-alpha.0",
