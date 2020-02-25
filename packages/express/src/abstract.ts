@@ -11,9 +11,12 @@ function stringifyDates(data: any): any {
   if(Array.isArray(data))
     return data.map(stringifyDates);
 
-  if(typeof data == "object")
+  if(typeof data == "object"){
+    const map = {} as typeof data;
     for(const k in data)
-      data[k] = stringifyDates(data[k])
+      map[k] = stringifyDates(data[k])
+    return map;
+  }
   else
     data = String(data);
 
