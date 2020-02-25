@@ -7,6 +7,9 @@
     "/lib/*.js",
     "/lib/*.d.ts"
   ],
+  "scripts": {
+    "build": "tsc -b"
+  },
   "publishConfig": {
     "access": "public"
   },
