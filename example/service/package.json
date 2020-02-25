@@ -1,6 +1,6 @@
 {
   "name": "@entangled/service",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "private": true,
   "main": "lib/index",
   "license": "ISC",
@@ -14,7 +14,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@entangled/express": "^1.0.0-alpha.4",
+    "@entangled/express": "^1.0.0-alpha.5",
     "@entangled/interface": "^1.0.0-alpha.4",
     "express": "4.17.1"
   }
