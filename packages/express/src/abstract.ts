@@ -2,7 +2,38 @@ import { RequestHandler, Response } from 'express';
 
 import { Internal, RestError, BadInput } from './errors';
 
-const SerializeError = Internal("Resource returned data which could not be serialized", "serialize_error")
+const SerializeError = Internal("Resource returned data which could not be serialized", "serialize_error");
+
+function stringifyDates(data: any): any {
+  if(data instanceof Date)
+    return `${Math.floor(data.getTime() / 1000)}Z`
+
+  if(Array.isArray(data))
+    return data.map(stringifyDates);
+
+  if(typeof data == "object")
+    for(const k in data)
+      data[k] = stringifyDates(data[k])
+  else
+    data = String(data);
+
+  return data;
+}
+
+function parseDates(data: any): any {
+  let match;
+  if(typeof data == "string" && (match = /(\d+)Z/.exec(data)))
+    return new Date(Number(match[1]) * 1000);
+
+  if(Array.isArray(data))
+    return data.map(parseDates);
+
+  if(typeof data == "object")
+    for(const k in data)
+      data[k] = parseDates(data[k])
+      
+  return data;
+}
 
 export function abstract(handler: Function): RequestHandler {
   return async (request, response) => {
@@ -13,6 +44,8 @@ export function abstract(handler: Function): RequestHandler {
         body = []
       else if(Array.isArray(body) ==  false)
         throw BadInput("POST body must be an array")
+
+      body = parseDates(body);
 
       const exec = handler(...body) as any;
       let output = exec instanceof Promise ? await exec : exec;
@@ -52,7 +85,7 @@ function responder(response: Response, status: number, content: any){
     content = { response: content };
   }
   
-  response.json(content)
+  response.json(stringifyDates(content))
 }
 
 export const handle404: RequestHandler = 

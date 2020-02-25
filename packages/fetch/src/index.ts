@@ -1,3 +1,34 @@
+function stringifyDates(data: any): any {
+  if(data instanceof Date)
+    return `${Math.floor(data.getTime() / 1000)}Z`
+
+  if(Array.isArray(data))
+    return data.map(stringifyDates);
+
+  if(typeof data == "object")
+    for(const k in data)
+      data[k] = stringifyDates(data[k])
+  else
+    data = String(data);
+
+  return data;
+}
+
+function parseDates(data: any): any {
+  let match;
+  if(typeof data == "string" && (match = /(\d+)Z/.exec(data)))
+    return new Date(Number(match[1]) * 1000);
+
+  if(Array.isArray(data))
+    return data.map(parseDates);
+
+  if(typeof data == "object")
+    for(const k in data)
+      data[k] = parseDates(data[k])
+      
+  return data;
+}
+
 let endpoint = "http://localhost:8080";
 
 export function define(schema: {}){
@@ -36,13 +67,7 @@ async function fetchJson(url: string, args: RestArgument[]){
 
   url = endpoint + url;
 
-  const body =
-    args.map(val => {
-      if(val instanceof Date)
-        return `Z${val.getTime() / 1000}`
-      else 
-        return String(val)
-    })
+  const body = stringifyDates(args);
 
   const init = {
     headers,
@@ -54,7 +79,7 @@ async function fetchJson(url: string, args: RestArgument[]){
   const response = await fetch(url, init)
 
   const { status } = response;
-  const output = await response.json();
+  const output = await response.json().then(parseDates);
 
   if(status >= 300)
     throw output;
