@@ -31,14 +31,13 @@ type RestArgument =
   | number
   | Date
 
-function fetchJson(url: string, args: RestArgument[]){
-  const post = args.length === 1 && typeof args[0] === "object";
+async function fetchJson(url: string, args: RestArgument[]){
+  // const post = args.length === 1 && typeof args[0] === "object";
 
   url = endpoint + url;
 
-  const body = post 
-    ? args[0] as any 
-    : args.map(val => {
+  const body =
+    args.map(val => {
       if(val instanceof Date)
         return `Z${val.getTime() / 1000}`
       else 
@@ -52,16 +51,15 @@ function fetchJson(url: string, args: RestArgument[]){
     body: JSON.stringify(body)
   } as const;
 
-  return fetch(url, init).then(async (response: Response) => {
-    const { status } = response;
+  const response = await fetch(url, init)
 
-    const output = await response.json();
+  const { status } = response;
+  const output = await response.json();
 
-    if(status >= 300)
-      throw output;
-    else if(output.response)
-      return output.response;
-    else
-      return output;
-  })
+  if(status >= 300)
+    throw output;
+  else if(output.response)
+    return output.response;
+  else
+    return output;
 }
