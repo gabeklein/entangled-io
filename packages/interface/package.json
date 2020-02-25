@@ -1,6 +1,6 @@
 {
   "name": "@entangled/interface",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "main": "lib/index.js",
   "license": "ISC",
   "publishConfig": {
