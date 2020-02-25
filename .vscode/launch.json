@@ -5,7 +5,7 @@
       "type": "node",
       "request": "launch",
       "name": "Run Service",
-      "cwd": "${workspaceFolder}/tests/service",
+      "cwd": "${workspaceFolder}/example/service",
       "runtimeArgs": [
         "--nolazy",
         "-r", "source-map-support/register", 
@@ -16,7 +16,7 @@
       "type": "node",
       "request": "launch",
       "name": "Run Parser",
-      "cwd": "${workspaceFolder}/lib/interface",
+      "cwd": "${workspaceFolder}/packages/interface",
       "runtimeArgs": [
         "--nolazy", 
         "-r", "source-map-support/register", 
@@ -27,7 +27,7 @@
       "type": "node",
       "request": "launch",
       "name": "Run Webpack",
-      "cwd": "${workspaceFolder}/tests/client",
+      "cwd": "${workspaceFolder}/example/client",
       "program": "${workspaceFolder}/node_modules/webpack-dev-server/bin/webpack-dev-server.js",
       "console": "externalTerminal",
       "runtimeArgs": [
