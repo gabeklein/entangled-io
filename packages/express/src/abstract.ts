@@ -2,6 +2,8 @@ import { RequestHandler, Response } from 'express';
 
 import { Internal, RestError, BadInput } from './errors';
 
+const { DEBUG_ENDPOINTS } = process.env;
+
 const SerializeError = Internal("Resource returned data which could not be serialized", "serialize_error");
 
 function stringifyDates(data: any): any {
@@ -68,6 +70,9 @@ export function abstract(handler: Function): RequestHandler {
         });
 
       else {
+        if(DEBUG_ENDPOINTS)
+          debugger
+          
         responder(response, 500, err);
         throw err;
       }
