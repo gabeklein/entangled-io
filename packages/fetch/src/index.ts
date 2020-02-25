@@ -16,7 +16,7 @@ function stringifyDates(data: any): any {
 
 function parseDates(data: any): any {
   let match;
-  if(typeof data == "string" && (match = /(\d+)Z/.exec(data)))
+  if(typeof data == "string" && (match = /^(\d+)Z$/.exec(data)))
     return new Date(Number(match[1]) * 1000);
 
   if(Array.isArray(data))
