@@ -41,7 +41,7 @@ export function define(schema: {}){
 function traverse(target: any, path = "") {
   if(typeof target == "object"){
     const { default: root, ...api } = target;
-    const route: any = root ? newHandler(path + "/") : {};
+    const route: any = root ? newHandler(path) : {};
     for(const key in api)
       route[key] = traverse(api[key], path + "/" + key);
     return route;
@@ -51,7 +51,12 @@ function traverse(target: any, path = "") {
 }
 
 function newHandler(path: string){
-  return (...args: any[]) => fetchJson(path, args)
+  const h = (...args: any[]) => fetchJson(path, args);
+  const base = /\/?(\w+)$/.exec(path);
+  if(base && base[1])
+    Object.defineProperty(h, "name", { value: base[1] })
+  h.path = path;
+  return h;
 }
 
 const headers = {
