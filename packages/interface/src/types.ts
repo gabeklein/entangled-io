@@ -2,21 +2,23 @@ export namespace Entangled {
   type HavingDefault = { default: Fn };
 
   type Fn = (...args: any[]) => any;
-  type AsyncFn = (...args: any[]) => Promise<any>;
 
-  type ArgumentsOf<T> = T extends (... args: infer U ) => infer R ? U: never;
-  type RemoteSync<F extends Fn> = (...args: ArgumentsOf<F>) => Promise<ReturnType<F>>
+  type ArgumentsOf<T> = T extends (... args: infer U ) => infer R ? U : never;
 
   type Item<T> = 
-    T extends AsyncFn ? T :
-    T extends Fn ? RemoteSync<T> :
+    T extends Fn ? RemoteCallable<T> :
     T extends {} ? API<T> : 
     never;
+
+  export type RemoteCallable<F extends Fn> = {
+    (...args: ArgumentsOf<F>): Promise<ReturnType<F>>;
+    path: string;
+  }
 
   export type Namespace<T extends {}> = { readonly [P in keyof T]: Item<T[P]> };
 
   export type CallableNamespace<T extends HavingDefault> = 
-    RemoteSync<T["default"]> & 
+    RemoteCallable<T["default"]> & 
     Namespace<Omit<T, "default">>
 
   export type DefineRoute = 
