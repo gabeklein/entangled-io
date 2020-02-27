@@ -1,4 +1,11 @@
-function stringifyDates(data: any): any {
+let endpoint = "http://localhost:8080";
+
+try {
+  const ep = process.env.ENDPOINT;
+  if(ep) endpoint = ep;
+}
+catch(err){}
+
   if(data instanceof Date)
     return `${Math.floor(data.getTime() / 1000)}Z`
 
@@ -31,8 +38,6 @@ function parseDates(data: any): any {
       
   return data;
 }
-
-let endpoint = "http://localhost:8080";
 
 export function define(schema: {}){
   return traverse(schema)
