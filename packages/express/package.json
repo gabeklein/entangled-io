@@ -1,6 +1,6 @@
 {
   "name": "@entangled/express",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.8",
   "main": "lib/index.js",
   "license": "ISC",
   "files": [
@@ -15,7 +15,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@entangled/interface": "^1.0.0-alpha.6",
+    "@entangled/interface": "^1.0.0-alpha.8",
     "express": "4.17.1"
   },
   "devDependencies": {
