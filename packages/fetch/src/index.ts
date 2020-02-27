@@ -6,16 +6,23 @@ try {
 }
 catch(err){}
 
+function format(data: any): any {
   if(data instanceof Date)
     return `${Math.floor(data.getTime() / 1000)}Z`
+    
+  if(typeof data == "function")
+    return undefined;
+
+  if(data === null)
+    return null;
 
   if(Array.isArray(data))
-    return data.map(stringifyDates);
+    return data.map(format);
 
   if(typeof data == "object"){
     const map = {} as typeof data;
     for(const k in data)
-      map[k] = stringifyDates(data[k])
+      map[k] = format(data[k])
     return map;
   }
   else
@@ -24,17 +31,17 @@ catch(err){}
   return data;
 }
 
-function parseDates(data: any): any {
+function parse(data: any): any {
   let match;
   if(typeof data == "string" && (match = /^(\d+)Z$/.exec(data)))
     return new Date(Number(match[1]) * 1000);
 
   if(Array.isArray(data))
-    return data.map(parseDates);
+    return data.map(parse);
 
   if(typeof data == "object")
     for(const k in data)
-      data[k] = parseDates(data[k])
+      data[k] = parse(data[k])
       
   return data;
 }
@@ -80,7 +87,7 @@ async function fetchJson(url: string, args: RestArgument[]){
 
   url = endpoint + url;
 
-  const body = stringifyDates(args);
+  const body = format(args);
 
   const init = {
     headers,
@@ -92,7 +99,7 @@ async function fetchJson(url: string, args: RestArgument[]){
   const response = await fetch(url, init)
 
   const { status } = response;
-  const output = await response.json().then(parseDates);
+  const output = await response.json().then(parse);
 
   if(status >= 300)
     throw output;

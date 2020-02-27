@@ -6,17 +6,23 @@ const { DEBUG_ENDPOINTS } = process.env;
 
 const SerializeError = Internal("Resource returned data which could not be serialized", "serialize_error");
 
-function stringifyDates(data: any): any {
+function format(data: any): any {
   if(data instanceof Date)
     return `${Math.floor(data.getTime() / 1000)}Z`
+    
+  if(typeof data == "function")
+    return undefined;
+
+  if(data === null)
+    return null;
 
   if(Array.isArray(data))
-    return data.map(stringifyDates);
+    return data.map(format);
 
   if(typeof data == "object"){
     const map = {} as typeof data;
     for(const k in data)
-      map[k] = stringifyDates(data[k])
+      map[k] = format(data[k])
     return map;
   }
   else
@@ -25,17 +31,17 @@ function stringifyDates(data: any): any {
   return data;
 }
 
-function parseDates(data: any): any {
+function parse(data: any): any {
   let match;
   if(typeof data == "string" && (match = /^(\d+)Z$/.exec(data)))
     return new Date(Number(match[1]) * 1000);
 
   if(Array.isArray(data))
-    return data.map(parseDates);
+    return data.map(parse);
 
   if(typeof data == "object")
     for(const k in data)
-      data[k] = parseDates(data[k])
+      data[k] = parse(data[k])
       
   return data;
 }
@@ -50,7 +56,7 @@ export function abstract(handler: Function): RequestHandler {
       else if(Array.isArray(body) ==  false)
         throw BadInput("POST body must be an array")
 
-      body = parseDates(body);
+      body = parse(body);
 
       const exec = handler(...body) as any;
       let output = exec instanceof Promise ? await exec : exec;
@@ -93,7 +99,8 @@ function responder(response: Response, status: number, content: any){
     content = { response: content };
   }
   
-  response.json(stringifyDates(content))
+  debugger
+  response.json(format(content))
 }
 
 export const handle404: RequestHandler = 
