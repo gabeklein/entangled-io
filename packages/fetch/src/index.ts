@@ -25,8 +25,6 @@ function format(data: any): any {
       map[k] = format(data[k])
     return map;
   }
-  else
-    data = String(data);
 
   return data;
 }

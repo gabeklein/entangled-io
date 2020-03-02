@@ -25,8 +25,6 @@ function format(data: any): any {
       map[k] = format(data[k])
     return map;
   }
-  else
-    data = String(data);
 
   return data;
 }
@@ -99,7 +97,6 @@ function responder(response: Response, status: number, content: any){
     content = { response: content };
   }
   
-  debugger
   response.json(format(content))
 }
 
