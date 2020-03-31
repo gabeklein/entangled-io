@@ -29,8 +29,20 @@ export function cast<R extends {}>(routes: R){
   return routes as unknown as Entangled.API<R>
 }
 
-export function listen(api: Entangled.API<{}>, port: number){
-  return (api as unknown as Express).listen(port);
+export function listen(api: Entangled.API<{}>, port: number | string){
+  const surface = api as any;
+
+  if(surface instanceof express)
+    return (surface as any).listen(port);
+  else {
+    const app = express();
+  
+    app.use(origin())
+    app.use(json());
+
+    applyPath(app, api);
+    app.listen(port)
+  }
 }
 
 function applyPath(
