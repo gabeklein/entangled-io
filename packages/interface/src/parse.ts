@@ -112,7 +112,7 @@ export class Parser {
       const external = this.resolve(node.source.value);
       for(const spec of node.specifiers)
         this.output[spec.exported.name] =
-          external.getter(spec.local.name);
+          external.getter(spec.local && spec.local.name || "*");
     }
     else {
       for(const spec of node.specifiers)
