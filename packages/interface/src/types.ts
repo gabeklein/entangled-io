@@ -4,15 +4,16 @@ export namespace Entangled {
   type Fn = (...args: any[]) => any;
 
   type ArgumentsOf<T> = T extends (... args: infer U ) => infer R ? U : never;
-
+  type PromiseOf<T> = T extends Promise<any> ? T : Promise<T>
+  
   type Item<T> = 
     T extends Fn ? RemoteCallable<T> :
     T extends {} ? API<T> : 
     never;
 
-  export type RemoteCallable<F extends Fn> = {
-    (...args: ArgumentsOf<F>): Promise<ReturnType<F>>;
-    path: string;
+  export interface RemoteCallable<F extends Fn> {
+    (...args: ArgumentsOf<F>): PromiseOf<ReturnType<F>>
+    path: string
   }
 
   export type Namespace<T extends {}> = { readonly [P in keyof T]: Item<T[P]> };
