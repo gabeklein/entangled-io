@@ -48,24 +48,24 @@ It takes very little to get up and running, start by linking your node-app using
 While there are better ways to structure your app, we'll cram everything into just one file for now.
 
 ```typescript
-// Import the appropriate REST helper for whatever platform you are using.
+/* Import the appropriate REST helper for whatever platform you are using. */
 
 import Interface from '@entangled/express';
 
-// Define functions to do or return whatever you like.
+/* Define functions to do or return whatever you like. */
 
 async function sayHi(name = "World"){
   return `Hello ${name}!`
 }
 
-// Create resources via a map (object) of those functions;
-// you can organize them too, into routes, using nested objects.
+/* Create resources via a map (object) of those functions;
+   you can organize them too, into routes, using nested objects. */
 
 const api = new Interface({ sayHi });
 
-// Expose the resulting interface as an endpoint for use during runtime.
-// Here `listen` will create the Express instance for you (and bind to "/")
-// Entanged can also be spread into an existing express app though!
+/* Expose the resulting interface as an endpoint for use during runtime.
+   Here `listen` will create the Express instance for you (and bind to "/")
+   Entanged can also be spread into an existing express app though! */
 
 api.listen(8080); 
 
@@ -95,24 +95,24 @@ module.exports = {
 > `my-app/app.tsx`
 
 ```tsx
-// Import the interface we created.
+/* Import the interface we created. */
 
 import API from "my-service"
 
 async function sayHello(e: MouseEvent){
   const name = prompt("What is your name?", "World");
 
-  // Call and await the request like you would any other thenable.
-  // It will `fetch` your corresponding resource (invoking the function) under the hood. ⚡️
+  /* Call and await the request like you would any other thenable.
+     It will `fetch` your corresponding resource (invoking the function) under the hood. ⚡️ */
 
   let response = await API.sayHi(name);
 
-  // Oh, and when using TS, you'll notice you still have 
-  // the signature `sayHi(name?: string): Promise<string>`!
+  /* Oh, and when using TS, you'll notice you still have 
+     the signature `sayHi(name?: string): Promise<string>`! */
 
   e.currentTarget.innerText = `Server said: ${response}`;
 
-  // Enjoy your day 
+  /* Enjoy your day */
 }
 
 export default () => (
