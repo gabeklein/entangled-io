@@ -103,7 +103,7 @@ async function sayHello(e: MouseEvent){
   const name = prompt("What is your name?", "World");
 
   /* Call and await the request like you would any other thenable.
-     It will `fetch` your corresponding resource (invoking the function) under the hood. ⚡️ */
+     It will `fetch` your corresponding resource (invoking the function) under the hood. */
 
   let response = await API.sayHi(name);
 
@@ -112,7 +112,7 @@ async function sayHello(e: MouseEvent){
 
   e.currentTarget.innerText = `Server said: ${response}`;
 
-  /* Enjoy your day */
+  /* Enjoy your day 🙂 */
 }
 
 export default () => (
