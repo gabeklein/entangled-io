@@ -1,4 +1,4 @@
-<br/>
+
 <h1 align="center">Engangled ⇝ IO</h1>
 
 <p align="center">Spooky <code>action()</code> at a distance. 🧙‍♂️</p>
@@ -10,18 +10,17 @@
 <br/>
 
 <p align="center">Entangled-IO is a set of developer tools designed to bridge the gap between client and server applications written in typescript. With simple helpers on the backend, and webpack-plugin on the front, you can effectively call server-side functions as if they were defined locally within your apps in the field.</p>
-
 <br/>
 
 ## Installation
 
-> For your server application, using express.
+> For a server application, using express.
 ```
 npm install @entangled/express
 npm link
 ```
 
-> For your client application, using webpack.
+> For a client application, using webpack.
 ```
 npm install @entangled/webpack
 npm link my-service
@@ -40,9 +39,9 @@ For linked projects, this technique uses webpack to scan a client build for what
 ### TL;DR
 
 - Call remote business logic directly from the client
-- Skip explicitly writing REST handlers for your server
+- Skip explicitly writing REST handlers for your service
 - Access resources as functions, not requests
-- No need to pack or unpack complex data
+- No need to pack or unpack complex data sets
   > Arguments and returned data are serialized and reassembed for you on both sides, so deeply nested objects and arrays are always safe and easy to send and recieve. <br/>
 - Special objects don't need to be stringified
   > Handing off `Date` for instance has always been tedius, but here it's automatic. <br/>
@@ -51,11 +50,11 @@ For linked projects, this technique uses webpack to scan a client build for what
 - **Type signatures are preserved!** 
   > Because you simply "import" actual server functions, your IDE remains aware of their signature, so autocomplete and error detection won't have any blind-spots. 👀
 - Errors thrown by the server (in development) are merged with ones consequently thrown on the client
-  > Sometimes, it can be inconvenient or even impossible to inspect console output from where your functions are running, such as within a container or part of a cluster. This helps make that a non-issue. <br/><sub>&nbsp;(TBR, but I'm working on it!)</sub>
+  > Sometimes, it can be inconvenient or even impossible to inspect console output from where your functions are running, such as within a container or part of a cluster. This helps make that a non-issue. <br/><sub>&nbsp;(TBD, but I'm working on it!)</sub>
 
 <br/>
 
-Ultimately, you can focus more on the business logic of your stack, rather than the api itself. <br/> This way, both can grow organically with little in the way of debugging and type maintainance.
+Ultimately, you can focus more on the business logic of your stack, rather than on the api itself. <br/> This way, both can grow organically with little in the way of debugging or type maintainance.
 
 <br/>
 
@@ -103,7 +102,7 @@ const api = new Interface({ sayHi });
 
 api.listen(8080); 
 
-/* Lastly, expose the generated namespace for consumers to access. */
+/* Lastly, export the generated namespace for consumer projects to access. */
 
 export = api; 
 ```
@@ -125,7 +124,9 @@ Now on to the app. Add your service as a **dev-dependancy** and remember to `lin
 
 <br/>
 
-Add the entangled replacement-plugin to webpack; passing in the name of any imports exposing an API.
+Add the entangled replacement-plugin to webpack; passing in the name of any imports exposing an API.<br/>
+By default, the `domain`, `protocal`, `port`, and `basename` are derived from `env.ENDPOINT`.<br/> 
+Use `EnvironmentPlugin`
 
 > `my-app/webpack.config.js`
 
@@ -134,14 +135,15 @@ const ApiReplacementPlugin = require("@entangled/webpack");
 
 module.exports = {
   plugins: [
-    new ApiReplacementPlugin(["my-service"])
+    new ApiReplacementPlugin(["my-service"]),
+    new EnvironmentPlugin({ ENDPOINT: "http://localhost:8080/" })
   ]
 }
 ```
 
 <br/>
 
-Now you can import and use your server-side functions ✌️locally ✌️!
+You can now import and use your server functions, on the client, ✌️locally ✌️!
 
 > `my-app/app.tsx`
 
@@ -173,11 +175,11 @@ export default () => (
 ```
 <br/>
 
-> Note: [`esModuleInterop`](https://stackoverflow.com/a/56348146) is set to true for this module, which substitues `*` for `default`. <br/> You might like to destructure your functions/routes instead, which should be the norm for larger API's.
+> Note: [`esModuleInterop`](https://stackoverflow.com/a/56348146) is set to true for this module, which substitues `*` for `default`. <br/> You might want to destructure your functions/routes instead though, which should be the norm for larger API's anyway.
 
 <br/>
 
-And that's it!
+And that's it! Click the button and "Hello Moto"!
 
 <br/>
 
