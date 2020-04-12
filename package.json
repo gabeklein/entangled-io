@@ -1,10 +1,5 @@
 {
-  "name": "entangled",
-  "private": true,
-  "workspaces": [
-    "packages/*",
-    "example/*"
-  ],
+  "name": "entangled-io",
   "scripts": {
     "serve": "yarn workspace @entangled/service start",
     "watch": "yarn workspace @entangled/client watch"
