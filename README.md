@@ -30,9 +30,9 @@ npm link my-service
 
 ## Base Concept
 
-Entangled, when paired in a client and server app using typescript, abstracts away matters of transport. At build time, it will generate matching resources and adaptors for you, following a simple map of functions you'd define anyway in your business logic. 
+Entangled, when paired in a client and server app using typescript, abstracts away matters of transport. At build time, it will generate matching resources and adaptors for you, following a simple map of functions you'd define anyway for your business logic. 
 
-For linked projects, this technique uses webpack to scan a client build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). Instead, your app knows to fetch from an endpoint, resources which proxy your actual functions. 
+For linked projects, this technique uses webpack to scan a client build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). Instead, your app knows to fetch from an endpoint, resources which proxy the actual functions requested. 
 
 *This makes interop essencially free; masquerading as easy-to-use async functions.*
 
@@ -45,12 +45,12 @@ For linked projects, this technique uses webpack to scan a client build for what
   > Arguments and returned data are serialized and reassembed for you on both sides, so deeply nested objects and arrays are always safe and easy to send and recieve. <br/>
 - Special objects don't need to be stringified
   > Handing off `Date` for instance has always been tedius, but here it's automatic. <br/>
-  > No more `let d = date && new Date(date);` nonsense! <br/>
+  > No more `let d = date && new Date(date);` nonsense. <br/>
   > `Map` & `Set` are also in the works; arbitary class types too eventually.
 - **Type signatures are preserved!** 
-  > Because you simply "import" actual server functions, your IDE remains aware of their signature, so autocomplete and error detection won't have any blind-spots. 👀
-- Errors thrown by the server (in development) are merged with ones consequently thrown on the client
-  > Sometimes, it can be inconvenient or even impossible to inspect console output from where your functions are running, such as within a container or part of a cluster. This helps make that a non-issue. <br/><sub>&nbsp;(TBD, but I'm working on it!)</sub>
+  > Because you simply "import" actual server functions, your IDE remains aware of their signature, and so covers typical blind-spots for autocomplete and error detection. 👀
+- Errors thrown by the server (in development) are merged with ones thrown on the client
+  > Sometimes, it can be inconvenient or even impossible to inspect console output from where your functions are running, such as within a container or serverless environment. This make that a non-issue via shared stack-trace. <br/><sub>&nbsp;(TBD, but I'm working on it!)</sub>
 
 <br/>
 
@@ -125,13 +125,14 @@ Now on to the app. Add your service as a **dev-dependancy** and remember to `lin
 <br/>
 
 Add the entangled replacement-plugin to webpack; passing in the name of any imports exposing an API.<br/>
-By default, the `domain`, `protocal`, `port`, and `basename` are derived from `env.ENDPOINT`.<br/> 
-Use `EnvironmentPlugin`
+<blockqu>By default, the target `domain`, `protocal`, `port`, and `root` are derived from the environment var `ENDPOINT`.<br/> 
+Use <code><a href="https://webpack.js.org/plugins/environment-plugin/">EnvironmentPlugin</a></code> to inject that into your build. (We'll also define a default value just for kicks.)</blockqu>
 
 > `my-app/webpack.config.js`
 
 ```js
 const ApiReplacementPlugin = require("@entangled/webpack");
+const { EnvironmentPlugin } = require("webpack")
 
 module.exports = {
   plugins: [
@@ -143,7 +144,7 @@ module.exports = {
 
 <br/>
 
-You can now import and use your server functions, on the client, ✌️locally ✌️!
+That's it! You can go ahead use your server functions, on the client, as easy imports.
 
 > `my-app/app.tsx`
 
@@ -179,27 +180,26 @@ export default () => (
 
 <br/>
 
-And that's it! Click the button and "Hello Moto"!
+Click the button and "Hello Moto" 😎
 
 <br/>
 
 ## So why does this work?
 
-This works because, having crawled your provided functions, `@entangled/express` defined the route: <br>
-`POST //host:8080/sayhi` on whatever backend you've setup.
+This works because, having crawled the functions you provide, `@entangled/express` defined the route: <br>
+`POST //host:8080/sayhi` on whatever backend you would setup.
 
 At the same time, a copy of `@entangled/client` was injected in place of `my-service`, exporting `*` which contains
 ```ts
 { sayHi: (name?: string) => Promise<string> }
 ```
 
-When called, the runtime goes to work to bundle and send your arguments (if any) to a matching resource.
+When called, the runtime goes to work to bundle and send your arguments (if any) to a matching route.
 
 If all goes well, your Express backend receives the request, to then reformat and `apply` to your original function. <br/> 
 Much the same occures for the response, and *voila* the client's promise resolves the returned value!
 
-And all of your glue-code? 👋`⤵`<br/> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+And all of your glue-code: `⤵`<br/> 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
