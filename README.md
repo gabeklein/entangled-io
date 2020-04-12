@@ -46,8 +46,8 @@ This is uses webpack to scan your build for usages of what would otherwise be [i
 - Special objects do not need to be stringified either. Handing off `Date` for instance has always been super tedius, but here it's handled and efficiently too. <br/> Finally, `date && new Date(date)` can go the way of the dodo.
   > `Map` & `Set` are in the works, arbitary class types too eventually.
 - **Type signatures are preserved!** Because you're "importing" server functions, your IDE remains aware of interfaces, so autocomplete and error checking won't have blind-spots. 😭
-- Errors thrown by the server (in development) are added to the stack trace, consequently thrown on client-side. 
-  > Sometimes, it can be inconvenient or even impossible to view the console output from where your functions are actually running, such as in a container or in a cluster. This helps make that a non-issue. <sub>&nbsp;(It's unstable, but I'm working on it!)</sub>
+- Errors thrown by the server (during development) are added to the stack trace, consequently thrown on client-side. 
+  > Sometimes, it can be inconvenient or even impossible to inspect console output from where your functions are actually running, such as in a container or part of a cluster. This helps make that a non-issue. <sub>&nbsp;(It's unstable, but I'm working on it!)</sub>
 
 Ultimately, this lets you focus on the business logic of your app, rather than the api. <br/> That way, it can grow swiftly and organically with little in the way of debugging over type inconsistencies.
 
@@ -163,8 +163,7 @@ When called, the runtime goes to work to bundle and send your arguments (if any)
 If all goes well, Express receives the request, to parse and forward to your original function. <br/> 
 The inverse occures for the response, and *voila* the client's promise resolves the returned value!
 
-And all of your glue-code? 👋`⤵` 
-&nbsp;&nbsp;&nbsp;&nbsp;<sub>(bye)</sub><br/> 
+And all of your glue-code? 👋`⤵`<br/> 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -181,11 +180,11 @@ And all of your glue-code? 👋`⤵`
 
 ### `@entangled/webpack`
 
-> Add this plugin to your webpack build to consume some dependancy (better put, a devDependancy) as a remote module. Webpack wil scan that import for type definitions `d.ts` of your server module. An adaptor is then injected which will mirror the exports of your "fake" import using `fetch` calls, all to appropriate resources corresponding to your functions.
+> This plugin lets webpack consume some dependancy (better put, a devDependancy) as a remote module. Webpack wil scan that import for type definitions `d.ts` of your server module. An adaptor is then injected which will replace those exports using `fetch` calls, all to resources corresponding to those functions.
 
 ### `@entangled/fetch`
 
-> A client adaptor for your browser app. Webpack relies on this for serialization and to plug-in to the real endpoint exposing your exported functions for use.
+> A client adaptor for your browser apps. Webpack relies on this for serialization and to plug-in to the real endpoint exposing your exported functions for use.
 
 ### `@entangled/interface`
 
@@ -193,7 +192,7 @@ And all of your glue-code? 👋`⤵`
 
 ### `@entangled/express`
 
-> Consuming an arbitarily deep map of functions, this plugin (specifically for express apps) will expose those functions as REST endpoints for the client-adaptor to bind to at run-time.
+> Consuming an arbitarily deep map of functions, this plugin (specifically for express apps) will expose those functions as an endpoint for the client-adaptor to bind to at run-time.
 
 
 <br/>
