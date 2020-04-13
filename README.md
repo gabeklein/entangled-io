@@ -85,7 +85,7 @@ Let's make us a sever which can say hi.  ✌️
 
 import Interface from '@entangled/express';
 
-/* Define your functions to do or return whatever you like. */
+/* Define functions to do or return whatever you like. */
 
 async function sayHi(name = "World"){
   return `Hello ${name}!`
@@ -102,7 +102,7 @@ const api = new Interface({ sayHi });
 
 api.listen(8080); 
 
-/* Lastly, export the generated namespace for consumer projects to access. */
+/* Lastly, export an attached namespace for consumer projects to access. */
 
 export = api; 
 ```
