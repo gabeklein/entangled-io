@@ -125,8 +125,6 @@ Now on to the client. Add your service as a **dev-dependancy** and remember to l
 <br/>
 
 Next, add the entangled replacement-plugin to webpack; passing in the name of any import exposing an API.<br/>
-<blockqu>By default, the endpoint `domain`, `protocol`, `port`, and `relative-root` are derived from the environment var `ENDPOINT`.<br/> 
-Use <code><a href="https://webpack.js.org/plugins/environment-plugin/">EnvironmentPlugin</a></code> to inject that into your build as well. (We'll also define a default value for it just for kicks)</blockqu>
 
 > `my-app/webpack.config.js`
 
@@ -141,6 +139,8 @@ module.exports = {
   ]
 }
 ```
+<blockquote>By default, the endpoint `protocol`, `domain`, `port`, and `root` are derived from <code>env.ENDPOINT</code>.<br/> 
+Use <code><a href="https://webpack.js.org/plugins/environment-plugin/">EnvironmentPlugin</a></code> to inject that into your build as well. (We provide a default value too, in this example.)</blockquote>
 
 <br/>
 
@@ -255,4 +255,6 @@ MIT
 
 ## Contributions
 
-<sub>plz.</sub>
+<sub>PR's are welcome, or email me if you want to be more involved, I'd love to have help.</sub>
+
+<br/>
