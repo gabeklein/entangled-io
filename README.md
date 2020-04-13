@@ -76,7 +76,7 @@ The following is pretty much all you'll need to implement a simple round trip be
 
 <br/>
 
-<big><b>1.</b></big> &nbsp; Make a sever which can say hi.  ✌️
+<b>1.</b> &nbsp; Make a sever which can say hi.  ✌️
 
 > `my-service/index.ts`
 
@@ -109,7 +109,7 @@ export = api;
 
 <br/>
 
-<big><b>2.</b></big> &nbsp; On to the client; add your service as a **dev-dependancy** and remember to link it!
+<b>2.</b> &nbsp; On to the client; add your service as a **dev-dependancy** and remember to link it!
 
 > `my-app/package.json`
 
@@ -124,7 +124,7 @@ export = api;
 
 <br/>
 
-<big><b>3.</b></big> &nbsp; Add the entangled replacement-plugin to webpack; passing in the name of any modules exporting an Interface.<br/>
+<b>3.</b> &nbsp; Add the entangled replacement-plugin to webpack; passing in the name of any modules exporting an Interface.<br/>
 
 > `my-app/webpack.config.js`
 
@@ -145,7 +145,7 @@ Use <code><a href="https://webpack.js.org/plugins/environment-plugin/">Environme
 
 <br/>
 
-<big><b>4.</b></big> &nbsp; You now have everything you need, to access server functions on the client! Just import away. ✨
+<b>4.</b> &nbsp; You now have everything you need, to access server functions on the client! Just import away. ✨
 
 > `my-app/demo.tsx`
 
@@ -180,7 +180,7 @@ export default () => (
 
 <br/>
 
-<big><b>5.</b></big> &nbsp;  Host and Click. "*Server said Hello Moto*" 😎
+<b>5.</b> &nbsp;  Host and Click. "*Server said Hello Moto*" 😎
 
 <br/>
 
