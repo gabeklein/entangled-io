@@ -124,13 +124,13 @@ Now on to the client. Add your service as a **dev-dependancy** and remember to l
 
 <br/>
 
-Next, add the entangled replacement-plugin to webpack; passing in the name of any import exposing an API.<br/>
+Next, add the entangled replacement-plugin to webpack; passing in the name of any modules exporting an Interface.<br/>
 
 > `my-app/webpack.config.js`
 
 ```js
+const { EnvironmentPlugin } = require("webpack");
 const ApiReplacementPlugin = require("@entangled/webpack");
-const { EnvironmentPlugin } = require("webpack")
 
 module.exports = {
   plugins: [
