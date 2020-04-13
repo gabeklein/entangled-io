@@ -30,21 +30,21 @@ npm link my-service
 
 ## Abstract
 
-Entangled, when paired in a client and server app using typescript, fully abstracts matters of transport. At build time, it will generate for you matching resources and HTTP adaptors, following a map of functions you'd define anyway under your business logic. 
+Entangled, when paired in a client and server app using typescript, fully abstracts matters of transport. At build time, it will generate for you matching resources and HTTP adaptors, following a map of gathered business-logic functions you're defining anyway throughout your app.
 
-For linked projects, this technique uses webpack to scan a front-end build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). Instead, your app knows to fetch from an endpoint, resources which proxy actual functions being invoked. 
+For linked projects, this helps webpack scan a front-end build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). In their place, the entangled runtime fetches from an endpoint, resources which proxy the real functions being invoked. 
 
 This makes server interop essencially free; manifesting as simple async functions.
 
 #### TL;DR
 
-- Call remote functions as if directly on the client
+- Call remote functions as if directly from the client
 - Skip explicitly writing REST handlers for your service
-- Access resources with simple async functions, not requests
-- No need to pack or unpack complex data sets
+- Access resources using simple async functions, not requests
+- Avoid packing and unpacking potentially complex data sets
   > Arguments and returned data are serialized and reassembed for you on both sides, so deeply nested objects and arrays are always safe and easy to send and recieve. <br/>
-- Special objects don't need to be stringified
-  > Handing off `Date` for instance has always been tedius, but here it's automatic. <br/>
+- Special objects don't need special handling
+  > Transmitting `Date` objects traditionally, for instancee, is pretty tedius, but here it's automatic. <br/>
   > No more `let d = date && new Date(date);` nonsense. <br/>
   > `Map` & `Set` are also in the works; arbitary class types too eventually.
 - **Type signatures are preserved!** 
@@ -98,7 +98,7 @@ const api = new Interface({ sayHi });
 
 /* Launch the resulting interface as an endpoint for runtime.
    Here, `listen` will create an Express instance for you (and route to "/")
-   You still can spread into an existing express app, if you want to, though! */
+   You can spread into an existing express app if you want to though! */
 
 api.listen(8080); 
 
