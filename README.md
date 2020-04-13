@@ -124,7 +124,7 @@ export = api;
 
 <br/>
 
-<big><b>3.</b></big> &nbsp; Next, add the entangled replacement-plugin to webpack; passing in the name of any modules exporting an Interface.<br/>
+<big><b>3.</b></big> &nbsp; Add the entangled replacement-plugin to webpack; passing in the name of any modules exporting an Interface.<br/>
 
 > `my-app/webpack.config.js`
 
