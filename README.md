@@ -42,19 +42,19 @@ This makes server interop essencially free; manifesting as a collection of simpl
 - Skip explicitly writing REST handlers for your services
 - Access resources using simple async functions, not requests
 - Avoid packing and unpacking potentially complex data sets
-  > Arguments and returned data are serialized and reassembed for you on both sides, so deeply nested objects and arrays are always safe and easy to send and recieve. <br/>
+  > Arguments and returned data are serialized and reassembed for you on both sides, so even deeply nested objects and arrays are safe and easy to send and recieve. <br/>
 - Special objects don't need special handling
   > Transmitting `Date` objects traditionally for instance, is pretty tedius, but here it's automatic. <br/>
   > No more `let d = date && new Date(date);` nonsense. <br/>
   > `Map` & `Set` are also in the works; arbitary class types too eventually.
 - **Type signatures are preserved!** 
-  > Because you simply "import" actual server functions, your IDE remains aware of their signature, and so covers the typical blind-spot for autocomplete and error detection.
+  > Because you simply "import" actual server functions, your IDE remains aware of their signature, and so covered are the typical blind-spots for autocomplete and error detection.
 - Errors thrown by the server (in development) are merged with ones thrown on the client
   > Sometimes, it can be inconvenient or even impossible to inspect console output from where your functions are running, such as within a container or serverless environment. This make it a non-issue via a shared stack-trace.
 
 <br/>
 
-Ultimately, you can focus more on the business logic of your stack, rather than on the api itself. <br/> This way, both can grow organically with little in the way of debugging or type maintainance.
+Taking a wholistic approach, you can focus more on the business logic of your stack, rather than on the communication layer. <br/> This way, both can grow organically with little in the way of debugging or type maintainance.
 
 <br/>
 
@@ -70,13 +70,13 @@ It takes very little to get up and running. Start by linking your node app (usin
 
 <br/>
 
-## Hello World
+<h2>Hello World &nbsp;<sup>(In 5 easy steps)</sup></h2>
 
 The following is pretty much all you'll need to implement a simple round trip between node and a browser application.
 
 <br/>
 
-Let's make us a sever which can say hi.  ✌️
+<big><b>1.</b></big> &nbsp; Make a sever which can say hi.  ✌️
 
 > `my-service/index.ts`
 
@@ -109,7 +109,7 @@ export = api;
 
 <br/>
 
-Now on to the client. Add your service as a **dev-dependancy** and remember to link it!
+<big><b>2.</b></big> &nbsp; On to the client; add your service as a **dev-dependancy** and remember to link it!
 
 > `my-app/package.json`
 
@@ -124,7 +124,7 @@ Now on to the client. Add your service as a **dev-dependancy** and remember to l
 
 <br/>
 
-Next, add the entangled replacement-plugin to webpack; passing in the name of any modules exporting an Interface.<br/>
+<big><b>3.</b></big> &nbsp; Next, add the entangled replacement-plugin to webpack; passing in the name of any modules exporting an Interface.<br/>
 
 > `my-app/webpack.config.js`
 
@@ -139,12 +139,13 @@ module.exports = {
   ]
 }
 ```
-<blockquote>By default, the endpoint protocol, domain, port, and root are all derived from <code>env.ENDPOINT</code>.<br/> 
+
+<blockquote>By default, the endpoint protocol, domain, port, and root are all derived from the <code>ENDPOINT</code> var, on your environment.<br/> 
 Use <code><a href="https://webpack.js.org/plugins/environment-plugin/">EnvironmentPlugin</a></code> to inject that into your build as well. (We provide a default value too, in this example.)</blockquote>
 
 <br/>
 
-You now have everything you need, to access server functions on the client! Just an easy import away. ✨
+<big><b>4.</b></big> &nbsp; You now have everything you need, to access server functions on the client! Just import away. ✨
 
 > `my-app/demo.tsx`
 
@@ -179,7 +180,7 @@ export default () => (
 
 <br/>
 
-Click the button and "*Server said Hello Moto*" 😎
+<big><b>5.</b></big> &nbsp;  Host and Click. "*Server said Hello Moto*" 😎
 
 <br/>
 
@@ -193,10 +194,12 @@ At the same time in your browser app, a copy of `@entangled/client` replaces `my
 { sayHi: (name?: string) => Promise<string> }
 ```
 
-Notice this mirrors the actual exported `Interface` defined by you. When called, the runtime goes to work to bundle and send your arguments (if there are any) to a route expected to match your function.
+> Notice this mirrors the actual `Interface` exported by you. 
 
-If all goes well, your Express backend receives the request, to reformat and `apply` to that function. <br/> 
-Much the same occures for the response, and *voila* the client's promise resolves the returned value!
+When called, the runtime goes to work to bundle and send your arguments (if there are any) to a route expected to match your function.
+
+If all goes well, your Express backend receives the request, to reformat and apply to that function. <br/> 
+Much the same occures for the response, and *voila* the client's promise resolves the actual returned value!
 
 And all of your glue-code: `⤵`<br/> 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
