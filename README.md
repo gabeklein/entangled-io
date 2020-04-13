@@ -44,7 +44,7 @@ This makes server interop essencially free; manifesting as a collection of simpl
 - Avoid packing and unpacking potentially complex data sets
   > Arguments and returned data are serialized and reassembed for you on both sides, so deeply nested objects and arrays are always safe and easy to send and recieve. <br/>
 - Special objects don't need special handling
-  > Transmitting `Date` objects traditionally, for instancee, is pretty tedius, but here it's automatic. <br/>
+  > Transmitting `Date` objects traditionally for instance, is pretty tedius, but here it's automatic. <br/>
   > No more `let d = date && new Date(date);` nonsense. <br/>
   > `Map` & `Set` are also in the works; arbitary class types too eventually.
 - **Type signatures are preserved!** 
