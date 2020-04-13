@@ -30,7 +30,7 @@ npm link my-service
 
 ## Abstract
 
-Entangled, when paired in a client and server app using typescript, fully abstracts matters of transport. At build time, it will generate for you matching resources and HTTP adaptors, following a map of functions you'd define anyway as your app's business logic. 
+Entangled, when paired in a client and server app using typescript, fully abstracts matters of transport. At build time, it will generate for you matching resources and HTTP adaptors, following a map of functions you'd define anyway under your business logic. 
 
 For linked projects, this technique uses webpack to scan a front-end build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). Instead, your app knows to fetch from an endpoint, resources which proxy actual functions being invoked. 
 
