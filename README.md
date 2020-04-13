@@ -9,7 +9,7 @@
 
 <br/>
 
-<p align="center">Entangled-IO is a set of developer tools, designed to bridge the gap between client and server applications written in typescript. With simple helpers on the backend, and webpack-plugin on the front, you can effectively call server-side functions as if they were local within your apps.</p>
+<p align="center">Entangled-IO is a set of developer tools, designed to bridge the gap between client and server applications written in typescript. With simple helpers on the backend, and webpack-plugin on the front, you can effectively call server-side functions as if they were local within your consumer apps.</p>
 <br/>
 
 ## Installation
