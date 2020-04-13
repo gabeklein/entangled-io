@@ -14,4 +14,6 @@ const api = serve({ echo, greetings });
 
 listen(api, 8080);
 
+console.log("Listening on port 8080")
+
 export = api;
