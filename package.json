@@ -1,11 +1,16 @@
 {
   "name": "entangled-io",
   "scripts": {
-    "serve": "yarn workspace @entangled/service start",
-    "watch": "yarn workspace @entangled/client watch"
+    "start": "concurrently \"npm:start:*\"",
+    "prepare": "lerna bootstrap",
+    "start:service": "npm start --prefix example/service",
+    "start:client": "npm start --prefix example/client",
+    "watch": "npm run watch --prefix example/client",
+    "build": "npm run build --prefix example/client"
   },
   "devDependencies": {
-    "lerna": "^3.13.4"
+    "lerna": "^3.13.4",
+    "concurrently": "^5.1.0"
   },
   "dependencies": {
     "source-map-support": "^0.5.16"
