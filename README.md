@@ -39,7 +39,7 @@ This makes server interop essencially free; manifesting as simple async function
 #### TL;DR
 
 - Call remote functions as if directly from the client
-- Skip explicitly writing REST handlers for your service
+- Skip explicitly writing REST handlers for your services
 - Access resources using simple async functions, not requests
 - Avoid packing and unpacking potentially complex data sets
   > Arguments and returned data are serialized and reassembed for you on both sides, so deeply nested objects and arrays are always safe and easy to send and recieve. <br/>
@@ -139,7 +139,7 @@ module.exports = {
   ]
 }
 ```
-<blockquote>By default, the endpoint `protocol`, `domain`, `port`, and `root` are derived from <code>env.ENDPOINT</code>.<br/> 
+<blockquote>By default, the endpoint protocol, domain, port, and root are all derived from <code>env.ENDPOINT</code>.<br/> 
 Use <code><a href="https://webpack.js.org/plugins/environment-plugin/">EnvironmentPlugin</a></code> to inject that into your build as well. (We provide a default value too, in this example.)</blockquote>
 
 <br/>
@@ -174,7 +174,6 @@ export default () => (
   </div>
 )
 ```
-<br/>
 
 > Note: [`esModuleInterop`](https://stackoverflow.com/a/56348146) is set to true for this module, which substitues `*` for `default`. <br/> You might want to destructure your functions/routes instead however, which should be the norm for larger APIs anyway.
 
