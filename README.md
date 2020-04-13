@@ -28,7 +28,7 @@ npm link my-service
 
 <br/>
 
-## Base Concept
+## Abstract
 
 Entangled, when paired in a client and server app using typescript, abstracts away matters of transport. At build time, it will generate matching resources and adaptors for you, following a simple map of functions you'd define anyway for your business logic. 
 
@@ -36,7 +36,7 @@ For linked projects, this technique uses webpack to scan a client build for what
 
 *This makes interop essencially free; masquerading as easy-to-use async functions.*
 
-### TL;DR
+#### TL;DR
 
 - Call remote business logic directly from the client
 - Skip explicitly writing REST handlers for your service
@@ -48,7 +48,7 @@ For linked projects, this technique uses webpack to scan a client build for what
   > No more `let d = date && new Date(date);` nonsense. <br/>
   > `Map` & `Set` are also in the works; arbitary class types too eventually.
 - **Type signatures are preserved!** 
-  > Because you simply "import" actual server functions, your IDE remains aware of their signature, and so covers typical blind-spots for autocomplete and error detection. 👀
+  > Because you simply "import" actual server functions, your IDE remains aware of their signature, and so covers the typical blind-spot for autocomplete and error detection.
 - Errors thrown by the server (in development) are merged with ones thrown on the client
   > Sometimes, it can be inconvenient or even impossible to inspect console output from where your functions are running, such as within a container or serverless environment. This make that a non-issue via shared stack-trace. <br/><sub>&nbsp;(TBD, but I'm working on it!)</sub>
 
