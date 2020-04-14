@@ -64,7 +64,7 @@ It takes very little to get up and running. Start by linking your node app (usin
 
 > [Lerna](https://github.com/lerna/lerna) and/or [yarn-workspaces](https://classic.yarnpkg.com/en/docs/workspaces/) can be used to accomplish the same thing if you're into monorepos!
 > 
-> However, while not necessary, configuring server modules with a [Typescript project reference](https://www.typescriptlang.org/docs/handbook/project-references.html) is a good idea. It causes your IDE to consider the `src/` of your project for types, rather than generated `d.ts` files. This can greatly enhanse the responsiveness of your type-checker, and assist with procedures (such as `Rename Symbol`).
+> However, while optional, configuring server modules with a [Typescript project reference](https://www.typescriptlang.org/docs/handbook/project-references.html) is a good idea. It causes your IDE to consider the `src/` of your project for types, rather than generated `d.ts` files. This can greatly enhanse the responsiveness of your type-checker, and assist with procedures (such as `Rename Symbol`).
 
 **Remember**: *Declarations still are required* for both the development and production builds of any server module used.
 
