@@ -34,7 +34,7 @@ Entangled, when paired in a client and server app using typescript, fully abstra
 
 For linked projects, this helps webpack scan a front-end build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). In their place, the entangled runtime fetches from an endpoint, REST resources which proxy the real functions being invoked. 
 
-This makes server interop essencially free; manifesting as a collection of simple async functions.
+This makes server interop essencially free; imported as a collection of simple async functions.
 
 #### TL;DR
 
