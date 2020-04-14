@@ -221,15 +221,15 @@ And all of your glue-code: `⤵`<br/>
 
 ### `@entangled/fetch`
 
-> A client adaptor for your browser apps. Webpack relies on this for serialization and to plug-in to the real endpoint exposing your exported functions for use.
+> A client adaptor for your browser apps. Webpack relies on this for serialization and to inteface with the real endpoint serving your functions for actual use.
 
 ### `@entangled/interface`
 
-> Webpack and the server adaptor relies on this to discover and parse `d.ts` files in order to properly mirror your IO. It tries to be aware of your actual arguments' types for purposes of conversion and error detection (coming soon). This is also most-importantly responsible for conveying TS bindings to consumers properly.
+> Webpack and the server adaptor rely on this to discover and parse `d.ts` files in order to properly mirror your IO. It tries to be aware of your actual arguments' types for purposes of conversion and error detection (coming soon). This is also, most-importantly responsible for conveying TS bindings to consumers properly.
 
 ### `@entangled/express`
 
-> Consuming an arbitarily deep map of functions, this plugin (specifically for express apps) will expose those functions as an endpoint for the client-adaptor to bind to at run-time.
+> Consuming an arbitarily deep map of functions, this plugin (specifically for express apps) will expose all given as live-resources for consumer adaptors to bind to at runtime.
 
 
 <br/>
