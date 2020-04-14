@@ -40,7 +40,7 @@ This makes server interop essencially free; imported as a collection of simple a
 
 - Call remote functions as if directly from the client
 - Skip explicitly writing REST handlers for your services
-- Access resources using simple async functions, not requests
+- Access resources using direct async functions, not requests
 - Avoid packing and unpacking potentially complex data sets
   > Arguments and returned data are serialized and reassembed for you on both sides, so even deeply nested objects and arrays are safe and easy to send and recieve. <br/>
 - Special objects don't need special handling
