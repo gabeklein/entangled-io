@@ -54,7 +54,7 @@ This makes server interop essencially free; manifesting as a collection of simpl
 
 <br/>
 
-Taking a wholistic approach, you can focus more on the business logic of your stack, rather than on the communication layer. <br/> This way, both can grow organically with little in the way of debugging or type maintainance.
+Taking a wholistic approach, you can focus more on the business logic of your stack, rather than your communication layer. <br/> This way, both can grow organically with little in the way of debugging or type maintainance.
 
 <br/>
 
