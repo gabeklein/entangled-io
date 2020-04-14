@@ -101,7 +101,7 @@ async function fetchJson(url: string, args: RestArgument[]){
 
   if(status >= 300)
     throw output;
-  else if(output.response)
+  else if("response" in output)
     return output.response;
   else
     return output;
