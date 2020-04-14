@@ -140,21 +140,21 @@ module.exports = {
 }
 ```
 
-<blockquote>By default, the endpoint protocol, domain, port, and root are all derived from the <code>ENDPOINT</code> var, on your environment.<br/> 
+<blockquote>By default, the endpoint protocol, domain, port, and root are all derived from the <code>ENDPOINT</code> var, in your environment.<br/> 
 Use <code><a href="https://webpack.js.org/plugins/environment-plugin/">EnvironmentPlugin</a></code> to inject that into your build as well. (We provide a default value too, in this example.)</blockquote>
 
 <br/>
 
 <b>4.</b> &nbsp; You now have everything you need, to access server functions on the client! Just import away. ✨
 
-> `my-app/demo.tsx`
+> `my-app/demo.jsx`
 
 ```tsx
 /* Import the servce module and interface we've made there. */
 
 import API from "my-service"
 
-async function sayHello(e: MouseEvent){
+async function sayHello(event){
   const name = prompt("What is your name?", "World");
 
   /* Call and await a remote-function like you would any other thenable!
@@ -162,9 +162,9 @@ async function sayHello(e: MouseEvent){
 
   let response = await API.sayHi(name);
 
-  /* Oh, and you might notice we still have type inference, even within .js files! 😍 */
+  /* Oh, and you might notice we still have type inference, even in non-ts files! 😍 */
 
-  e.currentTarget.innerText = `Server said ${response}`;
+  event.currentTarget.innerText = `Server said ${response}`;
 
   /* Enjoy your day ☕️ */
 }
