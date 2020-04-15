@@ -1,6 +1,6 @@
 import { Interface } from '@entangled/express';
 
-import * as greetings from "./hello-service"
+import * as greetings from "./hello"
 
 /**
  * This does something fun
