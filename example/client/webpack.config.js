@@ -11,9 +11,6 @@ module.exports = {
   devtool: "source-map",
   entry: "./src",
   resolve: {
-    modules: [
-      dir("../../node_modules")
-    ],
     extensions: [".ts", ".tsx", ".js"]
   },
   output: {
@@ -45,7 +42,6 @@ module.exports = {
     historyApiFallback: true,
     contentBase: dir("./public"),
     host: "0.0.0.0",
-    port: 3000,
-    hot: true
+    port: 3000
   }
 }
