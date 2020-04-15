@@ -1,6 +1,6 @@
 {
   "name": "@entangled/webpack",
-  "version": "1.0.0-alpha.9",
+  "version": "1.0.0",
   "main": "lib/index.js",
   "license": "ISC",
   "files": [
@@ -15,8 +15,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@entangled/fetch": "^1.0.0-alpha.9",
-    "@entangled/interface": "^1.0.0-alpha.9",
+    "@entangled/fetch": "^1.0.0",
+    "@entangled/interface": "^1.0.0",
     "enhanced-resolve": "^4.1.1",
     "webpack": "^4.41.5"
   },
