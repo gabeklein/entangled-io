@@ -30,18 +30,18 @@ npm link my-service
 
 ## Abstract
 
-Entangled, when paired in a client and server app using typescript, fully abstracts matters of transport. At build time, it will generate for you paired resources and adaptors, which follows a map of gathered up business-logic functions you define.
+Entangled, when paired in a client and server app using typescript, fully abstracts matters of transport. At build time, it will generate for you paired resources and http-adaptors, following a map of gathered up business-logic functions you define.
 
-For linked projects, this helps webpack scan a front-end build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). In their place, the entangled runtime fetches from an endpoint, resources which proxy the real functions being invoked. 
+For linked projects, this helps webpack scan a front-end build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). In their place, the entangled runtime fetches from an endpoint, REST resources which proxy the real functions being invoked. 
 
-This makes server interop essencially free; manifesting as a collection of simple async functions.
+This makes server interop essencially free; imported as a collection of simple async functions.
 
 #### TL;DR
 
 - Call remote functions as if directly from the client
 - Skip explicitly writing REST handlers for your services
-- Access resources using simple async functions, not requests
-- Avoid packing and unpacking potentially complex data sets
+- Access resources using direct async functions, not requests
+- Avoid packing and unpacking potentially complex data
   > Arguments and returned data are serialized and reassembed for you on both sides, so even deeply nested objects and arrays are safe and easy to send and recieve. <br/>
 - Special objects don't need special handling
   > Transmitting `Date` objects traditionally for instance, is pretty tedius, but here it's automatic. <br/>
@@ -54,7 +54,7 @@ This makes server interop essencially free; manifesting as a collection of simpl
 
 <br/>
 
-Taking a wholistic approach, you can focus more on the business logic of your stack, rather than your communication layer. <br/> This way, both can grow organically with little in the way of debugging or type maintainance.
+Taking a wholistic approach, you can focus more on the business logic of your stack,  over the communication layer. <br/> This way, both can grow quickly and organically with little in the way of debugging or type maintainance.
 
 <br/>
 
@@ -64,7 +64,7 @@ It takes very little to get up and running. Start by linking your node app (usin
 
 > [Lerna](https://github.com/lerna/lerna) and/or [yarn-workspaces](https://classic.yarnpkg.com/en/docs/workspaces/) can be used to accomplish the same thing if you're into monorepos!
 > 
-> However, while not necessary, configuring server modules with a [Typescript project reference](https://www.typescriptlang.org/docs/handbook/project-references.html) is a good idea. It causes your IDE to consider the `src/` of your project for types, rather than generated `d.ts` files. This can greatly enhanse the responsiveness of your type-checker, and assist with procedures (such as `Rename Symbol`).
+> However, while optional, configuring server modules with a [Typescript project reference](https://www.typescriptlang.org/docs/handbook/project-references.html) is a good idea. It causes your IDE to consider the `src/` of your project for types, rather than generated `d.ts` files. This can greatly enhanse the responsiveness of your type-checker, and assist with procedures (such as `Rename Symbol`).
 
 **Remember**: *Declarations still are required* for both the development and production builds of any server module used.
 
