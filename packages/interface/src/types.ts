@@ -26,6 +26,6 @@ export namespace Entangled {
     & Namespace<Omit<T, "default">>
 
   export type DefineRoutes = { 
-    [k: string]: DefineRoutes | Fn 
+    [k: string]: DefineRoutes | Fn;
   }
 }
