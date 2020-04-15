@@ -1,9 +1,10 @@
-import { Entangled } from "@entangled/interface"
-
-import express, { Express, json } from "express"
-import { abstract } from './abstract';
+import { Entangled } from '@entangled/interface';
+import express, { Express, json } from 'express';
 
 import { origin } from './gates';
+import { applyPath } from './router';
+
+export { Interface } from './interface'
 
 export function serve<R extends {}>(routes: R){
   const api = express();
@@ -13,23 +14,23 @@ export function serve<R extends {}>(routes: R){
   
   applyPath(api, routes);
 
-  return api as unknown as Entangled.API<R>
+  return api as unknown as Entangled.Namespace<R>
 }
 
 export function applied<R extends {}>(express: Express, routes: R){
   applyPath(express, routes);
-  return void 0 as unknown as Entangled.API<R>
+  return void 0 as unknown as Entangled.Namespace<R>
 }
 
-export function apply<R extends Entangled.API<any> | {}>(express: Express, routes: R){
+export function apply<R extends Entangled.Namespace<any> | {}>(express: Express, routes: R){
   applyPath(express, routes);
 }
 
 export function cast<R extends {}>(routes: R){
-  return routes as unknown as Entangled.API<R>
+  return routes as unknown as Entangled.Namespace<R>
 }
 
-export function listen(api: Entangled.API<{}>, port: number | string){
+export function listen(api: Entangled.Namespace<{}>, port: number | string){
   const surface = api as any;
 
   if(surface instanceof express)
@@ -43,20 +44,4 @@ export function listen(api: Entangled.API<{}>, port: number | string){
     applyPath(app, api);
     app.listen(port)
   }
-}
-
-function applyPath(
-  app: Express, 
-  handle: Entangled.DefineRoute, 
-  prefix = ""){
-
-  if(typeof handle == "function")
-    app.post(prefix, abstract(handle))
-  else
-    for(const name in handle){
-      let route = prefix;
-      if(name !== "default")
-        route += `/${name}`;
-      applyPath(app, handle[name], route);
-    }
 }
