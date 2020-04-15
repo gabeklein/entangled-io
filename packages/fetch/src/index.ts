@@ -2,7 +2,7 @@ let endpoint = "http://localhost:8080";
 
 try {
   const ep = process.env.ENDPOINT;
-  if(ep) endpoint = ep;
+  if(ep) endpoint = ep.replace(/\/$/, "");
 }
 catch(err){}
 
