@@ -102,7 +102,7 @@ const api = new Interface({ sayHi });
 
 api.listen(8080); 
 
-/* Lastly, export an attached namespace for consumer projects to access. */
+/* Most importantly, export the attached namespace for consumer projects to access! */
 
 export = api; 
 ```
@@ -145,7 +145,7 @@ Use <code><a href="https://webpack.js.org/plugins/environment-plugin/">Environme
 
 <br/>
 
-<b>4.</b> &nbsp; You now have everything you need, to access server functions on the client! Just import away. ✨
+<b>4.</b> &nbsp; You now have everything you need, to run server functions on the client! Just import away. ✨
 
 > `my-app/demo.jsx`
 
@@ -189,17 +189,17 @@ export default () => (
 At runtime, having crawled the functions you provided, `@entangled/express` defines the route: <br>
 `POST //0.0.0.0:8080/sayhi` on whatever backend you set up.
 
-At the same time in your browser app, a copy of `@entangled/client` replaces `my-service` via webpack, exporting as follows:
+At the same time in your browser app, a copy of `@entangled/client` replaces `my-service` via webpack, but tweaked to export as follows:
 ```ts
 { sayHi: (name?: string) => Promise<string> }
 ```
 
-> Notice this mirrors the actual `Interface` exported by you. 
+> This will always mirror the `Interface` exported by you. 
 
 When called, the runtime goes to work to bundle and send your arguments (if there are any) to a route expected to match your function.
 
-If all goes well, your Express backend receives the request, to reformat and apply to that function. <br/> 
-Much the same occures for the response, and *voila* the client's promise resolves the actual returned value!
+If all goes well, your backend receives the request, to then reformat and `apply` to a real function. <br/> 
+Much the same occures for the response, and *voila* the client's promise resolves the actual returned value! 
 
 And all of your glue-code: `⤵`<br/> 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
