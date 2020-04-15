@@ -10,6 +10,7 @@ export interface ExpressInterface {
   [ROUTES]: {};
 
   listen(port: number, cb?: (app: Express) => void): void;
+  applyTo(to: Express, root?: string): void;
 }
 
 function InterfaceFactory(
@@ -35,13 +36,18 @@ InterfaceFactory.prototype = {
     return app;
   },
 
-  apply(to: Express, root?: string){
+  applyTo(to: Express, root?: string){
     applyPath(to, this[ROUTES], root)
   }
 }
 
+interface LegalDefinition {
+  listen?: never;
+  applyTo?: never;
+}
+
 interface InterfaceConstructor {
-  new <R extends {}>(routes: R): ExpressInterface & Entangled.Namespace<R>
+  new <R extends Entangled.DefineRoutes & LegalDefinition>(routes: R): ExpressInterface & Entangled.Namespace<R>
 }
 
 const Interface = <InterfaceConstructor><Function>InterfaceFactory;
