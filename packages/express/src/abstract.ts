@@ -90,13 +90,9 @@ function responder(response: Response, status: number, content: any){
 
   response.status(status)
   
-  if(!content)
-    response.json({ ok: true });
-    
-  else if(typeof content !== "object"){
+  if(content == null || typeof content !== "object")
     content = { response: content };
-  }
-  
+    
   response.json(format(content))
 }
 

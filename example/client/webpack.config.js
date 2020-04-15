@@ -1,6 +1,7 @@
 const { resolve } = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ApiReplacementPlugin = require("@entangled/webpack")
+const ApiReplacementPlugin = require("@entangled/webpack");
+const { EnvironmentPlugin } = require("webpack")
 
 const currentDir = process.cwd();
 const dir = path => resolve(currentDir, path);
@@ -10,9 +11,6 @@ module.exports = {
   devtool: "source-map",
   entry: "./src",
   resolve: {
-    modules: [
-      dir("../../node_modules")
-    ],
     extensions: [".ts", ".tsx", ".js"]
   },
   output: {
@@ -22,7 +20,8 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({ title: "Teleport Test" }),
-    new ApiReplacementPlugin(["@entangled/service"])
+    new ApiReplacementPlugin(["@entangled/service"]),
+    new EnvironmentPlugin({ ENDPOINT: "http://localhost:8080/" })
   ],
   module: {
     rules: [
@@ -43,7 +42,6 @@ module.exports = {
     historyApiFallback: true,
     contentBase: dir("./public"),
     host: "0.0.0.0",
-    port: 3000,
-    hot: true
+    port: 3000
   }
 }
