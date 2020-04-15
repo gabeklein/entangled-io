@@ -245,7 +245,9 @@ npm install
 npm run example
 ```
 
-> This will launch both a server (on port 8080) and dev-server (port 80) for the client, demoing a simple interaction you can play with!
+> This will launch both a server (on port 8080) and dev-server (port 3000) for the client, demoing a simple interaction you can play with!
+>
+> Demo is accessible at [`http://localhost:3000`](http://localhost:3000) after starting.
 
 <br/>
 
