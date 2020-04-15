@@ -153,6 +153,10 @@ export class Parser {
   TSTypeAnnotation(typeAnnotation: any){
     while(typeAnnotation.type == "TSTypeAnnotation")
       ({ typeAnnotation } = typeAnnotation)
+
+    //TODO: Fix this asap, it's ghetto extracting Namespace type annotation from express module
+    if(typeAnnotation.type == "TSIntersectionType")
+      typeAnnotation = typeAnnotation.types[1];
   
     const { type } = typeAnnotation;
 
