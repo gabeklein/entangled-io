@@ -1,6 +1,7 @@
 const { resolve } = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ApiReplacementPlugin = require("@entangled/webpack")
+const ApiReplacementPlugin = require("@entangled/webpack");
+const { EnvironmentPlugin } = require("webpack")
 
 const currentDir = process.cwd();
 const dir = path => resolve(currentDir, path);
@@ -22,7 +23,8 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({ title: "Teleport Test" }),
-    new ApiReplacementPlugin(["@entangled/service"])
+    new ApiReplacementPlugin(["@entangled/service"]),
+    new EnvironmentPlugin({ ENDPOINT: "http://localhost:8080/" })
   ],
   module: {
     rules: [
