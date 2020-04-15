@@ -5,4 +5,3 @@
 */*/lib
 example/client/public
 .vscode/settings.json
-package-lock.json
