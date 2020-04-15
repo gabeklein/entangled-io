@@ -34,7 +34,7 @@ Entangled, when paired in a client and server app using typescript, fully abstra
 
 For linked projects, this helps webpack scan a front-end build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). In their place, the entangled runtime fetches from an endpoint, REST resources which proxy the real functions being invoked. 
 
-This makes server interop essencially free; imported as a collection of simple async functions.
+This makes server interop essencially free; imported as just a collection of async functions!
 
 #### TL;DR
 
@@ -76,12 +76,12 @@ The following is pretty much all you'll need to implement a simple round trip be
 
 <br/>
 
-<b>1.</b> &nbsp; Make a sever which can say hi.  ✌️
+<b>1.</b> &nbsp; Let's make a sever which can say hi.  🤖✌️
 
 > `my-service/index.ts`
 
 ```typescript
-/* First import a helper for whatever platform you're using. */
+/* First import a helper for whatever platform you're already using. */
 
 import Interface from '@entangled/express';
 
@@ -257,6 +257,6 @@ MIT
 
 ## Contributions
 
-<sub>PR's are welcome, or email me if you want to be more involved, I'd love to have help.</sub>
+PR's are welcome, or email me if you want to be more involved, I'd love to have help!
 
 <br/>
