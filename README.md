@@ -1,5 +1,5 @@
 
-<h1 align="center">Engangled ⇝ IO</h1>
+<h1 align="center">Entangled ⇝ IO</h1>
 
 <p align="center">Spooky <code>action()</code> at a distance. 🧙‍♂️</p>
 
@@ -9,7 +9,7 @@
 
 <br/>
 
-<p align="center">Entangled-IO is a set of developer tools, designed to bridge the gap between client and server applications written in typescript. With simple helpers on the backend, and webpack-plugin on the front, you can effectively call server-side functions as if they were local within your consumer apps.</p>
+<p align="center">Entangled-IO is a set of developer tools, designed to bridge the gap between client and server applications written in typescript. With simple helpers on the backend, and webpack-plugin on the front, you can effectively call functions from server-side apps as if they were local within your client-side apps.</p>
 <br/>
 
 ## Installation
@@ -30,41 +30,44 @@ npm link my-service
 
 ## Abstract
 
-Entangled, when paired in a client and server app using typescript, fully abstracts matters of transport. At build time, it will generate for you paired resources and http-adaptors, following a map of gathered up business-logic functions you define.
+Entangled-IO, when added to a project using typescript, allows you to `import` and call within one app, functions which only really exist on another. It combines web-hosting and a special type of `export`, to create what we'll call `window-functions`, an abstraction on top of a pretty neat compiler trick. 🎩🐰
 
-For linked projects, this helps webpack scan a front-end build for what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) (as they can't actually be bundled). In their place, the entangled runtime fetches from an endpoint, REST resources which proxy the real functions being invoked. 
+In-use, a window function and it's import/export between apps, *is not real*, but a handy neumonic to help you and your bundler (such as [Webpack](https://github.com/webpack/webpack)) establish a form of API. With the concept, we can auto-generate code to implement these functions on a client (at runtime, where actual logic is unavailable) using http instead.
 
-This makes server interop essencially free; imported as just a collection of async functions!
+A compiler plugin helps with this by replacing, in your client code, what would otherwise be [illegal imports](https://i.kym-cdn.com/entries/icons/original/000/028/207/Screen_Shot_2019-01-17_at_4.22.43_PM.jpg) from linked node app (since obviously, "remote" modules can't be bundled). In their place, a thin client is added, to mediate between client and host. As "imported" functions are used, `fetch` requests are actually used under-the-hood, sent to an *"entangled"* endpoint, which runs the real functions on the clients' behalf!
 
-#### TL;DR
+This makes server interop more-or-less free to develop. It can be hard work, defining endpoints, directing [request-like libraries](https://github.com/request/request/issues/3143#issue-427486416), keeping them bug-free, and especially so to [maintain a codec](https://dev.to/peterszerzo/safe-functional-io-in-typescript-an-introduction-1kmi). Entangled is built to automate all of that, as a thin, portable, **and inherently type-safe** ☝️ collection of async window-fuctions.
 
-- Call remote functions as if directly from the client
+<br/> 
+
+### The TL;DR
+
+- Call remote functions as if directly on a client
 - Skip explicitly writing REST handlers for your services
-- Access resources using direct async functions, not requests
+- Access resources using simple async functions, not requests
 - Avoid packing and unpacking potentially complex data
   > Arguments and returned data are serialized and reassembed for you on both sides, so even deeply nested objects and arrays are safe and easy to send and recieve. <br/>
-- Special objects don't need special handling
-  > Transmitting `Date` objects traditionally for instance, is pretty tedius, but here it's automatic. <br/>
+- Special objects do not need special handling
+  > Transmitting `Date` objects traditionally for instance, is usually tedius, but here it's automatic. <br/>
   > No more `let d = date && new Date(date);` nonsense. <br/>
-  > `Map` & `Set` are also in the works; arbitary class types too eventually.
 - **Type signatures are preserved!** 
-  > Because you simply "import" actual server functions, your IDE remains aware of their signature, and so covered are the typical blind-spots for autocomplete and error detection.
+  > Because you simply "import" the actual server functions, your IDE remains aware of their signature, and so covered is the natural blind-spot for autocomplete and static type-checking.
 - Errors thrown by the server (in development) are merged with ones thrown on the client
-  > Sometimes, it can be inconvenient or even impossible to inspect console output from where your functions are running, such as within a container or serverless environment. This make it a non-issue via a shared stack-trace.
+  > Sometimes, it can be inconvenient or even impossible to inspect console output from where your functions are running, such as within a container or serverless environment. This makes that a non-issue via a shared stack-trace.
 
 <br/>
 
-Taking a wholistic approach, you can focus more on the business logic of your stack,  over the communication layer. <br/> This way, both can grow quickly and organically with little in the way of debugging or type maintainance.
+Taking a wholistic approach, you can focus more on the business logic of your stack, rather than its communication layer. <br/> This way, both can grow quickly and organically with little in the way of debugging or type maintainance.
 
 <br/>
 
 ## Setup
 
-It takes very little to get up and running. Start by linking your node app (using preference of [NPM](https://www.deadcoderising.com/how-to-smoothly-develop-node-modules-locally-using-npm-link/) or [Yarn](https://classic.yarnpkg.com/en/docs/cli/link/)) to client apps. A good practice is to add it as a dev-dependancy as well. 
+It takes very little to get up and running. You start by linking your node app (using preference of [NPM](https://www.deadcoderising.com/how-to-smoothly-develop-node-modules-locally-using-npm-link/) or [Yarn](https://classic.yarnpkg.com/en/docs/cli/link/)) to client apps. A good practice is to add the module as a dev-dependancy as well. 
 
 > [Lerna](https://github.com/lerna/lerna) and/or [yarn-workspaces](https://classic.yarnpkg.com/en/docs/workspaces/) can be used to accomplish the same thing if you're into monorepos!
 > 
-> However, while optional, configuring server modules with a [Typescript project reference](https://www.typescriptlang.org/docs/handbook/project-references.html) is a good idea. It causes your IDE to consider the `src/` of your project for types, rather than generated `d.ts` files. This can greatly enhanse the responsiveness of your type-checker, and assist with procedures (such as `Rename Symbol`).
+> However, while optional, configuring certain modules with a [Typescript project reference](https://www.typescriptlang.org/docs/handbook/project-references.html) is a good idea. It causes your IDE to consider the `src/` of your project for types, rather than generated `d.ts` files. This can greatly enhanse the responsiveness of your type-checker, and assist with procedures (such as `Go to definition` and `Rename Symbol`).
 
 **Remember**: *Declarations still are required* for both the development and production builds of any server module used.
 
@@ -81,35 +84,36 @@ The following is pretty much all you'll need to implement a simple round trip be
 > `my-service/index.ts`
 
 ```typescript
-/* First import a helper for whatever platform you're already using. */
+/* First we'll import a helper for whatever platform you're already using. */
 
 import Interface from '@entangled/express';
 
-/* Define functions to do or return whatever you like. */
+/* Next, define functions to do or return whatever you like. */
 
 async function sayHi(name = "World"){
   return `Hello ${name}!`
 }
 
-/* Create an interface with a map of functions you wish to expose.
-   You can organize them too, into routes, via nesting! */
+/* Now for the easy part.
+   Create an interface with a map of functions you wish to expose.
+   You can organize them, into routes, too via nesting! */
 
 const api = new Interface({ sayHi });
 
-/* Launch the resulting interface as an endpoint for runtime.
-   Here, `listen` will create an Express instance for you (and route to "/")
-   You can spread into an existing express app if you want to though! */
+/* Launch the resulting interface as an endpoint at runtime.
+   Here, `listen` will create an Express instance for you, and attach functions to "/".
+   You could spread into an existing express app if you wanted to though! */
 
 api.listen(8080); 
 
-/* Most importantly, export the attached namespace for consumer projects to access! */
+/* Most importantly; export the resuting namespace for consumer projects to access. */
 
 export = api; 
 ```
 
 <br/>
 
-<b>2.</b> &nbsp; On to the client; add your service as a **dev-dependancy** and remember to link it!
+<b>2.</b> &nbsp; Now onto the client, add your service module as a **dev-dependancy**. You'll also need to link it.
 
 > `my-app/package.json`
 
@@ -124,7 +128,7 @@ export = api;
 
 <br/>
 
-<b>3.</b> &nbsp; Add the entangled replacement-plugin to webpack; passing in the name of any modules exporting an Interface.<br/>
+<b>3.</b> &nbsp; Add the `ApiReplacementPlugin` to your plugins, passing in the name of any modules exporting an Interface.<br/>
 
 > `my-app/webpack.config.js`
 
@@ -140,12 +144,12 @@ module.exports = {
 }
 ```
 
-<blockquote>By default, your endpoint's <i>protocol</i>, <i>domain</i>, <i>port</i>, and <i>root</i> are derived from var <code>ENDPOINT</code>, defined on env.<br/> 
+<blockquote>By default, your endpoint's <i>protocol</i>, <i>domain</i>, <i>port</i>, and <i>root</i> are derived from var <code>ENDPOINT</code>, defined on your env.<br/> 
 Use <code><a href="https://webpack.js.org/plugins/environment-plugin/">EnvironmentPlugin</a></code> to inject that into your build as well. (We provide a default value too, in this example.)</blockquote>
 
 <br/>
 
-<b>4.</b> &nbsp; You now have everything you need, to run server functions on the client! Just import away. ✨
+<b>4.</b> &nbsp; We now have everything we need, to run server functions on the client! Just import away. ✨
 
 > `my-app/demo.jsx`
 
@@ -189,17 +193,17 @@ export default () => (
 At runtime, having crawled the functions you provided, `@entangled/express` defines the route: <br>
 `POST //0.0.0.0:8080/sayhi` on whatever backend you set up.
 
-At the same time in your browser app, a copy of `@entangled/client` replaces `my-service` via webpack, but tweaked to export as follows:
+At the same time in your browser app, a copy of `@entangled/client` replaced `my-service` via webpack, but tweaked to export instead window-functions with the signature:
 ```ts
 { sayHi: (name?: string) => Promise<string> }
 ```
 
-> This will always mirror the `Interface` exported by you. 
+> This will always reflect an `Interface` exported by you. 
 
 When called, the runtime goes to work to bundle and send your arguments (if there are any) to a route expected to match your function.
 
 If all goes well, your backend receives the request, to then reformat and `apply` to a real function. <br/> 
-Much the same occures for the response, and *voila* the client's promise resolves the actual returned value! 
+Much the same occures for the response, and *voila* the client's promise resolves an actual, returned value! 
 
 And all of your glue-code: `⤵`<br/> 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
