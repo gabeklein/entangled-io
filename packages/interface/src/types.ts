@@ -3,7 +3,7 @@ export namespace Entangled {
 
   type Fn = (...args: any[]) => any;
 
-  type ArgumentsOf<T> = T extends (... args: infer U ) => infer R ? U : never;
+  type ArgumentsOf<T> = T extends (...args: infer U) => any ? U : never;
   type Promisable<T> = T extends Promise<any> ? T : Promise<T>
   
   export type Item<T> = 
