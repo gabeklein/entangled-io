@@ -82,13 +82,13 @@ void function readPaths(root: string){
     throw new Error(`Type accumulation expects a tsconfig.json at ${root}`)
 
   let uri = root;
-  let paths = cfg.comilerOptions?.paths;
+  let paths = cfg.comilerOptions && cfg.comilerOptions.paths;
 
   if(!paths)
     while(!paths && cfg.extends){
       uri = path.dirname(path.resolve(root, cfg.extends));
       cfg = tryReadJSON(root, "tsconfig.json") || {};
-      paths = cfg.compilerOptions?.paths;
+      paths = cfg.compilerOptions && cfg.compilerOptions.paths;
     }
 
   if(paths)

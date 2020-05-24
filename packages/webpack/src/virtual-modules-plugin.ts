@@ -42,12 +42,12 @@ export default class EntangledVirtualModulePlugin {
     // wrappers, giving us access to the "real" watchFileSystem.
     let finalWatchFileSystem = this._watcher && this._watcher.watchFileSystem;
 
-    while(finalWatchFileSystem?.wfs)
+    while(finalWatchFileSystem && finalWatchFileSystem.wfs)
       finalWatchFileSystem = finalWatchFileSystem.wfs;
 
     this.compiler.inputFileSystem._writeVirtualFile(modulePath, stats, contents);
 
-    if(!finalWatchFileSystem?.watcher.fileWatchers.length)
+    if(!finalWatchFileSystem && finalWatchFileSystem.watcher.fileWatchers.length)
       return
 
     for(const fileWatcher of finalWatchFileSystem.watcher.fileWatchers)

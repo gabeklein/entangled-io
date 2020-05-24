@@ -57,8 +57,8 @@ export class Parser {
     const external = this.resolve(node.source.value);
     
     for(const spec of node.specifiers){
-      const localName = spec.local?.name;
-      const importedName = spec.imported?.name ||
+      const localName = spec.local && spec.local.name;
+      const importedName = spec.imported && spec.imported.name ||
         (spec.type === "ImportDefaultSpecifier" ? "default" : "*");
 
       this.scope[localName] = external.getter(importedName);
@@ -179,8 +179,8 @@ export class Parser {
     if(type == "TSTypeLiteral")
       return this.TSTypeLiteral(typeAnnotation);
   
-    const tp = typeAnnotation.typeParameters?.params;
-    const params: any[] = tp?.map((a: any) => this.TSTypeAnnotation(a))
+    const tp = typeAnnotation.typeParameters && typeAnnotation.typeParameters.params;
+    const params: any[] = tp && tp.map((a: any) => this.TSTypeAnnotation(a))
   
     if(params)
       params.forEach((x, i) => {
