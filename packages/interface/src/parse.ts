@@ -30,6 +30,10 @@ export class Parser {
     parent[node.id.name] = new Parser(this.resolve, this.scope).run(node.body.body).output;
   }
 
+  Identifier(node: any){
+    // debugger
+  }
+
   ClassDeclaration(node: any){
     console.log("sdasd")
     void node;
