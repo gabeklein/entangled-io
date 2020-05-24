@@ -92,13 +92,17 @@ export class Parser {
   }
 
   ExportDefaultDeclaration(node: any){
-    if(node.declaration){
+    if(node.expression)
+      this.output.default = this.scope[node.expression.name];
+    else if(node.declaration.type == "Identifier")
+      this.output = unwrapObject({
+        default: this.scope[node.declaration.name]
+      })
+    else {
       node.declaration.into = this.output;
       node.declaration.into_as = "default";
       this.queue.push(node.declaration)
-      return
     }
-    this.output.default = this.scope[node.expression.name];
   }
 
   ExportNamedDeclaration(node: any){

@@ -34,7 +34,25 @@ class ApiReplacementPlugin {
   generateAgentModule(mod: RemoteModule){
     const uri = path.join(mod.location!, "entangled-agent.js");
     const parsed = collateTypes(mod.location!);
-    const computed = parsed.output.params[0];
+    const { output } = parsed;
+
+    const potentialExports = [
+      [null, output], 
+      ...Object.entries(output)
+    ];
+    
+    let computed;
+
+    for(const [key, target] of potentialExports){
+      const { params } = target;
+      if(params){
+        computed = target.params[0];
+        if(typeof key == "string")
+          computed = { [key]: computed }
+        break;
+      }
+    }
+    
     const injectSchema = JSON.stringify(computed);
     const initContent = `module.exports = require("@entangled/fetch").define(${injectSchema})`
 
