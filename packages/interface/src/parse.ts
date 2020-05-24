@@ -118,11 +118,16 @@ export class Parser {
         this.output[spec.exported.name] =
           external.getter(spec.local && spec.local.name || "*");
     }
-    else {
-      for(const spec of node.specifiers)
-        this.output[spec.exported.name] = 
-          this.scope[spec.local.name]
-    }
+    else 
+      for(const spec of node.specifiers){
+        const ref = spec.exported.name;
+        const resolved = this.scope[spec.local.name];
+        if(!resolved){
+          this.queue.push(node);
+          break
+        }
+        this.output[ref] = resolved;
+      }
   }
 
   TSTypeLiteral(typeAnnotation: any){
