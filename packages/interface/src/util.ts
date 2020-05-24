@@ -1,10 +1,8 @@
 import { existsSync, statSync, readFileSync } from "fs";
-import path from "path";
+import * as path from "path";
 
 const babel = require("@babel/core");
 const babel_ts = require("@babel/plugin-syntax-typescript");
-
-type BunchOf<T> = { [key: string]: T };
 
 export function tryParseWithBabel(code: string){
   return babel
@@ -73,29 +71,4 @@ export function resolveMainTypes(root: string){
     name,
     main: types as string
   }
-}
-
-void function readPaths(root: string){
-  let cfg = tryReadJSON(root, "tsconfig.json")
-
-  if(!cfg)
-    throw new Error(`Type accumulation expects a tsconfig.json at ${root}`)
-
-  let uri = root;
-  let paths = cfg.comilerOptions && cfg.comilerOptions.paths;
-
-  if(!paths)
-    while(!paths && cfg.extends){
-      uri = path.dirname(path.resolve(root, cfg.extends));
-      cfg = tryReadJSON(root, "tsconfig.json") || {};
-      paths = cfg.compilerOptions && cfg.compilerOptions.paths;
-    }
-
-  if(paths)
-    for(const alias in paths)
-      paths[alias] = []
-        .concat(paths[alias])
-        .map(x => path.resolve(uri, x))
-
-  return paths as BunchOf<string[]>;
 }
