@@ -47,7 +47,7 @@ export default class EntangledVirtualModulePlugin {
 
     this.compiler.inputFileSystem._writeVirtualFile(modulePath, stats, contents);
 
-    if(!finalWatchFileSystem && finalWatchFileSystem.watcher.fileWatchers.length)
+    if(!finalWatchFileSystem || finalWatchFileSystem.watcher.fileWatchers.length == 0)
       return
 
     for(const fileWatcher of finalWatchFileSystem.watcher.fileWatchers)
