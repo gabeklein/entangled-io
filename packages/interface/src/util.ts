@@ -59,6 +59,9 @@ export function resolveMainTypes(root: string){
     types = exists(match[1] + ".d.ts");
 
     if(!types)
+      types = exists(match[1], "index.d.ts")
+
+    if(!types && match[2])
       types = exists(match[2], "index.d.ts")
   }
 
