@@ -83,7 +83,7 @@ type RestArgument =
 async function fetchJson(url: string, args: RestArgument[]){
   // const post = args.length === 1 && typeof args[0] === "object";
 
-  url = endpoint + url;
+  url = (endpoint + url).toLowerCase();
 
   const body = format(args);
 
