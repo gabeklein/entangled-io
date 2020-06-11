@@ -1,6 +1,7 @@
 import { RequestHandler, Response } from 'express';
 
 import { Internal, RestError, BadInput } from './errors';
+import { createContext } from './async_hook';
 
 const { DEBUG_ENDPOINTS } = process.env;
 
@@ -56,7 +57,8 @@ export function abstract(handler: Function): RequestHandler {
 
       body = parse(body);
 
-      const exec = handler(...body) as any;
+      createContext({ req: request, res: response });
+      const exec = handler.apply(null, body) as any;
       let output = exec instanceof Promise ? await exec : exec;
 
       try { 
