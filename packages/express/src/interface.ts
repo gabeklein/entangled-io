@@ -1,5 +1,5 @@
 import { Entangled } from "@entangled/interface"
-import express, { Express, json } from "express"
+import express, { Express, json, Router } from "express"
 
 import { origin } from './gates';
 import { applyPath } from './router';
@@ -11,6 +11,7 @@ export interface ExpressInterface {
 
   listen(port: number, cb?: (app: Express) => void): void;
   applyTo(to: Express, root?: string): void;
+  routes(): Router;
 }
 
 function InterfaceFactory(
@@ -34,6 +35,12 @@ InterfaceFactory.prototype = {
       app.listen(port);
     
     return app;
+  },
+
+  routes(){
+    const routes = Router();
+    applyPath(routes, this[ROUTES]);
+    return routes;
   },
 
   applyTo(to: Express, root?: string){

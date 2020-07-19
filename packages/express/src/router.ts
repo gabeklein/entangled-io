@@ -1,10 +1,10 @@
 import { Entangled } from '@entangled/interface';
-import { Express } from 'express';
+import { Router } from 'express';
 
 import { abstract } from './abstract';
 
 export function applyPath(
-  app: Express, 
+  app: Router, 
   handle: Entangled.DefineRoutes | Function, 
   prefix = ""){
 
