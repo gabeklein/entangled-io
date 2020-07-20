@@ -1,5 +1,6 @@
 import { Entangled } from "@entangled/interface"
 import express, { Express, json, Router } from "express"
+import cookieParser from "cookie-parser"
 
 import { origin } from './gates';
 import { applyPath } from './router';
@@ -39,6 +40,7 @@ InterfaceFactory.prototype = {
 
   routes(){
     const routes = Router();
+    routes.use(cookieParser())
     routes.use(json());
     applyPath(routes, this[ROUTES]);
     return routes;

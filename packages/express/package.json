@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@entangled/interface": "^1.1.1",
+    "@types/cookie-parser": "^1.4.2",
     "express": "^4.17.1"
   },
   "devDependencies": {
