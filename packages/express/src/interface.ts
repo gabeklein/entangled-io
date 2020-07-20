@@ -39,6 +39,7 @@ InterfaceFactory.prototype = {
 
   routes(){
     const routes = Router();
+    routes.use(json());
     applyPath(routes, this[ROUTES]);
     return routes;
   },
