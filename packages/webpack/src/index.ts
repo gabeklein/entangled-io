@@ -4,8 +4,10 @@ import { Compiler } from 'webpack';
 
 import VirtualModulesPlugin from './virtual-modules-plugin';
 
+const Resolver = require("enhanced-resolve");
+
 /** Customized webpack resolver to look for .d.ts files. */
-const specialResolver = require("enhanced-resolve").create.sync({
+const specialResolver = Resolver.create.sync({
   extensions: [".d.ts"],
   mainFields: ["types", "main"],
   resolveToContext: false,
