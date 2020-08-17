@@ -19,13 +19,16 @@ type RemoteModule = {
 };
 
 class ApiReplacementPlugin {
+  /** Using name of class itself for plugin hooks. */
+  name = this.constructor.name;
 
   /** Simple cache of requires tagged for replacement. */
   remoteModules = new Map<string, RemoteModule>();
 
-  /** A seperate plugin for adding generated files to bundle. */
+  /** A seperate plugin for managing imaginary files in our bundle. */
   virtualPlugin = new VirtualModulesPlugin();
 
+  /** Consume list of modules we want to proxy on client. */
   constructor(mods: string[] = []){
     for(const mod of mods)
       this.remoteModules.set(mod, { watched: new Set() })
@@ -65,11 +68,19 @@ class ApiReplacementPlugin {
   }
 
   apply(compiler: Compiler) {
-    const NAME = this.constructor.name;
-
     this.virtualPlugin.apply(compiler);
+    this.applyEntryOption(compiler);
+    this.applyBeforeResolve(compiler);
+    this.applyAfterCompile(compiler);
+    this.applyWatchRun(compiler);
+  }
 
-    compiler.hooks.entryOption.tap(NAME, (context) => {
+  /**
+   * After context is established by webpack, scan for the declared modules we will shim.
+   * Here we specially resolve typings and hold them for schema generator.
+   */
+  applyEntryOption(compiler: Compiler){
+    compiler.hooks.entryOption.tap(this.name, (context) => {
       this.remoteModules.forEach((mod, request) => {
         let resolved;
 
@@ -87,9 +98,15 @@ class ApiReplacementPlugin {
         mod.location = resolvedContext;
       })
     })
+  }
 
-    compiler.hooks.normalModuleFactory.tap(NAME, (compilation: any) => {
-      compilation.hooks.beforeResolve.tap(NAME, (result: any) => {
+  /**
+   * As we resolve modules, if we run into one marked for 
+   * override, we generate the replacement proxy implementation. 
+   */
+  applyBeforeResolve(compiler: Compiler){
+    compiler.hooks.normalModuleFactory.tap(this.name, (compilation: any) => {
+      compilation.hooks.beforeResolve.tap(this.name, (result: any) => {
         /*
          * API polyfill is installed as a dependancy of this plugin.
          * Explicitly resolve from here so webpack can bundle it.
@@ -115,15 +132,20 @@ class ApiReplacementPlugin {
             throw err;
           }
 
-        result.request = mod.injected
+        result.request = mod.injected;
       })
     });
+  }
 
-    compiler.hooks.afterCompile.tap(NAME, (compilation) => {
-      /* 
-       * Hook is also called by html-webpack-plugin but we want to skip that one.
-       * `compilation.name` is defined by the plugin, so we can bailout.
-       */
+  /**
+   * After first compilation, we need to watch our "server" source files.
+   * During development, where backend code is linked, we should refresh
+   * when API is expected to change following the server logic.
+   */
+  applyAfterCompile(compiler: Compiler){
+    compiler.hooks.afterCompile.tap(this.name, (compilation) => {
+      // Hook is also called by html-webpack-plugin but we want to skip that one.
+      // Notice `compilation.name` is defined by the plugin, so we can bailout.
       if((compilation as any).name)
         return
 
@@ -133,8 +155,13 @@ class ApiReplacementPlugin {
         })
       })
     })
+  }
 
-    compiler.hooks.watchRun.tap(NAME, (compilation) => {
+  /**
+   * Where files server have updated, regenerate API polyfill for compilation.
+   */
+  applyWatchRun(compiler: Compiler){
+    compiler.hooks.watchRun.tap(this.name, (compilation) => {
       const { watchFileSystem } = compilation as any;
       const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
       const filesUpdated = Object.keys(watcher.mtimes);
