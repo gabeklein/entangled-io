@@ -1,5 +1,7 @@
 {
   "name": "entangled-io",
+  "private": true,
+
   "scripts": {
     "start": "concurrently \"npm:start:*\"",
     "prepare": "lerna bootstrap",
@@ -8,9 +10,14 @@
     "watch": "npm run watch --prefix example/client",
     "build": "npm run build --prefix example/client"
   },
+  "workspaces": [
+    "packages/*",
+    "example/*"
+  ],
   "devDependencies": {
-    "lerna": "^3.13.4",
-    "concurrently": "^5.1.0"
+    "@types/node": "^14.6.0",
+    "concurrently": "^5.1.0",
+    "lerna": "^3.13.4"
   },
   "dependencies": {
     "source-map-support": "^0.5.16"
