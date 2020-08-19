@@ -35,6 +35,14 @@ class ApiReplacementPlugin {
     for(const mod of mods)
       this.remoteModules.set(mod, { watched: new Set() })
   }
+
+  apply(compiler: Compiler) {
+    this.virtualPlugin.apply(compiler);
+    this.applyEntryOption(compiler);
+    this.applyBeforeResolve(compiler);
+    this.applyAfterCompile(compiler);
+    this.applyWatchRun(compiler);
+  }
   
   generateAgentModule(mod: RemoteModule){
     const uri = path.join(mod.location!, "entangled-agent.js");
@@ -64,17 +72,7 @@ class ApiReplacementPlugin {
     this.virtualPlugin.writeModule(uri, initContent);
 
     mod.injected = uri;
-    parsed.cache.forEach(
-      x => mod.watched.add(x.file)
-    );
-  }
-
-  apply(compiler: Compiler) {
-    this.virtualPlugin.apply(compiler);
-    this.applyEntryOption(compiler);
-    this.applyBeforeResolve(compiler);
-    this.applyAfterCompile(compiler);
-    this.applyWatchRun(compiler);
+    parsed.cache.forEach(x => mod.watched.add(x.file));
   }
 
   /**
@@ -121,11 +119,13 @@ class ApiReplacementPlugin {
         //TODO improve handling of these requests
         const match = /^((?:@\w+\/)?\w+)/.exec(result.request);
 
-        if(!match) return;
+        if(!match)
+          return;
 
         let mod = this.remoteModules.get(match[1]);
 
-        if(!mod) return;
+        if(!mod)
+          return;
 
         if(!mod.injected)
           try { this.generateAgentModule(mod) }
