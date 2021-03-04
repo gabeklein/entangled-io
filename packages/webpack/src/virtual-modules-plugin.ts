@@ -103,10 +103,9 @@ export default class EntangledVirtualModulePlugin {
 
         if(dirData[1].includes(filename))
           break;
-        else {
-          const files = dirData[1].concat([filename]).sort();
-          setData(this._readdirStorage, dir, [null, files]);
-        }
+
+        const files = dirData[1].concat([filename]).sort();
+        setData(this._readdirStorage, dir, [null, files]);
       }
     }
   }

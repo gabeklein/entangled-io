@@ -3,12 +3,6 @@ import ReactDOM from "react-dom"
 
 import API from "@entangled/service";
 
-window.onload = async () => {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  ReactDOM.render(<App/>, container)
-}
-
 const App = () => {
   const [text, setText] = useState("Click here to hit server!")
 
@@ -20,4 +14,10 @@ const App = () => {
       {text}
     </div>
   )
+}
+
+window.onload = async () => {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  ReactDOM.render(<App/>, container)
 }
