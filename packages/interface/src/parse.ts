@@ -1,4 +1,5 @@
 import { Module } from './module';
+import { InterfaceType, ObjectLiteral, ParameterizedType, TypeAlias } from './types';
 
 type BunchOf<T> = { [key: string]: T };
 
@@ -281,23 +282,4 @@ function flattenQualified(left: any){
   }
   list.unshift(left.name);
   return list as string[];
-}
-
-class ParameterizedType {
-  constructor(
-    public modifier: any,
-    public params: any[]
-  ){}
-}
-
-class TypeAlias {
-  comment?: string;
-}
-
-class InterfaceType {
-  comment?: string;
-}
-
-class ObjectLiteral {
-  [ key: string ]: any
 }

@@ -29,3 +29,22 @@ export namespace Entangled {
     [k: string]: DefineRoutes | Fn;
   }
 }
+
+export class ParameterizedType {
+  constructor(
+    public modifier: any,
+    public params: any[]
+  ){}
+}
+
+export class TypeAlias {
+  comment?: string;
+}
+
+export class InterfaceType {
+  comment?: string;
+}
+
+export class ObjectLiteral {
+  [ key: string ]: any
+}
