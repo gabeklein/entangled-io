@@ -1,8 +1,8 @@
-let endpoint = "http://localhost:8080";
+let ENDPOINT = "http://localhost:8080";
 
 try {
   const ep = process.env.ENDPOINT;
-  if(ep) endpoint = ep.replace(/\/$/, "");
+  if(ep) ENDPOINT = ep.replace(/\/$/, "");
 }
 catch(err){}
 
@@ -44,7 +44,7 @@ function parse(data: any): any {
   return data;
 }
 
-export function define(schema: {}){
+function create(schema: {}){
   return traverse(schema)
 }
 
@@ -83,7 +83,7 @@ type RestArgument =
 async function fetchJson(url: string, args: RestArgument[]){
   // const post = args.length === 1 && typeof args[0] === "object";
 
-  url = (endpoint + url).toLowerCase();
+  url = (ENDPOINT + url).toLowerCase();
 
   const body = format(args);
 
@@ -106,3 +106,5 @@ async function fetchJson(url: string, args: RestArgument[]){
   else
     return output;
 }
+
+export = create;

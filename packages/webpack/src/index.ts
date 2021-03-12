@@ -1,39 +1,46 @@
-import { collateTypes } from '@entangled/interface';
-import path from 'path';
 import { Compiler } from 'webpack';
 
+import { generatePolyfill } from './generate';
+import { resolveTypes } from './resolve';
 import VirtualModulesPlugin from './virtual-modules-plugin';
 
-const Resolver = require("enhanced-resolve");
+const DEFAULT_AGENT = "@entangled/fetch";
 
-/** Customized webpack resolver to look for .d.ts files. */
-const specialResolver = Resolver.create.sync({
-  extensions: [".d.ts"],
-  mainFields: ["types", "main"],
-  resolveToContext: false,
-  symlinks: true
-});
-
-type RemoteModule = {
+export interface RemoteModule {
   location?: string
-  injected?: string
-  watched: Set<string>
+  filename?: string
+  files: Set<string>
 };
 
+export interface Options {
+  endpoint?: string;
+  agent?: string;
+}
+
+function ensureModule(request: string){
+  const match = /^((?:@\w+\/)?\w+)/.exec(request);
+  return match && request;
+}
+
 class ApiReplacementPlugin {
-  /** Using name of class itself for plugin hooks. */
+  /** Use name of class to register hooks. */
   name = this.constructor.name;
+
+  agent = DEFAULT_AGENT;
 
   /** Simple cache of requires tagged for replacement. */
   remoteModules = new Map<string, RemoteModule>();
 
-  /** A seperate plugin for managing imaginary files in our bundle. */
+  /** Seperate plugin will manage imaginary files for bundle. */
   virtualPlugin = new VirtualModulesPlugin();
 
-  /** Consume list of modules we want to proxy on client. */
-  constructor(mods: string[] = []){
-    for(const mod of mods)
-      this.remoteModules.set(mod, { watched: new Set() })
+  /** Consume list of modules we want to "polyfill" on the client. */
+  constructor(
+    private modules: string[] = [],
+    opts: Options = {}
+  ){
+    if(opts.agent)
+      this.agent = opts.agent;
   }
 
   apply(compiler: Compiler) {
@@ -43,37 +50,6 @@ class ApiReplacementPlugin {
     this.applyAfterCompile(compiler);
     this.applyWatchRun(compiler);
   }
-  
-  generateAgentModule(mod: RemoteModule){
-    const uri = path.join(mod.location!, "entangled-agent.js");
-    const parsed = collateTypes(mod.location!);
-    const { output } = parsed;
-
-    const potentialExports = [
-      [null, output], 
-      ...Object.entries(output)
-    ];
-    
-    let computed;
-
-    for(const [key, target] of potentialExports){
-      const { params } = target;
-      if(params){
-        computed = target.params[0];
-        if(typeof key == "string")
-          computed = { [key]: computed }
-        break;
-      }
-    }
-    
-    const injectSchema = JSON.stringify(computed);
-    const initContent = `module.exports = require("@entangled/fetch").define(${injectSchema})`
-
-    this.virtualPlugin.writeModule(uri, initContent);
-
-    mod.injected = uri;
-    parsed.cache.forEach(x => mod.watched.add(x.file));
-  }
 
   /**
    * After context is established by webpack, scan for the declared modules we will shim.
@@ -81,22 +57,13 @@ class ApiReplacementPlugin {
    */
   applyEntryOption(compiler: Compiler){
     compiler.hooks.entryOption.tap(this.name, (context) => {
-      this.remoteModules.forEach((mod, request) => {
-        let resolved;
-
-        try {
-          resolved = specialResolver(context, request);
-        }
-        catch(err){
-          console.error(err)
-          throw new Error("Couldn't find types")
-        }
-
-        const resolvedContext = 
-          resolved.replace(/\/lib\/index\.[^\\\/]+$/, "");
-
-        mod.location = resolvedContext;
-      })
+      for(const request of this.modules){
+        const location = resolveTypes(context, request);
+        this.remoteModules.set(request, {
+          location,
+          files: new Set()
+        });
+      }
     })
   }
 
@@ -107,52 +74,39 @@ class ApiReplacementPlugin {
   applyBeforeResolve(compiler: Compiler){
     compiler.hooks.normalModuleFactory.tap(this.name, (compilation: any) => {
       compilation.hooks.beforeResolve.tap(this.name, (result: any) => {
+        const match = ensureModule(result.request);
+
         /*
-         * API polyfill is installed as a dependancy of this plugin.
+         * Fetch polyfill is a dependancy of *this* plugin.
          * Explicitly resolve from here so webpack can bundle it.
          */
-        if(result.request == "@entangled/fetch"){
-          result.request = require.resolve("@entangled/fetch");
+        if(match == DEFAULT_AGENT){
+          result.request = require.resolve(match);
           return;
         }
 
-        //TODO improve handling of these requests
-        const match = /^((?:@\w+\/)?\w+)/.exec(result.request);
+        const module = match && this.remoteModules.get(match);
 
-        if(!match)
-          return;
-
-        let mod = this.remoteModules.get(match[1]);
-
-        if(!mod)
-          return;
-
-        if(!mod.injected)
-          try { this.generateAgentModule(mod) }
-          catch(err){
-            console.error(err);
-            throw err;
-          }
-
-        result.request = mod.injected;
+        if(module)
+          result.request = this.writeReplacement(module);
       })
     });
   }
 
   /**
-   * After first compilation, we need to watch our "server" source files.
-   * During development, where backend code is linked, we should refresh
-   * when API is expected to change following the server logic.
+   * After first compilation, we need to watch our server's source files.
+   * During development, backend code might be linked;
+   * we should refresh where API might change with new server logic.
    */
   applyAfterCompile(compiler: Compiler){
     compiler.hooks.afterCompile.tap(this.name, (compilation) => {
-      // Hook is also called by html-webpack-plugin but we want to skip that one.
-      // Notice `compilation.name` is defined by the plugin, so we can bailout.
+      // This is also called by html-webpack-plugin but we want to skip that one.
+      // Check if `compilation.name` was defined by that plugin, so we can bailout.
       if((compilation as any).name)
         return
 
       this.remoteModules.forEach(mod => {
-        mod.watched.forEach(file => {
+        mod.files.forEach(file => {
           compilation.fileDependencies.add(file)
         })
       })
@@ -168,14 +122,30 @@ class ApiReplacementPlugin {
       const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
       const filesUpdated = Object.keys(watcher.mtimes);
 
-      this.remoteModules.forEach(mod => {
-        const watchFilesUpdated = 
-          filesUpdated.filter(x => mod.watched.has(x));
+      for(const mod of this.remoteModules.values()){
+        let updates = 0;
 
-        if(watchFilesUpdated.length)
-          this.generateAgentModule(mod);
-      })
+        for(const name of filesUpdated)
+          if(mod.files.has(name))
+            updates++;
+
+        if(updates)
+          this.writeReplacement(mod);
+      }
     })
+  }
+  
+  writeReplacement(mod: RemoteModule){
+    let location = mod.filename;
+
+    if(location)
+      return location;
+    else {
+      const { file, content, source } = generatePolyfill(mod, this.agent);
+      this.virtualPlugin.writeModule(file, content);
+      source.forEach(x => mod.files.add(x.file));
+      return mod.filename = file;
+    }
   }
 }
 

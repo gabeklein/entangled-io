@@ -1,4 +1,4 @@
-import { Interface } from '@entangled/express';
+import Service from '@entangled/express';
 
 import * as Greetings from "./hello"
 
@@ -10,10 +10,10 @@ function echo(quote: string){
   return quote;
 }
 
-const API = new Interface({ echo, Greetings });
+const API = new Service({ echo, Greetings });
 
 API.listen(8080, () => {
   console.log("Listening on port 8080")
 });
 
-export = API;
+export = API.Interface;

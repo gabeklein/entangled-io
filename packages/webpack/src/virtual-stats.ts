@@ -10,7 +10,6 @@ interface StatOpts {
 }
 
 export default class VirtualStats {
-
   dev = 8675309
   uid = 1000
   gid = 1000

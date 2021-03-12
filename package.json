@@ -1,7 +1,6 @@
 {
   "name": "entangled-io",
   "private": true,
-
   "scripts": {
     "start": "concurrently \"npm:start:*\"",
     "prepare": "lerna bootstrap",
@@ -17,7 +16,7 @@
   "devDependencies": {
     "@types/node": "^14.6.0",
     "concurrently": "^5.1.0",
-    "lerna": "^3.13.4"
+    "lerna": "^4.0.0"
   },
   "dependencies": {
     "source-map-support": "^0.5.16"

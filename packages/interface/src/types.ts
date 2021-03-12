@@ -5,7 +5,11 @@ export namespace Entangled {
 
   type ArgumentsOf<T> = T extends (...args: infer U) => any ? U : never;
   type Promisable<T> = T extends Promise<any> ? T : Promise<T>
-  
+
+  export type Resources<E extends string, T extends {}> = { 
+    readonly [P in keyof T]: Item<T[P]> 
+  };
+
   export type Item<T> = 
     T extends Fn ? RemoteCallable<T> :
     T extends HavingDefault ? CallableNamespace<T> : 
@@ -25,8 +29,8 @@ export namespace Entangled {
     & RemoteCallable<T["default"]> 
     & Namespace<Omit<T, "default">>
 
-  export type DefineRoutes = { 
-    [k: string]: DefineRoutes | Fn;
+  export type Schema = { 
+    [k: string]: Schema | Fn;
   }
 }
 

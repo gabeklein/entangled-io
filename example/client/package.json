@@ -17,7 +17,7 @@
     "typescript": "3.8.3",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10",
-    "webpack-dev-server": "^3.10.2"
+    "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
     "@entangled/webpack": "^1.2.0",

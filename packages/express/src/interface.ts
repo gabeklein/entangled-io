@@ -1,65 +1,54 @@
-import { Entangled } from "@entangled/interface"
-import express, { Express, json, Router } from "express"
-import cookieParser from "cookie-parser"
+import Entangled from '@entangled/interface';
+import cookieParser from 'cookie-parser';
+import express, { Express, json, Router } from 'express';
 
 import { origin } from './gates';
-import { applyPath } from './router';
+import { createNamespace, createRoute } from './routes';
 
-const ROUTES = Symbol("__source_routes__");
+export class Service<R extends Entangled.Schema> {
+  private logic: R;
+  
+  constructor(routes: R){
+    this.logic = routes;
+  }
 
-export interface ExpressInterface {
-  [ROUTES]: {};
+  get Interface(): Entangled.Resources<"ENDPOINT", R> {
+    const resources = createNamespace(this.logic);
 
-  listen(port: number, cb?: (app: Express) => void): void;
-  applyTo(to: Express, root?: string): void;
-  routes(): Router;
-}
+    Object.defineProperty(this, "interface", { value: resources });
 
-function InterfaceFactory(
-  this: ExpressInterface, routes: {}){
+    return resources as any;
+  };
 
-  this[ROUTES] = routes;
-}
+  Endpoint<T extends string>(url: T): Entangled.Resources<T, R> {
+    return this.Interface;
+  }
 
-InterfaceFactory.prototype = {
-  listen(port: number, cb?: (app: Express) => void){
+  routes(){
+    const routes = Router().use(json());
+    createRoute(routes, this.logic);
+    return routes;
+  }
+
+  listen(
+    port: number, 
+    callback?: (app: Express) => void){
+
     const app = express();
   
-    app.use(origin())
-    app.use(json());
+    app.use(origin());
+    app.use(this.routes());
+    app.use(cookieParser());
 
-    applyPath(app, this[ROUTES]);
-
-    if(cb)
-      app.listen(port, () => cb(app));
+    if(callback)
+      app.listen(port, () => callback(app));
     else
       app.listen(port);
     
     return app;
-  },
+  }
 
-  routes(){
-    const routes = Router();
-    routes.use(cookieParser())
-    routes.use(json());
-    applyPath(routes, this[ROUTES]);
-    return routes;
-  },
-
-  applyTo(to: Express, root?: string){
-    applyPath(to, this[ROUTES], root)
+  apply(to: Express | Router, root?: string){
+    createRoute(to, this.logic, root)
   }
 }
-
-interface LegalDefinition {
-  listen?: never;
-  applyTo?: never;
-}
-
-interface InterfaceConstructor {
-  new <R extends Entangled.DefineRoutes & LegalDefinition>(routes: R): ExpressInterface & Entangled.Namespace<R>
-}
-
-const Interface = <InterfaceConstructor><Function>InterfaceFactory;
-
-export { Interface }
