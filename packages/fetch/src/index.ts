@@ -1,11 +1,3 @@
-let ENDPOINT = "http://localhost:8080";
-
-try {
-  const ep = process.env.ENDPOINT;
-  if(ep) ENDPOINT = ep.replace(/\/$/, "");
-}
-catch(err){}
-
 function format(data: any): any {
   if(data instanceof Date)
     return `${Math.floor(data.getTime() / 1000)}Z`
@@ -44,24 +36,35 @@ function parse(data: any): any {
   return data;
 }
 
-function create(schema: {}){
-  return traverse(schema)
+function create(schema: {}, endpoint?: string){
+  if(!endpoint || /^[A-Z_]+$/.test(endpoint)){
+    const key = endpoint || "ENDPOINT";
+
+    try {
+      endpoint = process.env[key]!.replace(/\/$/, "");
+    }
+    catch(err){
+      throw new Error(`Could not find environment variable ${key}`)
+    }
+  }
+
+  return traverse(schema, endpoint);
 }
 
-function traverse(target: any, path = "") {
+function traverse(target: any, endpoint: string, path = "") {
   if(typeof target == "object"){
     const { default: root, ...api } = target;
-    const route: any = root ? newHandler(path) : {};
+    const route: any = root ? newHandler(path, endpoint) : {};
     for(const key in api)
-      route[key] = traverse(api[key], path + "/" + key);
+      route[key] = traverse(api[key], endpoint, path + "/" + key);
     return route;
   }
   else
-    return newHandler(path)
+    return newHandler(path, endpoint);
 }
 
-function newHandler(path: string){
-  const h = (...args: any[]) => fetchJson(path, args);
+function newHandler(path: string, endpoint: string){
+  const h = (...args: any[]) => fetchJson(path, args, endpoint);
   const base = /\/?(\w+)$/.exec(path);
   if(base && base[1])
     Object.defineProperty(h, "name", { value: base[1] })
@@ -80,10 +83,13 @@ type RestArgument =
   | number
   | Date
 
-async function fetchJson(url: string, args: RestArgument[]){
+async function fetchJson(
+  url: string,
+  args: RestArgument[],
+  endpoint: string){
   // const post = args.length === 1 && typeof args[0] === "object";
 
-  url = (ENDPOINT + url).toLowerCase();
+  url = (endpoint + url).toLowerCase();
 
   const body = format(args);
 
@@ -95,9 +101,9 @@ async function fetchJson(url: string, args: RestArgument[]){
   } as const;
 
   const response = await fetch(url, init)
+  const output = await response.json().then(parse);
 
   const { status } = response;
-  const output = await response.json().then(parse);
 
   if(status >= 300)
     throw output;
