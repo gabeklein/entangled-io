@@ -25,7 +25,7 @@ export class Module {
     }
     else {
       const { main, name } = resolveMainTypes(root);
-      const workspace = getWorkspace(root)
+      const workspace = paths && paths[1] || getWorkspace(root);
 
       this.file = main || "";
       this.name = name;
@@ -75,11 +75,13 @@ export class Module {
       }
 
       if(!root)
-        throw new Error(`Could not resolve ${request}!`)
+        throw new Error(`Could not resolve ${request}!`);
 
       root = realpathSync(root);
       
-      return this.create(root);
+      const workspace = this.paths[1];
+
+      return this.create(root, workspace ? ["", workspace] : []);
     }
   }
 
