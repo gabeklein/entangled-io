@@ -61,16 +61,17 @@ export class Module {
       }
     }
     else {
-      let root = this.paths
-        .map(r => {
-          r = resolve(r, "node_modules", request);
-          return (existsSync(r) || existsSync(r += ".d.ts") ) && r
-        })
-        .find(r => r);
-  
-      if(!root){
-        throw new Error(`${request} does not resolve to a directory`)
+      let root;
+
+      for(const path of this.paths){
+        let full = resolve(path, "node_modules", request);
+
+        if(existsSync(full) || existsSync(full += ".d.ts"))
+          root = full;
       }
+
+      if(!root)
+        throw new Error(`Could not resolve ${request}!`)
 
       root = realpathSync(root);
       
