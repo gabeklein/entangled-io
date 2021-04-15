@@ -36,10 +36,19 @@ export class Module {
     }
   }
 
-  resolve(request: string){
-    const loaded = this.cache;
-    let target: Module | undefined;
-  
+  create(root: string, paths?: string[]){
+    const { cache } = this;
+    let mod = cache.get(root);
+    
+    if(!mod)
+      cache.set(root, 
+        mod = new Module(root, cache, paths)  
+      );
+
+    return mod;
+  }
+
+  resolve(request: string){  
     if(/^\./.test(request)){
       let dir = resolve(dirname(this.file), request)
   
@@ -53,12 +62,7 @@ export class Module {
       if(!existsSync(dir))
         throw new Error(`File "${dir} wasn't found fam."`);
   
-      target = loaded.get(dir);
-  
-      if(!target){
-        target = new Module(dir, loaded, this.paths);
-        loaded.set(dir, target);
-      }
+      return this.create(dir, this.paths);
     }
     else {
       let root;
@@ -75,15 +79,8 @@ export class Module {
 
       root = realpathSync(root);
       
-      target = loaded.get(root);
-  
-      if(!target){
-        target = new Module(root, loaded);
-        loaded.set(root, target);
-      }
+      return this.create(root);
     }
-  
-    return target;
   }
 
   getter(...resolve: string[]): any {
