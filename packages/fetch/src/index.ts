@@ -36,18 +36,7 @@ function parse(data: any): any {
   return data;
 }
 
-function create(schema: {}, endpoint?: string){
-  if(!endpoint || /^[A-Z_]+$/.test(endpoint)){
-    const key = endpoint || "ENDPOINT";
-
-    try {
-      endpoint = process.env[key]!.replace(/\/$/, "");
-    }
-    catch(err){
-      throw new Error(`Could not find environment variable ${key}`)
-    }
-  }
-
+function create(schema: {}, endpoint: string){
   return traverse(schema, endpoint);
 }
 

@@ -16,18 +16,24 @@ export function generatePolyfill(
   ];
   
   let computed;
+  let endpoint;
 
   for(const [key, target] of potentialExports)
     if(target instanceof ParameterizedType){
-      computed = target.params[1];
+      [endpoint, computed] = target.params;
+      
       if(typeof key == "string")
         computed = { [key]: computed }
+
+      if(/^[/A-Z]+$/.test(endpoint))
+        endpoint = `process.env.${endpoint}`;
+
       break;
     }
   
   const json = JSON.stringify(computed);
   const imaginaryFile = path.join(target, "entangled.js");
-  const initContent = `module.exports = require("${agent}")(${json})`;
+  const initContent = `module.exports = require("${agent}")(${json}, ${endpoint})`;
 
   return {
     file: imaginaryFile,
