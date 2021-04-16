@@ -8,12 +8,11 @@ import { resolveMainTypes, tryParseWithBabel, tryReadFile } from './util';
 export class Module {
   name?: string
   file: string;
-  paths: string[];
 
   constructor(
     public root: string,
     public cache = new Map<string, Module>(),
-    paths?: string[]
+    public workspace?: string
   ){
     const isFile = /^(.+?)(\.d\.ts)$/.test(root);
 
@@ -21,73 +20,77 @@ export class Module {
 
     if(isFile){
       this.file = root;
-      this.paths = paths!;
     }
     else {
       const { main, name } = resolveMainTypes(root);
-      const workspace = paths && paths[1] || getWorkspace(root);
+
+      if(!workspace)
+        this.workspace = getWorkspace(root) || undefined;
 
       this.file = main || "";
       this.name = name;
-      this.paths = [root];
-
-      if(workspace)
-        this.paths.push(workspace)
     }
   }
 
-  create(root: string, paths?: string[]){
+  create(root: string){
     const { cache } = this;
     let mod = cache.get(root);
     
     if(!mod)
       cache.set(root, 
-        mod = new Module(root, cache, paths)  
+        mod = new Module(root, cache, this.workspace)  
       );
 
     return mod;
   }
 
-  resolve(request: string){  
-    if(/^\./.test(request)){
-      let dir = resolve(dirname(this.file), request)
-  
-      dir = dir.replace(/\/src$/g, "/lib");
-  
-      if(existsSync(dir) && lstatSync(dir).isDirectory()) 
-        dir += "/index";
-  
-      dir += ".d.ts";
-  
-      if(!existsSync(dir))
-        throw new Error(`File "${dir} wasn't found fam."`);
-  
-      return this.create(dir, this.paths);
-    }
-    else {
-      let root;
+  resolver = (r: string) => {
+    return /^\./.test(r)
+      ? this.resolveFile(r)
+      : this.resolveRoot(r)
+  }
 
-      for(const path of this.paths){
+  resolveFile(uri: string){
+    let dir = resolve(dirname(this.file), uri)
+
+    dir = dir.replace(/\/src$/g, "/lib");
+
+    if(existsSync(dir) && lstatSync(dir).isDirectory()) 
+      dir += "/index";
+
+    dir += ".d.ts";
+
+    if(!existsSync(dir))
+      throw new Error(`File "${dir} wasn't found fam."`);
+
+    return this.create(dir);
+  }
+
+  resolveRoot(request: string){
+    let root;
+
+    for(const path of [this.root, this.workspace])
+      if(path){
         let full = resolve(path, "node_modules", request);
 
-        if(existsSync(full) || existsSync(full += ".d.ts"))
+        if(existsSync(full) || existsSync(full += ".d.ts")){
           root = full;
+          break;
+        }
       }
 
-      if(!root)
-        throw new Error(`Could not resolve ${request}!`);
+    if(!root)
+      throw new Error(`Could not resolve ${request}!`);
 
-      root = realpathSync(root);
-      
-      const workspace = this.paths[1];
+    root = realpathSync(root);
 
-      return this.create(root, workspace ? ["", workspace] : []);
-    }
+    return this.create(root);
   }
 
   getter(...resolve: string[]): any {
     return () => {
       let current = this.output;
+
       for(const key of resolve){
         if(key == "*")
           return current
@@ -118,10 +121,9 @@ export class Module {
   
     const queue = tryParseWithBabel(code);
     this.cache.set(this.root, this);
-  
-    const resolve = (request: string) => this.resolve(request)
-    const parse = new Parser(resolve).run(queue);
 
-    return parse.output;
+    const parse = new Parser(this.resolver);
+
+    return parse.run(queue).output;
   }
 }
