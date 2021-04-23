@@ -78,6 +78,7 @@ async function fetchJson(
   endpoint: string){
   // const post = args.length === 1 && typeof args[0] === "object";
 
+  endpoint = endpoint.replace(/\/$/, "");
   url = (endpoint + url).toLowerCase();
 
   const body = format(args);
