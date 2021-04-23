@@ -26,8 +26,10 @@ class ApiReplacementPlugin {
   /** Use name of class to register hooks. */
   name = this.constructor.name;
 
+  /** Name of module client will use to consume service. */
   agent: string;
 
+  /** List of modules this plugin should replace with SA. */
   replaceModules: string[];
 
   /** Simple cache of requires tagged for replacement. */
@@ -36,7 +38,10 @@ class ApiReplacementPlugin {
   /** Seperate plugin will manage imaginary files for bundle. */
   virtualPlugin = new VirtualModulesPlugin();
 
-  /** Consume list of modules we want to "polyfill" on the client. */
+  /**
+   * @param modules - List of modules we want to "polyfill" on the client.
+   * @param opts
+   */
   constructor(modules: string[], opts: Options = {}){
     this.agent = opts.agent || DEFAULT_AGENT;
     this.replaceModules = modules;
@@ -52,7 +57,7 @@ class ApiReplacementPlugin {
 
   /**
    * After context is established by webpack, scan for the declared modules we will shim.
-   * Here we specially resolve typings and hold them for schema generator.
+   * Here we resolve typings and hold them for the schema generator.
    */
   applyEntryOption(compiler: Compiler){
     compiler.hooks.entryOption.tap(this.name, (context) => {
@@ -96,10 +101,10 @@ class ApiReplacementPlugin {
    */
   applyPostCompile(compiler: Compiler){
     compiler.hooks.afterCompile.tap(this.name, (compilation) => {
-      // This is also called by html-webpack-plugin but we want to skip that one.
-      // Check if `compilation.name` was defined by that plugin, so we can bailout.
+      // This may also be called by html-webpack-plugin but we'll want to skip that.
+      // If `compilation.name` was defined by that plugin, we can bailout.
       if((compilation as any).name)
-        return
+        return;
 
       this.replacedModules.forEach(mod => {
         mod.watchFiles.forEach(file => {
