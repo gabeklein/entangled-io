@@ -1,13 +1,10 @@
 import { Module, ParameterizedType } from '@entangled/interface';
 import path from 'path';
 
-import { RemoteModule } from '.';
-
 export function generatePolyfill(
-  module: RemoteModule,
+  target: string,
   agent: string){
 
-  const target = module.location!;
   const { output, cache: fileCache } = new Module(target);
 
   const potentialExports = [
