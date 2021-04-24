@@ -97,7 +97,7 @@ function isExpressiveEntangledType(
     .getAliasSymbolOrThrow()
     .getFullyQualifiedName();
 
-  return /\.Entangled\.Resources$/.test(qualified);
+  return /\Entangled\.Resources$/.test(qualified);
 }
 
 function isFunctionType(type: Type){
