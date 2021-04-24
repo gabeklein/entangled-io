@@ -1,40 +1,30 @@
-import { Module, ParameterizedType } from '@entangled/interface';
 import path from 'path';
 
-export function generatePolyfill(
-  target: string,
-  agent: string){
+import { getSchemaFromSource } from './scanner';
+import { Recursive, ReplacedModule } from './types';
 
-  const { output, cache: fileCache } = new Module(target);
-
-  const potentialExports = [
-    [null, output], 
-    ...Object.entries(output)
-  ];
+export function generateServiceAgent(target: ReplacedModule, agent: string){
+  const { sourceFile, location, name } = target;
+  const { output, endpoint } = getSchemaFromSource(sourceFile!, name);
   
-  let computed;
-  let endpoint;
-
-  for(const [key, target] of potentialExports)
-    if(target instanceof ParameterizedType){
-      [endpoint, computed] = target.params;
-      
-      if(typeof key == "string")
-        computed = { [key]: computed }
-
-      if(/^[/A-Z]+$/.test(endpoint))
-        endpoint = `process.env.${endpoint}`;
-
-      break;
-    }
-  
-  const json = JSON.stringify(computed);
-  const imaginaryFile = path.join(target, "entangled.js");
-  const initContent = `module.exports = require("${agent}")(${json}, ${endpoint})`;
+  const filename = path.join(location!, "service_agent.js");
+  const content = generateServiceAgentContent(agent, endpoint, output);
 
   return {
-    file: imaginaryFile,
-    content: initContent,
-    source: fileCache
+    filename,
+    content
   }
+}
+
+function generateServiceAgentContent(
+  agent: string,
+  endpoint: string,
+  schema: Recursive){
+
+  const data = JSON.stringify(schema);
+
+  if(/^[/A-Z]+$/.test(endpoint))
+    endpoint = `process.env.${endpoint}`;
+
+  return `module.exports = require("${agent}")(${data}, ${endpoint})`
 }

@@ -1,4 +1,4 @@
-import { Entangled } from '@entangled/interface';
+import Entangled from '@entangled/interface';
 import { Router } from 'express';
 
 import { abstract } from './abstract';

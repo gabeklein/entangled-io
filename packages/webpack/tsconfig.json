@@ -4,8 +4,5 @@
     "rootDir": "src/",
     "outDir": "lib/",
     "types": ["node"]
-  },
-  "references": [
-    { "path": "../interface" }
-  ]
+  }
 }

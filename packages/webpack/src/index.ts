@@ -1,7 +1,10 @@
+import path from 'path';
+import { Project, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
 
-import { generatePolyfill } from './generate';
-import { resolveTypes } from './resolve';
+import { generateServiceAgent } from './generate';
+import { resolveTargetModules } from './scanner';
+import { Options, ReplacedModule } from './types';
 import VirtualModulesPlugin from './virtual-modules-plugin';
 
 /**
@@ -10,17 +13,6 @@ import VirtualModulesPlugin from './virtual-modules-plugin';
  * This way, it doesn't need to be a peer-dependency.
  */
 const DEFAULT_AGENT = require.resolve("@entangled/fetch");
-
-export interface ReplacedModule {
-  location?: string
-  filename?: string
-  watchFiles: Set<string>
-};
-
-export interface Options {
-  endpoint?: string;
-  agent?: string;
-}
 
 class ApiReplacementPlugin {
   /** Use name of class to register hooks. */
@@ -35,8 +27,10 @@ class ApiReplacementPlugin {
   /** Simple cache of requires tagged for replacement. */
   replacedModules = new Map<string, ReplacedModule>();
 
-  /** Seperate plugin will manage imaginary files for bundle. */
+  /** Separate plugin will manage imaginary files for bundle. */
   virtualPlugin = new VirtualModulesPlugin();
+
+  tsProject: Project;
 
   /**
    * @param modules - List of modules we want to "polyfill" on the client.
@@ -45,51 +39,55 @@ class ApiReplacementPlugin {
   constructor(modules: string[], opts: Options = {}){
     this.agent = opts.agent || DEFAULT_AGENT;
     this.replaceModules = modules;
+
+    const tsConfigFilePath =
+      ts.findConfigFile(process.cwd(), ts.sys.fileExists);
+
+    this.tsProject = new Project({
+      tsConfigFilePath,
+      skipAddingFilesFromTsConfig: true
+    });
   }
 
   apply(compiler: Compiler) {
+    const targetModules =
+        resolveTargetModules(this.tsProject, this.replaceModules);
+
+    targetModules.forEach((sourceFile, name) => {
+      const location = path.dirname(sourceFile.getFilePath());
+
+      this.replacedModules.set(name, {
+        name,
+        location,
+        sourceFile,
+        watchFiles: new Set()
+      });
+    });
+
     this.virtualPlugin.apply(compiler);
-    this.applyEntryOption(compiler);
-    this.applyBeforeResolve(compiler);
+    this.applyPreResolve(compiler);
     this.applyPostCompile(compiler);
     this.applyWatchRun(compiler);
-  }
-
-  /**
-   * After context is established by webpack, scan for the declared modules we will shim.
-   * Here we resolve typings and hold them for the schema generator.
-   */
-  applyEntryOption(compiler: Compiler){
-    compiler.hooks.entryOption.tap(this.name, (context) => {
-      this.replaceModules.forEach(request => {
-        const location = resolveTypes(context, request);
-
-        this.replacedModules.set(request, {
-          location,
-          watchFiles: new Set()
-        });
-      })
-    })
   }
 
   /**
    * As we resolve modules, if we run into one marked for 
    * override, we generate the replacement proxy implementation. 
    */
-  applyBeforeResolve(compiler: Compiler){
+  applyPreResolve(compiler: Compiler){
     compiler.hooks.normalModuleFactory.tap(this.name, (compilation: any) => {
       compilation.hooks.beforeResolve.tap(this.name, (result: any) => {
         const { request } = result;
 
-        const module = this.replacedModules.get(request);
+        const target = this.replacedModules.get(request);
 
-        if(!module)
+        if(!target)
           return;
 
-        if(!module.filename)
-          this.writeReplacement(module);
+        if(!target.filename)
+          this.writeReplacement(target);
 
-        result.request = module.filename;
+        result.request = target.filename;
       })
     });
   }
@@ -137,12 +135,11 @@ class ApiReplacementPlugin {
   }
   
   writeReplacement(target: ReplacedModule){
-    const { file, content, source } =
-      generatePolyfill(target.location!, this.agent);
+    const { filename, content } =
+      generateServiceAgent(target, this.agent);
 
-    this.virtualPlugin.writeModule(file, content);
-    source.forEach(x => target.watchFiles.add(x.file));
-    target.filename = file;
+    this.virtualPlugin.writeModule(filename, content);
+    target.filename = filename;
   }
 }
 

@@ -1,4 +1,4 @@
-export namespace Entangled {
+declare namespace Entangled {
   type HavingDefault = { default: Fn };
 
   type Fn = (...args: any[]) => any;
@@ -34,21 +34,4 @@ export namespace Entangled {
   }
 }
 
-export class ParameterizedType {
-  constructor(
-    public modifier: any,
-    public params: any[]
-  ){}
-}
-
-export class TypeAlias {
-  comment?: string;
-}
-
-export class InterfaceType {
-  comment?: string;
-}
-
-export class ObjectLiteral {
-  [ key: string ]: any
-}
+export = Entangled;
