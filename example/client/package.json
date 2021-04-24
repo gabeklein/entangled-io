@@ -1,6 +1,6 @@
 {
   "name": "@entangled/client",
-  "version": "2.0.0-alpha.2",
+  "version": "2.0.0-alpha.3",
   "private": true,
   "main": "lib/index.js",
   "license": "ISC",
@@ -20,7 +20,7 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
-    "@entangled/webpack": "^2.0.0-alpha.2",
+    "@entangled/webpack": "^2.0.0-alpha.3",
     "html-webpack-plugin": "^3.2.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0"
