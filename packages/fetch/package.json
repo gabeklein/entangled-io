@@ -4,7 +4,7 @@
   "main": "lib/index.js",
   "license": "ISC",
   "files": [
-    "/lib"
+    "lib"
   ],
   "scripts": {
     "prebuild": "rm -rf lib",
