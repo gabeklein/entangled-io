@@ -1,11 +1,11 @@
 import path from 'path';
 import { Project, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
+import VirtualModulesPlugin from 'webpack-virtual-modules';
 
 import { generateServiceAgent } from './generate';
 import { resolveTargetModules } from './scanner';
 import { Options, ReplacedModule } from './types';
-import VirtualModulesPlugin from './virtual-modules-plugin';
 
 /**
  * Default service-agent comes included with this plugin.
@@ -119,7 +119,7 @@ class ApiReplacementPlugin {
     compiler.hooks.watchRun.tap(this.name, (compilation) => {
       const { watchFileSystem } = compilation as any;
       const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
-      const filesUpdated = Object.keys(watcher.mtimes);
+      const filesUpdated = Object.keys(watcher.mtimes || {});
 
       this.replacedModules.forEach(mod => {
         let updates = 0;
