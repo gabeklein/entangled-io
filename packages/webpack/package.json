@@ -22,7 +22,6 @@
     "webpack-virtual-modules": "^0.4.3"
   },
   "devDependencies": {
-    "@types/node": "13.7.0",
     "@types/webpack": "^5.28.0",
     "typescript": "3.8.3"
   }
