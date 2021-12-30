@@ -7,8 +7,6 @@
     "lib": ["es2018", "dom"]
   },
   "references": [
-    { "path": "../service" },
-    { "path": "../../packages/webpack" },
-    { "path": "../../packages/fetch" }
+    { "path": "../service" }
   ]
 }

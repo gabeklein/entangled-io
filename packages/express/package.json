@@ -7,8 +7,8 @@
     "/lib"
   ],
   "scripts": {
-    "build": "tsc -b",
-    "prepublish": "tsc -b"
+    "prebuild": "rm -rf lib",
+    "build": "tsc"
   },
   "publishConfig": {
     "access": "public"

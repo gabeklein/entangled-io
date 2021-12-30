@@ -5,9 +5,7 @@
   "main": "lib/index.js",
   "license": "ISC",
   "scripts": {
-    "start": "webpack-dev-server",
-    "watch": "tsc -b -w",
-    "build": "tsc -b"
+    "start": "webpack-dev-server"
   },
   "devDependencies": {
     "@entangled/service": "^2.0.0-alpha.4",

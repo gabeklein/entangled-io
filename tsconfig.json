@@ -6,7 +6,6 @@
     "declaration": true,
     "sourceMap": true,
     "strict": true,
-    "composite": true,
     "esModuleInterop": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,

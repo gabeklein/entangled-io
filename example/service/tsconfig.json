@@ -3,7 +3,8 @@
   "compilerOptions": {
     "rootDir": "src/",
     "outDir": "lib/",
-    "lib": ["es2018"]
+    "lib": ["es2018"],
+    "composite": true
   },
   "references": [
     { "path": "../../packages/express" }
