@@ -1,6 +1,6 @@
 {
   "name": "@entangled/client",
-  "version": "2.0.0-alpha.4",
+  "version": "2.0.0-alpha.5",
   "private": true,
   "main": "lib/index.js",
   "license": "ISC",
@@ -8,7 +8,7 @@
     "start": "webpack-dev-server"
   },
   "devDependencies": {
-    "@entangled/service": "^2.0.0-alpha.4",
+    "@entangled/service": "^2.0.0-alpha.5",
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
     "ts-loader": "^6.2.1",
@@ -18,7 +18,7 @@
     "webpack-dev-server": "^4.7.2"
   },
   "dependencies": {
-    "@entangled/webpack": "^2.0.0-alpha.4",
+    "@entangled/webpack": "^2.0.0-alpha.5",
     "html-webpack-plugin": "^5.5.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0"
