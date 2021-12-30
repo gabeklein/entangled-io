@@ -6,7 +6,6 @@
     "lib": ["es2018"]
   },
   "references": [
-    { "path": "../../packages/express" },
-    { "path": "../../packages/interface" }
+    { "path": "../../packages/express" }
   ]
 }

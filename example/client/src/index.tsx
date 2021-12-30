@@ -6,17 +6,19 @@ import API from "@entangled/service";
 const App = () => {
   const [text, setText] = useState("Click here to hit server!")
 
+  async function onClick(){
+    const response = await API.Greetings.hi();
+    setText(response);
+  }
+
   return (
-    <div onClick={async () => {
-      const response = await API.echo("Echo!! Echo!!");
-      setText(response);
-    }}>
+    <div onClick={onClick}>
       {text}
     </div>
   )
 }
 
-window.onload = async () => {
+window.onload = () => {
   const container = document.createElement("div");
   document.body.appendChild(container);
   ReactDOM.render(<App/>, container)
