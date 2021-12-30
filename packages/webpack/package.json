@@ -18,12 +18,12 @@
     "@entangled/fetch": "^2.0.0-alpha.2",
     "@entangled/interface": "^2.0.0-alpha.2",
     "ts-morph": "^10.0.2",
-    "webpack": "^4.41.5",
+    "webpack": "^5.65.0",
     "webpack-virtual-modules": "^0.4.3"
   },
   "devDependencies": {
     "@types/node": "13.7.0",
-    "@types/webpack": "^4.41.4",
+    "@types/webpack": "^5.28.0",
     "typescript": "3.8.3"
   }
 }
