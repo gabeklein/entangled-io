@@ -54,7 +54,8 @@ class ApiReplacementPlugin {
         resolveTargetModules(this.tsProject, this.replaceModules);
 
     targetModules.forEach((sourceFile, name) => {
-      const location = path.dirname(sourceFile.getFilePath());
+      const filePath = sourceFile.getFilePath();
+      const location = path.dirname(filePath);
 
       this.replacedModules.set(name, {
         name,
