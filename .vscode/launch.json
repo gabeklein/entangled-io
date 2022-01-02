@@ -22,6 +22,20 @@
       "runtimeArgs": [
         "-r", "source-map-support/register"
       ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run Webpack in watch mode",
+      "cwd": "${workspaceFolder}/example/client",
+      "program": "${workspaceFolder}/node_modules/webpack/bin/webpack.js",
+      "console": "externalTerminal",
+      "args": [
+        "--watch"
+      ],
+      "runtimeArgs": [
+        "-r", "source-map-support/register"
+      ]
     }
   ]
 }
