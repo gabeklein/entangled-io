@@ -20,9 +20,13 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({ title: "Teleport Test" }),
-    new ApiReplacementPlugin(["@entangled/service"]),
+    new ApiReplacementPlugin(["@entangled/api"]),
     new EnvironmentPlugin({ ENDPOINT: "http://localhost:8080/" })
   ],
+  externals: {
+    "react": "React",
+    "react-dom": "ReactDOM"
+  },
   module: {
     rules: [
       {
@@ -41,6 +45,9 @@ module.exports = {
   devServer: {
     historyApiFallback: true,
     host: "0.0.0.0",
-    port: 3000
+    port: 3000,
+    devMiddleware: {
+      writeToDisk: true
+    }
   }
 }

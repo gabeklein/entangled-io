@@ -5,8 +5,5 @@
     "outDir": "lib/",
     "lib": ["es2018"],
     "composite": true
-  },
-  "references": [
-    { "path": "../../packages/express" }
-  ]
+  }
 }

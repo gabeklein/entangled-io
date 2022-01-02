@@ -7,6 +7,6 @@
     "lib": ["es2018", "dom"]
   },
   "references": [
-    { "path": "../service" }
+    { "path": "../api" }
   ]
 }
