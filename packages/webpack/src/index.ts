@@ -3,7 +3,7 @@ import { Project, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
-import { getSchemaFromSource, resolveTargetModules } from './scanner';
+import { getSchemaFromSource } from './scanner';
 import { Options, ReplacedModule } from './types';
 
 /**
@@ -49,25 +49,41 @@ class ApiReplacementPlugin {
   }
 
   apply(compiler: Compiler) {
-    const targetModules =
-        resolveTargetModules(this.tsProject, this.replaceModules);
-
-    targetModules.forEach((sourceFile, name) => {
-      const filePath = sourceFile.getFilePath();
-      const location = path.dirname(filePath);
-
-      this.replacedModules.set(name, {
-        name,
-        location,
-        sourceFile,
-        watchFiles: new Set()
-      });
-    });
+    this.loadRemoteModules();
 
     this.virtualPlugin.apply(compiler);
     this.applyPreResolve(compiler);
     this.applyPostCompile(compiler);
     this.applyWatchRun(compiler);
+  }
+
+  loadRemoteModules(){
+    const modules = this.replaceModules;
+
+    const mockFiles = modules.map((name, index) => {
+      const filename = `./${index}.ts`;
+      const contents = `import * from "${name}"`;
+
+      return this.tsProject.createSourceFile(filename, contents);
+    })
+
+    this.tsProject.resolveSourceFileDependencies();
+
+    mockFiles.forEach(source => {
+      const [ target ] = source.getImportDeclarations();
+      const sourceFile = target.getModuleSpecifierSourceFileOrThrow();
+      const moduleName = target.getModuleSpecifierValue();
+      
+      const filePath = sourceFile.getFilePath();
+      const location = path.dirname(filePath);
+
+      this.replacedModules.set(moduleName, {
+        name: moduleName,
+        location,
+        sourceFile,
+        watchFiles: new Set()
+      });
+    })
   }
 
   /**

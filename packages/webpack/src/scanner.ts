@@ -1,32 +1,6 @@
-import { ExportAssignment, Project, SourceFile, Type } from 'ts-morph';
+import { ExportAssignment, SourceFile, Type } from 'ts-morph';
 
 import { Recursive } from './types';
-
-export function resolveTargetModules(
-  project: Project,
-  modules: string[]){
-
-  const targets = new Map<string, SourceFile>();
-  const mockFiles = modules.map((name, index) => {
-    const filename = `./${index}.ts`;
-    const contents = `import * from "${name}"`;
-
-    return project.createSourceFile(filename, contents);
-  })
-
-  project.resolveSourceFileDependencies();
-
-  mockFiles.forEach(source => {
-    const [ target ] = source.getImportDeclarations();
-    
-    targets.set(
-      target.getModuleSpecifierValue()!,
-      target.getModuleSpecifierSourceFileOrThrow()
-    )
-  })
-
-  return targets;
-}
 
 export function getSchemaFromSource(
   file: SourceFile,
