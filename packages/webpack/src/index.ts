@@ -3,8 +3,7 @@ import { Project, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
-import { generateServiceAgent } from './generate';
-import { resolveTargetModules } from './scanner';
+import { getSchemaFromSource, resolveTargetModules } from './scanner';
 import { Options, ReplacedModule } from './types';
 
 /**
@@ -136,8 +135,17 @@ class ApiReplacementPlugin {
   }
   
   writeReplacement(target: ReplacedModule){
-    const { filename, content } =
-      generateServiceAgent(target, this.agent);
+    const { sourceFile, location, name } = target;
+    let { output, endpoint } = getSchemaFromSource(sourceFile!, name);
+
+    const filename = path.join(location!, "service_agent.js");
+    const data = JSON.stringify(output);
+
+    if(/^[/A-Z]+$/.test(endpoint))
+      endpoint = `process.env.${endpoint}`;
+
+    const content =
+      `module.exports = require("${this.agent}")(${data}, ${endpoint})`;
 
     this.virtualPlugin.writeModule(filename, content);
     target.filename = filename;
