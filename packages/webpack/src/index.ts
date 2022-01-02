@@ -70,7 +70,7 @@ class ApiReplacementPlugin {
     this.tsProject.resolveSourceFileDependencies();
 
     mockFiles.forEach(source => {
-      const [ target ] = source.getImportDeclarations();
+      const target = source.getImportDeclarationOrThrow(() => true);
       const sourceFile = target.getModuleSpecifierSourceFileOrThrow();
       const moduleName = target.getModuleSpecifierValue();
       
