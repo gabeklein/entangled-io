@@ -59,29 +59,35 @@ class ApiReplacementPlugin {
 
   loadRemoteModules(){
     const modules = this.replaceModules;
-    const tsc = this.tsProject;
+    const mods = this.replacedModules;
 
-    modules.map((name, index) => {
-      const filename = `./${index}.ts`;
-      const contents = `import * from "${name}"`;
-      const file = tsc.createSourceFile(filename, contents);
+    modules.forEach((name) => {
+      const info = this.loadRemoteModule(name, mods.size);
 
-      tsc.resolveSourceFileDependencies();
-
-      const target = file.getImportDeclarationOrThrow(() => true);
-      const sourceFile = target.getModuleSpecifierSourceFileOrThrow();
-      const moduleName = target.getModuleSpecifierValue();
-      
-      const filePath = sourceFile.getFilePath();
-      const location = path.dirname(filePath);
-
-      this.replacedModules.set(moduleName, {
-        name: moduleName,
-        location,
-        sourceFile,
-        watchFiles: new Set()
-      });
+      mods.set(name, info as ReplacedModule);
     })
+  }
+
+  loadRemoteModule(name: string, filename: string | number){
+    const tsc = this.tsProject;
+    const contents = `import * from "${name}"`;
+    const file = tsc.createSourceFile(`./${filename}.ts`, contents);
+
+    tsc.resolveSourceFileDependencies();
+
+    const target = file.getImportDeclarationOrThrow(() => true);
+    const sourceFile = target.getModuleSpecifierSourceFileOrThrow();
+    const moduleName = target.getModuleSpecifierValue();
+    
+    const filePath = sourceFile.getFilePath();
+    const location = path.dirname(filePath);
+
+    return {
+      name: moduleName,
+      location,
+      sourceFile,
+      watchFiles: new Set()
+    }
   }
 
   /**
