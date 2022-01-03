@@ -1,5 +1,5 @@
 import path from 'path';
-import { Project, ts } from 'ts-morph';
+import { Project, SourceFile, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
@@ -49,23 +49,10 @@ class ApiReplacementPlugin {
   }
 
   apply(compiler: Compiler) {
-    this.loadRemoteModules();
-
     this.virtualPlugin.apply(compiler);
     this.applyPriorResolve(compiler);
     this.applyPostCompile(compiler);
     this.applyWatchRun(compiler);
-  }
-
-  loadRemoteModules(){
-    const modules = this.replaceModules;
-    const mods = this.replacedModules;
-
-    modules.forEach((name) => {
-      const info = this.loadRemoteModule(name, mods.size);
-
-      mods.set(name, info as ReplacedModule);
-    })
   }
 
   loadRemoteModule(name: string, filename: string | number){
@@ -80,13 +67,17 @@ class ApiReplacementPlugin {
     
     const filePath = sourceFile.getFilePath();
     const location = path.dirname(filePath);
+    const replacement = this.writeReplacement(sourceFile, location);
 
-    return {
+    this.replacedModules.set(name, {
       name,
       location,
       sourceFile,
-      watchFiles: new Set()
-    }
+      watchFiles: new Set(),
+      filename: replacement
+    })
+
+    return filename;
   }
 
   /**
@@ -98,15 +89,18 @@ class ApiReplacementPlugin {
       compilation.hooks.beforeResolve.tap(this.name, (result) => {
         const { request } = result;
 
-        const target = this.replacedModules.get(request);
-
-        if(!target)
+        if(!this.replaceModules.includes(request))
           return;
 
-        if(!target.filename)
-          this.writeReplacement(target);
+        const info = this.replacedModules.get(request);
 
-        result.request = target.filename!;
+        if(info)
+          return info.filename;
+
+        const index = this.replacedModules.size;
+        const replacement = this.loadRemoteModule(request, index);
+
+        return replacement;
       })
     });
   }
@@ -148,14 +142,13 @@ class ApiReplacementPlugin {
             updates++;
 
         if(updates)
-          this.writeReplacement(mod);
+          this.writeReplacement(mod.sourceFile, mod.location);
       })
     })
   }
   
-  writeReplacement(target: ReplacedModule){
-    const { sourceFile, location, name } = target;
-    let { output, endpoint } = getSchemaFromSource(sourceFile!, name);
+  writeReplacement(sourceFile: SourceFile, location: string){
+    let { output, endpoint } = getSchemaFromSource(sourceFile!);
 
     const filename = path.join(location!, "service_agent.js");
     const data = JSON.stringify(output);
@@ -167,7 +160,8 @@ class ApiReplacementPlugin {
       `module.exports = require("${this.agent}")(${data}, "${endpoint}")`;
 
     this.virtualPlugin.writeModule(filename, content);
-    target.filename = filename;
+
+    return filename;
   }
 }
 

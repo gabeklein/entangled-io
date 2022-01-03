@@ -3,9 +3,9 @@ import { SourceFile } from 'ts-morph';
 export interface ReplacedModule {
   name: string;
   watchFiles: Set<string>;
-  sourceFile?: SourceFile;
-  location?: string;
-  filename?: string;
+  sourceFile: SourceFile;
+  location: string;
+  filename: string;
 }
 
 export interface Options {

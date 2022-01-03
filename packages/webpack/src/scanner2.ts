@@ -1,8 +1,6 @@
 import { SourceFile, Node } from "ts-morph";
 
-export function getSchemaFromSource(
-  file: SourceFile, _name: string){
-
+export function getSchemaFromSource(file: SourceFile){
   const endpoint = "http://localhost:8080";
   const output = getSchemaType(file);
 
