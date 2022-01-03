@@ -3,7 +3,7 @@ import { Project, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
-import { getSchemaFromSource } from './scanner';
+import { getSchemaFromSource } from './scanner2';
 import { Options, ReplacedModule } from './types';
 
 /**
@@ -52,25 +52,23 @@ class ApiReplacementPlugin {
     this.loadRemoteModules();
 
     this.virtualPlugin.apply(compiler);
-    this.applyPreResolve(compiler);
+    this.applyPriorResolve(compiler);
     this.applyPostCompile(compiler);
     this.applyWatchRun(compiler);
   }
 
   loadRemoteModules(){
     const modules = this.replaceModules;
+    const tsc = this.tsProject;
 
-    const mockFiles = modules.map((name, index) => {
+    modules.map((name, index) => {
       const filename = `./${index}.ts`;
       const contents = `import * from "${name}"`;
+      const file = tsc.createSourceFile(filename, contents);
 
-      return this.tsProject.createSourceFile(filename, contents);
-    })
+      tsc.resolveSourceFileDependencies();
 
-    this.tsProject.resolveSourceFileDependencies();
-
-    mockFiles.forEach(source => {
-      const target = source.getImportDeclarationOrThrow(() => true);
+      const target = file.getImportDeclarationOrThrow(() => true);
       const sourceFile = target.getModuleSpecifierSourceFileOrThrow();
       const moduleName = target.getModuleSpecifierValue();
       
@@ -90,9 +88,9 @@ class ApiReplacementPlugin {
    * As we resolve modules, if we run into one marked for 
    * override, we generate the replacement proxy implementation. 
    */
-  applyPreResolve(compiler: Compiler){
-    compiler.hooks.normalModuleFactory.tap(this.name, (compilation: any) => {
-      compilation.hooks.beforeResolve.tap(this.name, (result: any) => {
+  applyPriorResolve(compiler: Compiler){
+    compiler.hooks.normalModuleFactory.tap(this.name, (compilation) => {
+      compilation.hooks.beforeResolve.tap(this.name, (result) => {
         const { request } = result;
 
         const target = this.replacedModules.get(request);
@@ -103,7 +101,7 @@ class ApiReplacementPlugin {
         if(!target.filename)
           this.writeReplacement(target);
 
-        result.request = target.filename;
+        result.request = target.filename!;
       })
     });
   }
@@ -161,7 +159,7 @@ class ApiReplacementPlugin {
       endpoint = `process.env.${endpoint}`;
 
     const content =
-      `module.exports = require("${this.agent}")(${data}, ${endpoint})`;
+      `module.exports = require("${this.agent}")(${data}, "${endpoint}")`;
 
     this.virtualPlugin.writeModule(filename, content);
     target.filename = filename;
