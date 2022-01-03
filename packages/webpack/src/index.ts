@@ -3,7 +3,7 @@ import { Project, SourceFile, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
-import { getSchemaFromSource } from './scanner2';
+import { createManifest } from './manifest';
 import { Options, ReplacedModule } from './types';
 
 /**
@@ -62,12 +62,11 @@ class ApiReplacementPlugin {
 
     tsc.resolveSourceFileDependencies();
 
+    const watchFiles: Set<string> = new Set();
     const target = file.getImportDeclarationOrThrow(() => true);
     const sourceFile = target.getModuleSpecifierSourceFileOrThrow();
-    
-    const filePath = sourceFile.getFilePath();
-    const location = path.dirname(filePath);
-    const replacement = this.writeReplacement(sourceFile, location);
+    const location = path.dirname(sourceFile.getFilePath());
+    const replacement = this.writeReplacement(sourceFile, location, watchFiles);
 
     this.replacedModules.set(name, {
       name,
@@ -142,13 +141,22 @@ class ApiReplacementPlugin {
             updates++;
 
         if(updates)
-          this.writeReplacement(mod.sourceFile, mod.location);
+          this.writeReplacement(
+            mod.sourceFile, 
+            mod.location, 
+            mod.watchFiles
+          );
       })
     })
   }
   
-  writeReplacement(sourceFile: SourceFile, location: string){
-    let { output, endpoint } = getSchemaFromSource(sourceFile!);
+  writeReplacement(
+    sourceFile: SourceFile,
+    location: string,
+    watchFiles: Set<string>){
+
+    const output = createManifest(sourceFile, watchFiles);
+    let endpoint = "http://localhost:8080";
 
     const filename = path.join(location!, "service_agent.js");
     const data = JSON.stringify(output);

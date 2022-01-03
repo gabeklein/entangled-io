@@ -1,23 +1,17 @@
-import { SourceFile, Node } from "ts-morph";
+import { Node } from "ts-morph";
 
-export function getSchemaFromSource(file: SourceFile){
-  const endpoint = "http://localhost:8080";
-  const output = getSchemaType(file);
+export function createManifest(
+  node: Node, watch: Set<string>){
 
-  return {
-    output,
-    endpoint
-  }
-}
-
-function getSchemaType(node: Node){
   if(Node.isSourceFile(node)){
     const output = {} as any;
+
+    watch.add(node.getFilePath());
 
     node
       .getExportedDeclarations()
       .forEach(([ value ], key) => {
-        output[key] = getSchemaType(value);
+        output[key] = createManifest(value, watch);
       })
 
     return output;
