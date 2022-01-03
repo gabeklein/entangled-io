@@ -34,3 +34,5 @@ export async function hello(
 }
 
 export * from "./foobar";
+
+export * as woobar from "./woobar";
