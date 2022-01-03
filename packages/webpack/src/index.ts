@@ -77,13 +77,12 @@ class ApiReplacementPlugin {
 
     const target = file.getImportDeclarationOrThrow(() => true);
     const sourceFile = target.getModuleSpecifierSourceFileOrThrow();
-    const moduleName = target.getModuleSpecifierValue();
     
     const filePath = sourceFile.getFilePath();
     const location = path.dirname(filePath);
 
     return {
-      name: moduleName,
+      name,
       location,
       sourceFile,
       watchFiles: new Set()
