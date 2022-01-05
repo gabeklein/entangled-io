@@ -23,7 +23,7 @@ module.exports = {
       title: "Teleport Test"
     }),
     new MicroservicePlugin({
-      test: /service\/(\w+).ts/
+      test: /service\/\w+.ts/
     }),
     new EnvironmentPlugin({
       ENDPOINT: "http://localhost:8080/"
