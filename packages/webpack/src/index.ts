@@ -4,7 +4,34 @@ import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
 import { createManifest } from './manifest';
-import { Options, ReplacedModule } from './types';
+
+interface ReplacedModule {
+  name: string;
+  watchFiles: Set<string>;
+  sourceFile: SourceFile;
+  location: string;
+  filename: string;
+}
+
+interface RequestInfo {
+  requiredBy: string;
+  rawRequest: string;
+  resolvedRequest: string;
+  type: string;
+}
+
+interface MicroserviceOptions {
+  endpoint?: string;
+  consumer?: string;
+}
+
+interface Options {
+  test?: RegExp;
+  options?: (request: RequestInfo) => MicroserviceOptions;
+  endpoint?: string;
+  consumer?: string;
+  provider?: string;
+}
 
 /**
  * Default service-agent comes included with this plugin.
@@ -17,28 +44,17 @@ class ApiReplacementPlugin {
   /** Use name of class to register hooks. */
   name = this.constructor.name;
 
-  /** Name of module client will use to consume service. */
-  agent: string;
-
-  /** List of modules this plugin should replace with SA. */
-  replaceModules: string[];
-
   /** Simple cache of requires tagged for replacement. */
   replacedModules = new Map<string, ReplacedModule>();
 
   /** Separate plugin will manage imaginary files for bundle. */
   virtualPlugin = new VirtualModulesPlugin();
 
+  agent = DEFAULT_AGENT;
+
   tsProject: Project;
 
-  /**
-   * @param modules - List of modules we want to "polyfill" on the client.
-   * @param opts
-   */
-  constructor(modules: string[], opts: Options = {}){
-    this.agent = opts.agent || DEFAULT_AGENT;
-    this.replaceModules = modules;
-
+  constructor(public options: Options = {}){
     const tsConfigFilePath =
       ts.findConfigFile(process.cwd(), ts.sys.fileExists);
 
@@ -50,31 +66,32 @@ class ApiReplacementPlugin {
 
   apply(compiler: Compiler) {
     this.virtualPlugin.apply(compiler);
-    this.applyPriorResolve(compiler);
+    this.applyPreResolve(compiler);
     this.applyPostCompile(compiler);
     this.applyWatchRun(compiler);
+
+
   }
 
-  loadRemoteModule(name: string, filename: string | number){
+  loadRemoteModule(name: string, namespace?: string){
     const tsc = this.tsProject;
-    const contents = `import * from "${name}"`;
-    const file = tsc.createSourceFile(`./${filename}.ts`, contents);
+    const sourceFile = tsc.addSourceFileAtPath(name);
 
     tsc.resolveSourceFileDependencies();
 
-    const watchFiles: Set<string> = new Set();
-    const target = file.getImportDeclarationOrThrow(() => true);
-    const sourceFile = target.getModuleSpecifierSourceFileOrThrow();
-    const location = path.dirname(sourceFile.getFilePath());
-    const replacement = this.writeReplacement(sourceFile, location, watchFiles);
+    const location = path.dirname(name);
+    const filename = path.join(location, `${namespace}.agent.js`);
 
-    this.replacedModules.set(name, {
+    const mod: ReplacedModule = {
       name,
       location,
       sourceFile,
       watchFiles: new Set(),
-      filename: replacement
-    })
+      filename
+    };
+
+    this.replacedModules.set(name, mod);
+    this.writeReplacement(mod);
 
     return filename;
   }
@@ -83,23 +100,45 @@ class ApiReplacementPlugin {
    * As we resolve modules, if we run into one marked for 
    * override, we generate the replacement proxy implementation. 
    */
-  applyPriorResolve(compiler: Compiler){
+  applyPreResolve(compiler: Compiler){
     compiler.hooks.normalModuleFactory.tap(this.name, (compilation) => {
-      compilation.hooks.beforeResolve.tap(this.name, (result) => {
-        const { request } = result;
+      compilation.hooks.afterResolve.tap(this.name, (result) => {
+        const { test } = this.options;
+        const resolved = result.createData as any;
+        const resource = resolved.resource;
 
-        if(!this.replaceModules.includes(request))
+        const info = this.replacedModules.get(resource);
+
+        if(info){
+          resolved.resource = info.filename;
           return;
+        }
 
-        const info = this.replacedModules.get(request);
+        if(typeof test == "function"){
+          // const info: RequestInfo = {
+          //   requiredBy: result.contextInfo.issuer,
+          //   rawRequest: result.request,
+          //   resolvedRequest: resolved.resource,
+          //   type: resolved.type
+          // }
+        }
 
-        if(info)
-          return info.filename;
+        else if(test instanceof RegExp){
+          const match = test.exec(resource);
 
-        const index = this.replacedModules.size;
-        const replacement = this.loadRemoteModule(request, index);
+          if(!match)
+            return;
 
-        return replacement;
+          if(!/\.tsx?$/.test(resource)){
+            const relative = path.relative(process.cwd(), resource);
+            throw new Error(`Tried to import ${relative} (as external) but is not typescript!`)
+          }
+
+          const namespace = match[1];
+
+          resolved.resource =
+            this.loadRemoteModule(resource, namespace);
+        }
       })
     });
   }
@@ -141,24 +180,15 @@ class ApiReplacementPlugin {
             updates++;
 
         if(updates)
-          this.writeReplacement(
-            mod.sourceFile, 
-            mod.location, 
-            mod.watchFiles
-          );
+          this.writeReplacement(mod);
       })
     })
   }
   
-  writeReplacement(
-    sourceFile: SourceFile,
-    location: string,
-    watchFiles: Set<string>){
-
-    const output = createManifest(sourceFile, watchFiles);
+  writeReplacement(mod: ReplacedModule){
+    const output = createManifest(mod.sourceFile, mod.watchFiles);
     let endpoint = "http://localhost:8080";
 
-    const filename = path.join(location!, "service_agent.js");
     const data = JSON.stringify(output);
 
     if(/^[/A-Z]+$/.test(endpoint))
@@ -167,9 +197,7 @@ class ApiReplacementPlugin {
     const content =
       `module.exports = require("${this.agent}")(${data}, "${endpoint}")`;
 
-    this.virtualPlugin.writeModule(filename, content);
-
-    return filename;
+    this.virtualPlugin.writeModule(mod.filename, content);
   }
 }
 

@@ -1,6 +1,6 @@
 const { resolve } = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ApiReplacementPlugin = require("@entangled/webpack");
+const MicroservicePlugin = require("@entangled/webpack");
 const { EnvironmentPlugin } = require("webpack")
 
 const currentDir = process.cwd();
@@ -19,9 +19,15 @@ module.exports = {
     path: dir("public")
   },
   plugins: [
-    new HtmlWebpackPlugin({ title: "Teleport Test" }),
-    new ApiReplacementPlugin(["@entangled/api"]),
-    new EnvironmentPlugin({ ENDPOINT: "http://localhost:8080/" })
+    new HtmlWebpackPlugin({
+      title: "Teleport Test"
+    }),
+    new MicroservicePlugin({
+      test: /service\/(\w+).ts/
+    }),
+    new EnvironmentPlugin({
+      ENDPOINT: "http://localhost:8080/"
+    })
   ],
   externals: {
     "react": "React",
@@ -33,7 +39,7 @@ module.exports = {
         test: /\.tsx?$/,
         loader: "ts-loader",
         options: {
-          transpileOnly: true
+          transpileOnly: true,
         },
         exclude: [
           dir("node_modules"), 
