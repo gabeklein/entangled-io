@@ -1,7 +1,8 @@
 import path from 'path';
 import { Project, SourceFile, ts } from 'ts-morph';
-import { Compiler } from 'webpack';
+import { Compiler, SingleEntryPlugin } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
+const JsonpTemplatePlugin = require('webpack/lib/web/JsonpTemplatePlugin');
 
 import { createManifest } from './manifest';
 
@@ -50,6 +51,8 @@ class ApiReplacementPlugin {
   /** Separate plugin will manage imaginary files for bundle. */
   virtualPlugin = new VirtualModulesPlugin();
 
+  childCompiler!: Compiler;
+
   agent = DEFAULT_AGENT;
 
   tsProject: Project;
@@ -66,11 +69,10 @@ class ApiReplacementPlugin {
 
   apply(compiler: Compiler) {
     this.virtualPlugin.apply(compiler);
-    this.applyPreResolve(compiler);
-    this.applyPostCompile(compiler);
+    this.applyAfterResolve(compiler);
+    this.applyAfterCompile(compiler);
     this.applyWatchRun(compiler);
-
-
+    this.applyChildCompiler(compiler);
   }
 
   loadRemoteModule(name: string, namespace?: string){
@@ -80,7 +82,7 @@ class ApiReplacementPlugin {
     tsc.resolveSourceFileDependencies();
 
     const location = path.dirname(name);
-    const filename = path.join(location, `${namespace}.agent.js`);
+    const filename = path.join(location, `${namespace}.proxy.js`);
 
     const mod: ReplacedModule = {
       name,
@@ -96,13 +98,89 @@ class ApiReplacementPlugin {
     return filename;
   }
 
+  applyChildCompiler(compiler: Compiler){
+    compiler.hooks.make.tap(this, (compilation) => {
+      if(this.childCompiler)
+        return;
+
+      const options = {
+        filename: "foobar.js",
+        path: path.resolve(process.cwd(), "public")
+      };
+
+      const child = this.childCompiler =
+        compilation.createChildCompiler(this.name, options, []);
+
+      child.context = compiler.context;
+      child.inputFileSystem = compiler.inputFileSystem;
+      child.outputFileSystem = compiler.outputFileSystem;
+
+      const fileContent = `console.log("doo z thing!!!")`;
+      const base64 = Buffer.from(fileContent).toString('base64');
+      const entry = `data:text/javascript;base64,${base64}`;
+
+      new SingleEntryPlugin(compiler.context, entry).apply(child);
+      new JsonpTemplatePlugin().apply(compiler);
+
+      compilation.hooks.additionalAssets.tapAsync(this, onDone => {
+        child.hooks.make.tap(this, (childCompilation) => {
+            childCompilation.hooks.afterHash.tap(this, () => {
+              childCompilation.hash = compilation.hash;
+              childCompilation.fullHash = compilation.fullHash;
+            });
+          },
+        );
+
+        child.runAsChild((err, entries, childCompilation) => {
+          if (err || !childCompilation)
+            return onDone(err);
+
+          if (childCompilation.errors.length > 0)
+            return onDone(childCompilation.errors[0]);
+
+          compilation.hooks.afterOptimizeAssets.tap(this, () => {
+            compilation.assets = Object.assign(
+              childCompilation.assets,
+              compilation.assets,
+            );
+
+            compilation.namedChunkGroups = Object.assign(
+              childCompilation.namedChunkGroups,
+              compilation.namedChunkGroups,
+            );
+
+            // const childChunkFileMap = childCompilation.chunks.reduce(
+            //   (chunkMap, chunk) => {
+            //     chunkMap[chunk.name] = chunk.files;
+            //     return chunkMap;
+            //   },
+            //   {},
+            // );
+
+            // compilation.chunks.forEach(chunk => {
+            //   const childChunkFiles = childChunkFileMap[chunk.name];
+
+            //   if (childChunkFiles) {
+            //     chunk.files.push(
+            //       ...childChunkFiles.filter(v => !chunk.files.includes(v)),
+            //     );
+            //   }
+            // });
+          });
+
+          onDone();
+        });
+      });
+    })
+  }
+
   /**
    * As we resolve modules, if we run into one marked for 
    * override, we generate the replacement proxy implementation. 
    */
-  applyPreResolve(compiler: Compiler){
-    compiler.hooks.normalModuleFactory.tap(this.name, (compilation) => {
-      compilation.hooks.afterResolve.tap(this.name, (result) => {
+  applyAfterResolve(compiler: Compiler){
+    compiler.hooks.normalModuleFactory.tap(this, (compilation) => {
+      compilation.hooks.afterResolve.tap(this, (result) => {
         const { test } = this.options;
         const resolved = result.createData as any;
         const resource = resolved.resource;
@@ -110,7 +188,7 @@ class ApiReplacementPlugin {
         const info = this.replacedModules.get(resource);
 
         if(info){
-          resolved.resource = info.filename;
+          resolved.resource = resolved.userRequest = info.filename;
           return;
         }
 
@@ -134,10 +212,10 @@ class ApiReplacementPlugin {
             throw new Error(`Tried to import ${relative} (as external) but is not typescript!`)
           }
 
-          const namespace = match[1];
+          const namespace = match[1] || path.basename(resource.replace(/\.\w+$/, ""));
+          const proxyModule = this.loadRemoteModule(resource, namespace);
 
-          resolved.resource =
-            this.loadRemoteModule(resource, namespace);
+          resolved.resource = resolved.userRequest = proxyModule;
         }
       })
     });
@@ -148,8 +226,8 @@ class ApiReplacementPlugin {
    * During development, backend code might be linked;
    * we should refresh where API might change with new server logic.
    */
-  applyPostCompile(compiler: Compiler){
-    compiler.hooks.afterCompile.tap(this.name, (compilation) => {
+  applyAfterCompile(compiler: Compiler){
+    compiler.hooks.afterCompile.tap(this, (compilation) => {
       // This may also be called by html-webpack-plugin but we'll want to skip that.
       // If `compilation.name` was defined by that plugin, we can bailout.
       if((compilation as any).name)
@@ -167,7 +245,7 @@ class ApiReplacementPlugin {
    * Where files server have updated, regenerate API polyfill for compilation.
    */
   applyWatchRun(compiler: Compiler){
-    compiler.hooks.watchRun.tap(this.name, (compilation) => {
+    compiler.hooks.watchRun.tap(this, (compilation) => {
       const { watchFileSystem } = compilation as any;
       const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
       const filesUpdated = Object.keys(watcher.mtimes || {});
