@@ -1,10 +1,13 @@
 import path from 'path';
 import { Project, SourceFile, ts } from 'ts-morph';
-import { Compiler, SingleEntryPlugin } from 'webpack';
+import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
-const JsonpTemplatePlugin = require('webpack/lib/web/JsonpTemplatePlugin');
 
 import { createManifest } from './manifest';
+import { ExternalNodeModulesPlugin, RuntimeEntryPlugin } from './microservice';
+
+const JsonpTemplatePlugin = require('webpack/lib/web/JsonpTemplatePlugin');
+const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 
 interface ReplacedModule {
   name: string;
@@ -27,11 +30,12 @@ interface MicroserviceOptions {
 }
 
 interface Options {
-  test?: RegExp;
+  include?: RegExp;
   options?: (request: RequestInfo) => MicroserviceOptions;
   endpoint?: string;
-  consumer?: string;
-  provider?: string;
+  agent?: string;
+  runtime?: string;
+  namespace?: string;
 }
 
 /**
@@ -75,51 +79,45 @@ class ApiReplacementPlugin {
     this.applyChildCompiler(compiler);
   }
 
-  loadRemoteModule(name: string, namespace?: string){
+  loadRemoteModule(file: string, name?: string){
     const tsc = this.tsProject;
-    const sourceFile = tsc.addSourceFileAtPath(name);
+    const sourceFile = tsc.addSourceFileAtPath(file);
 
     tsc.resolveSourceFileDependencies();
 
-    const location = path.dirname(name);
-    const filename = path.join(location, `${namespace}.proxy.js`);
+    const location = path.dirname(file);
+    const filename = path.join(location, `${name}.proxy.js`);
 
     const mod: ReplacedModule = {
-      name,
+      name: file,
       location,
       sourceFile,
       watchFiles: new Set(),
       filename
     };
 
-    this.replacedModules.set(name, mod);
+    this.replacedModules.set(file, mod);
     this.writeReplacement(mod);
 
     return filename;
   }
 
   applyChildCompiler(compiler: Compiler){
+    const { namespace, runtime } = this.options;
+    
     compiler.hooks.make.tap(this, (compilation) => {
       if(this.childCompiler)
         return;
 
-      const options = {
-        filename: "foobar.js",
-        path: path.resolve(process.cwd(), "public")
-      };
+      const filename = namespace ? `${namespace}.service.js` : "service.js";
+      const { path } = compiler.options.output;
 
       const child = this.childCompiler =
-        compilation.createChildCompiler(this.name, options, []);
+        compilation.createChildCompiler(this.name, { filename, path }, []);
 
-      child.context = compiler.context;
-      child.inputFileSystem = compiler.inputFileSystem;
-      child.outputFileSystem = compiler.outputFileSystem;
-
-      const fileContent = `console.log("doo z thing!!!")`;
-      const base64 = Buffer.from(fileContent).toString('base64');
-      const entry = `data:text/javascript;base64,${base64}`;
-
-      new SingleEntryPlugin(compiler.context, entry).apply(child);
+      new RuntimeEntryPlugin(runtime).apply(child);
+      new NodeTargetPlugin().apply(child);
+      new ExternalNodeModulesPlugin().apply(child);
       new JsonpTemplatePlugin().apply(compiler);
 
       compilation.hooks.additionalAssets.tapAsync(this, onDone => {
@@ -181,7 +179,7 @@ class ApiReplacementPlugin {
   applyAfterResolve(compiler: Compiler){
     compiler.hooks.normalModuleFactory.tap(this, (compilation) => {
       compilation.hooks.afterResolve.tap(this, (result) => {
-        const { test } = this.options;
+        const { include } = this.options;
         const resolved = result.createData as any;
         const resource = resolved.resource;
 
@@ -192,7 +190,7 @@ class ApiReplacementPlugin {
           return;
         }
 
-        if(typeof test == "function"){
+        if(typeof include == "function"){
           // const info: RequestInfo = {
           //   requiredBy: result.contextInfo.issuer,
           //   rawRequest: result.request,
@@ -201,8 +199,8 @@ class ApiReplacementPlugin {
           // }
         }
 
-        else if(test instanceof RegExp){
-          const match = test.exec(resource);
+        else if(include instanceof RegExp){
+          const match = include.exec(resource);
 
           if(!match)
             return;
