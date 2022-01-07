@@ -23,7 +23,8 @@ module.exports = {
       title: "Teleport Test"
     }),
     new MicroservicePlugin({
-      test: /service\/\w+.ts/
+      include: /service\/\w+.ts/,
+      runtime: "@entangled/express"
     }),
     new EnvironmentPlugin({
       ENDPOINT: "http://localhost:8080/"

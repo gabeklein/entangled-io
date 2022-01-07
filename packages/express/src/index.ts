@@ -1,3 +1,4 @@
 export { default as Entangled } from '@entangled/interface';
-export { Service as default } from './interface';
+export { Service } from './interface';
 export { getContext } from './async_hook';
+export { default } from "./start";
