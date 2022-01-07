@@ -31,7 +31,8 @@
       "program": "${workspaceFolder}/node_modules/webpack/bin/webpack.js",
       "console": "externalTerminal",
       "args": [
-        "--watch"
+        "--watch",
+        "--stats-children"
       ],
       "runtimeArgs": [
         "-r", "source-map-support/register"
