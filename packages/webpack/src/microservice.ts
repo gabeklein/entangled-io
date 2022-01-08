@@ -21,7 +21,7 @@ export class MicroservicePlugin {
 
   apply(compiler: Compiler){
     const NAME = this.constructor.name;
-    const { namespace, runtime } = this.options;
+    const { namespace } = this.options;
     
     compiler.hooks.make.tap(NAME, (compilation) => {
       EXISTS_FOR.has(compiler);
@@ -34,16 +34,16 @@ export class MicroservicePlugin {
 
       EXISTS_FOR.add(compiler);
 
+      this.applyEntryPoint(child);
+      new NodeTargetPlugin().apply(child);
+      new JsonpTemplatePlugin().apply(compiler);
+
       if(true){
         const ignoreExternal =
           new ExternalNodeModulesPlugin(deps => { });
 
         ignoreExternal.apply(child);
       }
-
-      new RuntimeEntryPlugin(runtime).apply(child);
-      new NodeTargetPlugin().apply(child);
-      new JsonpTemplatePlugin().apply(compiler);
 
       compilation.hooks.additionalAssets.tapAsync(NAME, onDone => {
         child.hooks.make.tap(NAME, (childCompilation) => {
@@ -96,17 +96,15 @@ export class MicroservicePlugin {
       });
     })
   }
-}
 
-export class RuntimeEntryPlugin {
-  constructor(
-    public runtime = DEFAULT_RUNTIME
-  ){}
+  applyEntryPoint(compiler: Compiler){
+    const {
+      runtime = DEFAULT_RUNTIME
+    } = this.options;
 
-  apply(compiler: Compiler){
     const virtual = new VirtualModulesPlugin();
     const entry = path.resolve(compiler.context, "./microservice.js");
-    const content = `require("${this.runtime}").default({ })`;
+    const content = `require("${runtime}").default({ })`;
 
     virtual.apply(compiler);
     virtual.writeModule(entry, content);
