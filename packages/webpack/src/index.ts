@@ -4,10 +4,7 @@ import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
 import { createManifest } from './manifest';
-import { ExternalNodeModulesPlugin, RuntimeEntryPlugin } from './microservice';
-
-const JsonpTemplatePlugin = require('webpack/lib/web/JsonpTemplatePlugin');
-const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
+import { MicroservicePlugin } from './microservice';
 
 interface ReplacedModule {
   name: string;
@@ -55,7 +52,7 @@ class ApiReplacementPlugin {
   /** Separate plugin will manage imaginary files for bundle. */
   virtualPlugin = new VirtualModulesPlugin();
 
-  childCompiler!: Compiler;
+  microservicePlugin: MicroservicePlugin;
 
   agent = DEFAULT_AGENT;
 
@@ -69,14 +66,18 @@ class ApiReplacementPlugin {
       tsConfigFilePath,
       skipAddingFilesFromTsConfig: true
     });
+
+    this.microservicePlugin =
+      new MicroservicePlugin(options);
   }
 
   apply(compiler: Compiler) {
     this.virtualPlugin.apply(compiler);
+    this.microservicePlugin.apply(compiler);
+
     this.applyAfterResolve(compiler);
     this.applyAfterCompile(compiler);
     this.applyWatchRun(compiler);
-    this.applyChildCompiler(compiler);
   }
 
   loadRemoteModule(file: string, name?: string){
@@ -100,76 +101,6 @@ class ApiReplacementPlugin {
     this.writeReplacement(mod);
 
     return filename;
-  }
-
-  applyChildCompiler(compiler: Compiler){
-    const { namespace, runtime } = this.options;
-    
-    compiler.hooks.make.tap(this, (compilation) => {
-      if(this.childCompiler)
-        return;
-
-      const filename = namespace ? `${namespace}.service.js` : "service.js";
-      const { path } = compiler.options.output;
-
-      const child = this.childCompiler =
-        compilation.createChildCompiler(this.name, { filename, path }, []);
-
-      new RuntimeEntryPlugin(runtime).apply(child);
-      new NodeTargetPlugin().apply(child);
-      new ExternalNodeModulesPlugin().apply(child);
-      new JsonpTemplatePlugin().apply(compiler);
-
-      compilation.hooks.additionalAssets.tapAsync(this, onDone => {
-        child.hooks.make.tap(this, (childCompilation) => {
-            childCompilation.hooks.afterHash.tap(this, () => {
-              childCompilation.hash = compilation.hash;
-              childCompilation.fullHash = compilation.fullHash;
-            });
-          },
-        );
-
-        child.runAsChild((err, entries, childCompilation) => {
-          if (err || !childCompilation)
-            return onDone(err);
-
-          if (childCompilation.errors.length > 0)
-            return onDone(childCompilation.errors[0]);
-
-          compilation.hooks.afterOptimizeAssets.tap(this, () => {
-            compilation.assets = Object.assign(
-              childCompilation.assets,
-              compilation.assets,
-            );
-
-            compilation.namedChunkGroups = Object.assign(
-              childCompilation.namedChunkGroups,
-              compilation.namedChunkGroups,
-            );
-
-            // const childChunkFileMap = childCompilation.chunks.reduce(
-            //   (chunkMap, chunk) => {
-            //     chunkMap[chunk.name] = chunk.files;
-            //     return chunkMap;
-            //   },
-            //   {},
-            // );
-
-            // compilation.chunks.forEach(chunk => {
-            //   const childChunkFiles = childChunkFileMap[chunk.name];
-
-            //   if (childChunkFiles) {
-            //     chunk.files.push(
-            //       ...childChunkFiles.filter(v => !chunk.files.includes(v)),
-            //     );
-            //   }
-            // });
-          });
-
-          onDone();
-        });
-      });
-    })
   }
 
   /**
