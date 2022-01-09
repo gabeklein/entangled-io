@@ -15,9 +15,9 @@ interface ReplacedModule {
 }
 
 interface RequestInfo {
-  requiredBy: string;
-  rawRequest: string;
-  resolvedRequest: string;
+  issuer: string;
+  request: string;
+  resolved: string;
   type: string;
 }
 
@@ -103,12 +103,11 @@ export default class ApiReplacementPlugin {
         }
 
         const namespace = this.shouldInclude({
-            requiredBy: result.contextInfo.issuer,
-            rawRequest: result.request,
-            resolvedRequest: resolved,
-            type: target.type
-          }
-        )
+          type: target.type,
+          issuer: result.contextInfo.issuer,
+          request: result.request,
+          resolved
+        })
 
         if(namespace){
           if(!/\.tsx?$/.test(resolved)){
@@ -171,7 +170,7 @@ export default class ApiReplacementPlugin {
    * If so, set namespace the resulting imports are listed under. 
    */
   shouldInclude(request: RequestInfo){
-    const { rawRequest, resolvedRequest } = request;
+    const { request: rawRequest, resolved: resolvedRequest } = request;
     let test = this.options.include;
 
     if(rawRequest == test){
