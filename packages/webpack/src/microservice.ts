@@ -39,12 +39,8 @@ export default class MicroservicePlugin {
       new NodeTargetPlugin().apply(child);
       new JsonpTemplatePlugin().apply(compiler);
 
-      if(true){
-        const ignoreExternal =
-          new ExternalNodeModulesPlugin(deps => { });
-
-        ignoreExternal.apply(child);
-      }
+      if(true)
+        new ExternalNodeModulesPlugin(deps => {}).apply(child);
 
       compilation.hooks.additionalAssets.tapAsync(NAME, onDone => {
         child.hooks.make.tap(NAME, (childCompilation) => {
