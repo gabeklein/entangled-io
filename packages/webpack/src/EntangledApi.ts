@@ -7,7 +7,7 @@ import { createManifest } from './manifest';
 import MicroservicePlugin from './Microservice';
 
 interface ReplacedModule {
-  name: string;
+  request: string;
   watchFiles: Set<string>;
   sourceFile: SourceFile;
   location: string;
@@ -50,13 +50,13 @@ export default class ApiReplacementPlugin {
   replacedModules = new Map<string, ReplacedModule>();
 
   /** Separate plugin will manage imaginary files for bundle. */
-  virtualPlugin = new VirtualModulesPlugin();
+  virtualPlugin: VirtualModulesPlugin;
 
   microservicePlugin: MicroservicePlugin;
 
-  agent = DEFAULT_AGENT;
-
   tsProject: Project;
+
+  agent = DEFAULT_AGENT;
 
   constructor(public options: Options = {}){
     const tsConfigFilePath =
@@ -69,6 +69,9 @@ export default class ApiReplacementPlugin {
 
     this.microservicePlugin =
       new MicroservicePlugin(options);
+
+    this.virtualPlugin =
+      new VirtualModulesPlugin();
   }
 
   apply(compiler: Compiler) {
@@ -175,24 +178,24 @@ export default class ApiReplacementPlugin {
     })
   }
 
-  loadRemoteModule(file: string, name?: string){
+  loadRemoteModule(request: string, name?: string){
     const tsc = this.tsProject;
-    const sourceFile = tsc.addSourceFileAtPath(file);
+    const sourceFile = tsc.addSourceFileAtPath(request);
 
     tsc.resolveSourceFileDependencies();
 
-    const location = path.dirname(file);
+    const location = path.dirname(request);
     const filename = path.join(location, `${name}.proxy.js`);
 
     const mod: ReplacedModule = {
-      name: file,
+      request,
       location,
       sourceFile,
-      watchFiles: new Set(),
-      filename
+      filename,
+      watchFiles: new Set()
     };
 
-    this.replacedModules.set(file, mod);
+    this.replacedModules.set(request, mod);
     this.writeReplacement(mod);
 
     return filename;
@@ -200,16 +203,13 @@ export default class ApiReplacementPlugin {
   
   writeReplacement(mod: ReplacedModule){
     const output = createManifest(mod.sourceFile, mod.watchFiles);
-    let endpoint = "http://localhost:8080";
-
     const data = JSON.stringify(output);
 
-    if(/^[/A-Z]+$/.test(endpoint))
-      endpoint = `process.env.${endpoint}`;
+    const endpoint = "http://localhost:8080";
+    const agent = DEFAULT_AGENT;
 
-    const content =
-      `module.exports = require("${this.agent}")(${data}, "${endpoint}")`;
-
-    this.virtualPlugin.writeModule(mod.filename, content);
+    this.virtualPlugin.writeModule(mod.filename,
+      `module.exports = require("${agent}")(${data}, "${endpoint}")`  
+    );
   }
 }
