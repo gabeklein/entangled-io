@@ -98,6 +98,17 @@ export default class ApiReplacementPlugin {
           return;
         }
 
+        const apply = (namespace: string) => {
+          if(!/\.tsx?$/.test(resource)){
+            const relative = path.relative(process.cwd(), resource);
+            throw new Error(`Tried to import ${relative} (as external) but is not typescript!`);
+          }
+
+          resolved.resource =
+          resolved.userRequest =
+            this.loadRemoteModule(resource, namespace);
+        }
+
         if(typeof include == "function"){
           // const info: RequestInfo = {
           //   requiredBy: result.contextInfo.issuer,
@@ -110,18 +121,13 @@ export default class ApiReplacementPlugin {
         else if(include instanceof RegExp){
           const match = include.exec(resource);
 
-          if(!match)
-            return;
+          if(match){
+            const name =
+              match[1] ||
+              path.basename(resource.replace(/\.\w+$/, ""));
 
-          if(!/\.tsx?$/.test(resource)){
-            const relative = path.relative(process.cwd(), resource);
-            throw new Error(`Tried to import ${relative} (as external) but is not typescript!`)
+            apply(name);
           }
-
-          const namespace = match[1] || path.basename(resource.replace(/\.\w+$/, ""));
-          const proxyModule = this.loadRemoteModule(resource, namespace);
-
-          resolved.resource = resolved.userRequest = proxyModule;
         }
       })
     });
