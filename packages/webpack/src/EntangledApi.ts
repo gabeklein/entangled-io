@@ -27,7 +27,7 @@ interface MicroserviceOptions {
 }
 
 interface Options {
-  include?: RegExp;
+  include?: RegExp | string;
   options?: (request: RequestInfo) => MicroserviceOptions;
   endpoint?: string;
   agent?: string;
@@ -90,47 +90,35 @@ export default class ApiReplacementPlugin {
   applyAfterResolve(compiler: Compiler){
     compiler.hooks.normalModuleFactory.tap(this, (compilation) => {
       compilation.hooks.afterResolve.tap(this, (result) => {
-        const { include } = this.options;
-        const resolved = result.createData as any;
-        const resource = resolved.resource;
+        const target = result.createData as any;
+        const resolved = target.resource;
+        const useInstead = (x: string) =>
+          target.resource = target.userRequest = x;
 
-        const info = this.replacedModules.get(resource);
+        const info = this.replacedModules.get(resolved);
 
         if(info){
-          resolved.resource = resolved.userRequest = info.filename;
+          useInstead(info.filename);
           return;
         }
 
-        const apply = (namespace: string) => {
-          if(!/\.tsx?$/.test(resource)){
-            const relative = path.relative(process.cwd(), resource);
+        const namespace = this.shouldInclude({
+            requiredBy: result.contextInfo.issuer,
+            rawRequest: result.request,
+            resolvedRequest: resolved,
+            type: target.type
+          }
+        )
+
+        if(namespace){
+          if(!/\.tsx?$/.test(resolved)){
+            const relative = path.relative(process.cwd(), resolved);
             throw new Error(`Tried to import ${relative} (as external) but is not typescript!`);
           }
 
-          resolved.resource =
-          resolved.userRequest =
-            this.loadRemoteModule(resource, namespace);
-        }
-
-        if(typeof include == "function"){
-          // const info: RequestInfo = {
-          //   requiredBy: result.contextInfo.issuer,
-          //   rawRequest: result.request,
-          //   resolvedRequest: resolved.resource,
-          //   type: resolved.type
-          // }
-        }
-
-        else if(include instanceof RegExp){
-          const match = include.exec(resource);
-
-          if(match){
-            const name =
-              match[1] ||
-              path.basename(resource.replace(/\.\w+$/, ""));
-
-            apply(name);
-          }
+          useInstead(
+            this.loadRemoteModule(resolved, namespace)
+          )
         }
       })
     });
@@ -176,6 +164,38 @@ export default class ApiReplacementPlugin {
           this.writeReplacement(mod);
       })
     })
+  }
+
+  /**
+   * Decides if given request should be delegated to microservice.
+   * If so, set namespace the resulting imports are listed under. 
+   */
+  shouldInclude(request: RequestInfo){
+    const { rawRequest, resolvedRequest } = request;
+    let test = this.options.include;
+
+    if(rawRequest == test){
+      const match = /^@\w\/(\w+)/.exec(test);
+
+      if(match)
+        return match[1];
+    }
+
+    if(test instanceof RegExp){
+      const match =
+        test.exec(rawRequest) ||
+        test.exec(resolvedRequest);
+
+      if(match){
+        const name =
+          match[1] ||
+          path.basename(resolvedRequest).replace(/\.\w+$/, "");
+  
+        return name
+      }
+    }
+
+    return null;
   }
 
   loadRemoteModule(request: string, name?: string){
