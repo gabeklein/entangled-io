@@ -1,11 +1,18 @@
 import { Service } from "./interface";
 
-const PORT = process.env.PORT;
+export default function start(schema: any){
+  const { listen } = require("simple-argv");
+  const service = new Service(schema);
 
-export default function start(schema: any, options: any){
-  const { port = PORT } = options || {};
+  if(listen){
+    const port =
+      typeof listen == "number" ? listen :
+      Number(process.env.PORT) || 8080;
 
-  return new Service(schema).listen(port, () => {
-    console.log(`Service agent is listening on port ${port}.`)
-  });
+    service.listen(port, () => {
+      console.log(`Service is running on port ${port}.`);
+    })
+  }
+
+  return service;
 }
