@@ -1,5 +1,5 @@
 import path from "path";
-import { Compiler, SingleEntryPlugin } from "webpack";
+import { Compiler, EntryPlugin } from "webpack";
 import VirtualModulesPlugin from "webpack-virtual-modules";
 import ExternalNodeModulesPlugin from "./ExternalModules";
 
@@ -9,6 +9,7 @@ const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 const DEFAULT_RUNTIME = "@entangled/express";
 
 interface MicroserviceOptions {
+  output?: string;
   namespace?: string;
   runtime?: string;
 }
@@ -20,29 +21,68 @@ export default class MicroservicePlugin {
     public options: MicroserviceOptions
   ){}
 
+  stuff = [] as [string, string][];
+
+  /** Add client request to microservice for provisioning. */
+  include(request: string, namespace: string){
+    this.stuff.push([namespace, request]);
+  }
+
+  generate(){
+    const {
+      runtime = DEFAULT_RUNTIME
+    } = this.options;
+
+    const lines = this.stuff
+      .map(([name, request]) => {
+        return `"${name}": require("${request}")`;
+      })
+      .join(",\n");
+    
+    return `require("${runtime}").default({\n${lines}\n})`;
+  }
+
   apply(compiler: Compiler){
     const NAME = this.constructor.name;
-    const { namespace } = this.options;
     
     compiler.hooks.make.tap(NAME, (compilation) => {
-      EXISTS_FOR.has(compiler);
-
-      const filename = namespace ? `${namespace}.service.js` : "service.js";
-      const { path } = compiler.options.output;
-
-      const child =
-        compilation.createChildCompiler(NAME, { filename, path }, []);
+      if(EXISTS_FOR.has(compiler))
+        return;
 
       EXISTS_FOR.add(compiler);
 
-      this.applyEntryPoint(child);
+      const output = path.resolve(
+        compiler.options.output.path || ".",
+        this.options.output || "service.js",  
+      );
+
+      const filename = path.basename(output);
+      const pathname = path.dirname(output);
+      const settings = {
+        filename,
+        path: pathname
+      }
+
+      const child =
+        compilation.createChildCompiler(NAME, settings, []);
+
+      const entry = path.resolve(child.context, "./.service/index.js");
+
+      const modulePlugin = new VirtualModulesPlugin();
+      const entryPlugin = new EntryPlugin(child.context, entry);
+
+      modulePlugin.apply(child);
+      entryPlugin.apply(child);
+
       new NodeTargetPlugin().apply(child);
       new JsonpTemplatePlugin().apply(compiler);
 
       if(true)
         new ExternalNodeModulesPlugin(deps => {}).apply(child);
 
-      compilation.hooks.additionalAssets.tapAsync(NAME, onDone => {
+      compilation.hooks.processAssets.tapAsync(NAME, (_assets, onDone) => {
+        modulePlugin.writeModule(entry, this.generate());
+
         child.hooks.make.tap(NAME, (childCompilation) => {
             childCompilation.hooks.afterHash.tap(NAME, () => {
               childCompilation.hash = compilation.hash;
@@ -92,20 +132,5 @@ export default class MicroservicePlugin {
         });
       });
     })
-  }
-
-  applyEntryPoint(compiler: Compiler){
-    const {
-      runtime = DEFAULT_RUNTIME
-    } = this.options;
-
-    const virtual = new VirtualModulesPlugin();
-    const entry = path.resolve(compiler.context, "./microservice.js");
-    const content = `require("${runtime}").default({ })`;
-
-    virtual.apply(compiler);
-    virtual.writeModule(entry, content);
-
-    new SingleEntryPlugin(compiler.context, entry).apply(compiler);
   }
 }

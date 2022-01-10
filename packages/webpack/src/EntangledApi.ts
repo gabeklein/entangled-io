@@ -7,6 +7,7 @@ import { createManifest } from './manifest';
 import MicroservicePlugin from './Microservice';
 
 interface ReplacedModule {
+  name: string;
   request: string;
   watchFiles: Set<string>;
   sourceFile: SourceFile;
@@ -52,11 +53,11 @@ export default class ApiReplacementPlugin {
   /** Separate plugin will manage imaginary files for bundle. */
   virtualPlugin: VirtualModulesPlugin;
 
+  /** Creates child compiler to generate corresponding services. */
   microservicePlugin: MicroservicePlugin;
 
+  /** Language service used to scan imports, generate doppelgangers. */
   tsProject: Project;
-
-  agent = DEFAULT_AGENT;
 
   constructor(public options: Options = {}){
     const tsConfigFilePath =
@@ -90,6 +91,9 @@ export default class ApiReplacementPlugin {
   applyAfterResolve(compiler: Compiler){
     compiler.hooks.normalModuleFactory.tap(this, (compilation) => {
       compilation.hooks.afterResolve.tap(this, (result) => {
+        if(result.contextInfo.compiler == MicroservicePlugin.name)
+          return;
+
         const target = result.createData as any;
         const resolved = target.resource;
         const useInstead = (x: string) =>
@@ -115,9 +119,10 @@ export default class ApiReplacementPlugin {
             throw new Error(`Tried to import ${relative} (as external) but is not typescript!`);
           }
 
-          useInstead(
-            this.loadRemoteModule(resolved, namespace)
-          )
+          const mock = this.loadRemoteModule(resolved, namespace);
+          this.microservicePlugin.include(resolved, namespace);
+
+          useInstead(mock);
         }
       })
     });
@@ -197,7 +202,7 @@ export default class ApiReplacementPlugin {
     return null;
   }
 
-  loadRemoteModule(request: string, name?: string){
+  loadRemoteModule(request: string, name = "default"){
     const tsc = this.tsProject;
     const sourceFile = tsc.addSourceFileAtPath(request);
 
@@ -207,6 +212,7 @@ export default class ApiReplacementPlugin {
     const filename = path.join(location, `${name}.proxy.js`);
 
     const mod: ReplacedModule = {
+      name,
       request,
       location,
       sourceFile,
@@ -224,11 +230,18 @@ export default class ApiReplacementPlugin {
     const output = createManifest(mod.sourceFile, mod.watchFiles);
     const data = JSON.stringify(output);
 
-    const endpoint = "http://localhost:8080";
-    const agent = DEFAULT_AGENT;
+    const {
+      endpoint = "http://localhost:8080",
+      agent = DEFAULT_AGENT
+    } = this.options;
+
+    const options = JSON.stringify({
+      namespace: mod.name,
+      endpoint
+    })
 
     this.virtualPlugin.writeModule(mod.filename,
-      `module.exports = require("${agent}")(${data}, "${endpoint}")`  
+      `module.exports = require("${agent}")(${data}, ${options})`  
     );
   }
 }
