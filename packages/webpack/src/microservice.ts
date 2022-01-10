@@ -3,7 +3,7 @@ import { Compiler, EntryPlugin } from "webpack";
 import VirtualModulesPlugin from "webpack-virtual-modules";
 import ExternalNodeModulesPlugin from "./ExternalModules";
 
-const JsonpTemplatePlugin = require('webpack/lib/web/JsonpTemplatePlugin');
+const AssignLibraryPlugin = require('webpack/lib/library/AssignLibraryPlugin');
 const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 
 const DEFAULT_RUNTIME = "@entangled/express";
@@ -39,7 +39,7 @@ export default class MicroservicePlugin {
       })
       .join(",\n");
     
-    return `require("${runtime}").default({\n${lines}\n})`;
+    return `module.exports = require("${runtime}").default({\n${lines}\n})`;
   }
 
   apply(compiler: Compiler){
@@ -56,26 +56,27 @@ export default class MicroservicePlugin {
         this.options.output || "service.js",  
       );
 
-      const filename = path.basename(output);
-      const pathname = path.dirname(output);
       const settings = {
-        filename,
-        path: pathname
+        filename: path.basename(output),
+        path: path.dirname(output),
+        library: {
+          type: 'commonjs2',
+        },
       }
 
-      const child =
-        compilation.createChildCompiler(NAME, settings, []);
-
+      const child = compilation.createChildCompiler(NAME, settings, []);
       const entry = path.resolve(child.context, "./.service/index.js");
-
       const modulePlugin = new VirtualModulesPlugin();
-      const entryPlugin = new EntryPlugin(child.context, entry);
 
       modulePlugin.apply(child);
-      entryPlugin.apply(child);
-
+      new EntryPlugin(child.context, entry).apply(child);
       new NodeTargetPlugin().apply(child);
-      new JsonpTemplatePlugin().apply(compiler);
+      new AssignLibraryPlugin({
+        type: "commonjs2",
+        prefix: ["module", "exports"],
+        declare: false,
+        unnamed: "assign"
+      }).apply(child);
 
       if(true)
         new ExternalNodeModulesPlugin(deps => {}).apply(child);
