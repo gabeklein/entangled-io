@@ -18,9 +18,6 @@
     "webpack-dev-server": "^4.7.2"
   },
   "dependencies": {
-    "@entangled/webpack": "^2.0.0-alpha.6",
-    "html-webpack-plugin": "^5.5.0",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0"
+    "@entangled/webpack": "^2.0.0-alpha.6"
   }
 }

@@ -1,43 +1,33 @@
 const { resolve } = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MicroservicePlugin = require("@entangled/webpack");
-const { EnvironmentPlugin } = require("webpack")
 
-const currentDir = process.cwd();
-const dir = path => resolve(currentDir, path);
+const dir = path => resolve(process.cwd(), path);
 
 module.exports = {
   mode: "development",
-  devtool: "source-map",
   entry: "./src",
+  devtool: false,
   resolve: {
-    extensions: [".ts", ".tsx", ".js"]
+    extensions: [".js", ".ts"]
   },
   output: {
     filename: "[name].js",
     publicPath: "/",
     path: dir("public")
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      title: "Teleport Test"
-    }),
-    new MicroservicePlugin({
-      include: /service\/\w+.ts/,
-      runtime: "@entangled/express"
-    }),
-    new EnvironmentPlugin({
-      ENDPOINT: "http://localhost:8080/"
-    })
-  ],
-  externals: {
-    "react": "React",
-    "react-dom": "ReactDOM"
+  devServer: {
+    historyApiFallback: true,
+    host: "0.0.0.0",
+    port: 3000,
+    devMiddleware: {
+      writeToDisk: true
+    }
   },
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         loader: "ts-loader",
         options: {
           transpileOnly: true,
@@ -49,12 +39,10 @@ module.exports = {
       }
     ]
   },
-  devServer: {
-    historyApiFallback: true,
-    host: "0.0.0.0",
-    port: 3000,
-    devMiddleware: {
-      writeToDisk: true
-    }
-  }
+  plugins: [
+    new MicroservicePlugin({
+      include: /service\/\w+.ts/,
+      runtime: "@entangled/express"
+    })
+  ]
 }
