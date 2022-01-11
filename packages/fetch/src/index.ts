@@ -1,3 +1,5 @@
+const DEFAULT_ENDPOINT = process.env.ENDPOINT || "/api";
+
 function format(data: any): any {
   if(data instanceof Date)
     return `${Math.floor(data.getTime() / 1000)}Z`
@@ -36,8 +38,18 @@ function parse(data: any): any {
   return data;
 }
 
-function create(schema: {}, endpoint: string){
-  return traverse(schema, endpoint);
+interface CreateOptions {
+  endpoint?: string;
+  namespace?: string;
+}
+
+function create(schema: {}, options: CreateOptions){
+  const {
+    endpoint = DEFAULT_ENDPOINT,
+    namespace = ""
+  } = options;
+  
+  return traverse(schema, endpoint, namespace);
 }
 
 function traverse(target: any, endpoint: string, path = "") {
