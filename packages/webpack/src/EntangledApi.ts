@@ -191,13 +191,11 @@ export default class ApiReplacementPlugin {
         test.exec(rawRequest) ||
         test.exec(resolvedRequest);
 
-      if(match){
-        const name =
+      if(match)
+        return (
           match[1] ||
-          path.basename(resolvedRequest).replace(/\.\w+$/, "");
-  
-        return name
-      }
+          path.basename(resolvedRequest).replace(/\.\w+$/, "")
+        )
     }
 
     return null;
