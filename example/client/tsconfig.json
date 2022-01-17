@@ -7,7 +7,6 @@
     "lib": ["es2018", "dom"]
   },
   "references": [
-    { "path": "../api" },
-    { "path": "../foobar" },
+    { "path": "../api" }
   ]
 }
