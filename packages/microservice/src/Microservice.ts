@@ -88,11 +88,16 @@ export default class MicroservicePlugin {
         );
 
         child.runAsChild((err, entries, childCompilation) => {
+          if(!childCompilation)
+            throw new Error("runAsChild did not yield a compilation");
+
+          const errors = childCompilation.getErrors();
+
           if (err || !childCompilation)
             return onDone(err);
 
-          if (childCompilation.errors.length > 0)
-            return onDone(childCompilation.errors[0]);
+          if (errors.length > 0)
+            return onDone(errors[0]);
 
           compilation.hooks.afterOptimizeAssets.tap(NAME, () => {
             compilation.assets = Object.assign(
