@@ -218,21 +218,23 @@ export default class ImportAgentPlugin {
   }
   
   writeReplacement(mod: ReplacedModule){
+    const { endpoint, agent } = this.options;
+
     const output = createManifest(mod.sourceFile, mod.watch);
-    const data = JSON.stringify(output);
+    const args: {}[] = [ output ];
 
-    const {
-      endpoint,
-      agent
-    } = this.options;
-
-    const options = JSON.stringify({
+    const options = {
       namespace: mod.name,
       endpoint
-    })
+    }
+
+    args.push(options);
+
+    const printArguments =
+      args.map(x => JSON.stringify(x)).join(", ");
 
     this.virtualModulesPlugin.writeModule(mod.filename,
-      `module.exports = require("${agent}")(${data}, ${options})`  
+      `module.exports = require("${agent}")(${printArguments})`  
     );
   }
 }
