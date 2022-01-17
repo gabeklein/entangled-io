@@ -1,5 +1,5 @@
 const { resolve } = require("path");
-const MicroservicePlugin = require("@entangled/webpack");
+const { MicroservicePlugin } = require("@entangled/webpack");
 
 const dir = path => resolve(process.cwd(), path);
 
