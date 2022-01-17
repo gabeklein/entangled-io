@@ -1,5 +1,5 @@
 {
-  "name": "@entangled/microservice",
+  "name": "@entangled/webpack",
   "version": "2.0.0-alpha.6",
   "main": "lib/index.js",
   "license": "ISC",
