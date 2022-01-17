@@ -69,16 +69,10 @@ export default class ImportAgentPlugin {
   apply(compiler: Compiler) {
     this.virtualModulesPlugin.apply(compiler);
 
-    this.applyAfterResolve(compiler);
-    this.applyAfterCompile(compiler);
-    this.applyWatchRun(compiler);
-  }
-
-  /**
-   * As we resolve modules, if we run into one marked for 
-   * override, we generate the replacement proxy implementation. 
-   */
-  applyAfterResolve(compiler: Compiler){
+    /*
+     * As we resolve modules, if we run into one marked for 
+     * override, we generate the replacement proxy implementation. 
+     */
     compiler.hooks.normalModuleFactory.tap(this, (compilation) => {
       compilation.hooks.afterResolve.tap(this, (result) => {
         if(result.contextInfo.compiler == CreateServicePlugin.name)
@@ -119,14 +113,12 @@ export default class ImportAgentPlugin {
         }
       })
     });
-  }
 
-  /**
-   * After first compilation, we need to watch our server's source files.
-   * During development, backend code might be linked;
-   * we should refresh where API might change with new server logic.
-   */
-  applyAfterCompile(compiler: Compiler){
+    /*
+     * After first compilation, we need to watch our server's source files.
+     * During development, backend code might be linked;
+     * we should refresh where API might change with new server logic.
+     */
     compiler.hooks.afterCompile.tap(this, (compilation) => {
       // This may also be called by html-webpack-plugin but we'll want to skip that.
       // If `compilation.name` was defined by that plugin, we can bailout.
@@ -139,12 +131,10 @@ export default class ImportAgentPlugin {
         })
       })
     })
-  }
 
-  /**
-   * Where files server have updated, regenerate API polyfill for compilation.
-   */
-  applyWatchRun(compiler: Compiler){
+    /*
+     * Where files server have updated, regenerate API polyfill for compilation.
+     */
     compiler.hooks.watchRun.tap(this, (compilation) => {
       const { watchFileSystem } = compilation as any;
       const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
