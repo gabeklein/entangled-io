@@ -3,7 +3,7 @@
  * 
  * https://stackoverflow.com/a/52171480/877165
  */
- export function hash(str = "", length: number){
+ export function uniqueHash(str = "", length: number){
   const m32 = Math.imul;
   const x = 0x85ebca6b, y = 0xc2b2ae35;
   let h1 = 0xdeadbeef, h2 = 0x41c6ce57;

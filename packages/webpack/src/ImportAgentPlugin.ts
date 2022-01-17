@@ -4,7 +4,7 @@ import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
 import CreateServicePlugin from './CreateServicePlugin';
-import { hash } from './hash';
+import { uniqueHash } from './hash';
 import { createManifest } from './manifest';
 
 interface ReplacedModule {
@@ -90,7 +90,7 @@ export default class ImportAgentPlugin {
           return;
         }
 
-        const uid = hash(result.request, 6);
+        const uid = uniqueHash(result.request, 6);
         const namespace = this.shouldInclude({
           type: target.type,
           issuer: result.contextInfo.issuer,
