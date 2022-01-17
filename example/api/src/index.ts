@@ -3,7 +3,7 @@
  * 
  * You can call this directly, as `API.greetings()` as opposed to `API.greetings.default()`
  */
- export async function greetings(){
+export async function greetings(){
   return `Greetings lone traveller!`
 }
 

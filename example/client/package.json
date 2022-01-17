@@ -5,7 +5,8 @@
   "main": "src",
   "license": "ISC",
   "scripts": {
-    "start": "webpack-dev-server"
+    "start:service": "webpack serve --config webpack.service.js",
+    "start:agent": "webpack serve --config webpack.agent.js"
   },
   "devDependencies": {
     "@entangled/api": "^2.0.0-alpha.6",
