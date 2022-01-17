@@ -9,7 +9,7 @@ type Dependancies = {
   [name: string]: string;
 }
 
-export default class ExternalNodeModulesPlugin {
+export default class ExcludeModulesPlugin {
   constructor(
     public report?: (deps: Dependancies) => void
   ){}

@@ -2,10 +2,10 @@ import path from 'path';
 import { Project, SourceFile, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
-import { hash } from './hash';
 
+import CreateServicePlugin from './CreateServicePlugin';
+import { hash } from './hash';
 import { createManifest } from './manifest';
-import MicroservicePlugin from './Microservice';
 
 interface ReplacedModule {
   name: string;
@@ -37,23 +37,23 @@ interface Options {
   namespace?: string;
 }
 
-export default class ApiReplacementPlugin {
+export default class ImportAgentPlugin {
   /** Use name of class to register hooks. */
   name = this.constructor.name;
+
+  /** Language service used to scan imports and generate manifest. */
+  tsProject: Project;
 
   /** Simple cache of requires tagged for replacement. */
   replacedModules = new Map<string, ReplacedModule>();
 
   /** Separate plugin will manage imaginary files for bundle. */
-  virtualPlugin: VirtualModulesPlugin;
+  virtualModulesPlugin: VirtualModulesPlugin;
 
-  /** Creates child compiler to generate corresponding services. */
-  microservicePlugin: MicroservicePlugin;
+  constructor(
+    public options: Options,
+    public createServicePlugin?: CreateServicePlugin){
 
-  /** Language service used to scan imports, generate doppelgangers. */
-  tsProject: Project;
-
-  constructor(public options: Options){
     const tsConfigFilePath =
       ts.findConfigFile(process.cwd(), ts.sys.fileExists);
 
@@ -62,16 +62,12 @@ export default class ApiReplacementPlugin {
       skipAddingFilesFromTsConfig: true
     });
 
-    this.microservicePlugin =
-      new MicroservicePlugin(options);
-
-    this.virtualPlugin =
+    this.virtualModulesPlugin =
       new VirtualModulesPlugin();
   }
 
   apply(compiler: Compiler) {
-    this.virtualPlugin.apply(compiler);
-    this.microservicePlugin.apply(compiler);
+    this.virtualModulesPlugin.apply(compiler);
 
     this.applyAfterResolve(compiler);
     this.applyAfterCompile(compiler);
@@ -85,7 +81,7 @@ export default class ApiReplacementPlugin {
   applyAfterResolve(compiler: Compiler){
     compiler.hooks.normalModuleFactory.tap(this, (compilation) => {
       compilation.hooks.afterResolve.tap(this, (result) => {
-        if(result.contextInfo.compiler == MicroservicePlugin.name)
+        if(result.contextInfo.compiler == CreateServicePlugin.name)
           return;
 
         const target = result.createData as any;
@@ -115,7 +111,9 @@ export default class ApiReplacementPlugin {
           }
 
           const mock = this.loadRemoteModule(resolved, namespace, uid);
-          this.microservicePlugin.include(resolved, uid);
+
+          if(this.createServicePlugin)
+            this.createServicePlugin.include(resolved, uid);
 
           useInstead(mock);
         }
@@ -233,7 +231,7 @@ export default class ApiReplacementPlugin {
       endpoint
     })
 
-    this.virtualPlugin.writeModule(mod.filename,
+    this.virtualModulesPlugin.writeModule(mod.filename,
       `module.exports = require("${agent}")(${data}, ${options})`  
     );
   }

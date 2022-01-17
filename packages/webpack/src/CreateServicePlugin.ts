@@ -1,21 +1,21 @@
 import path from "path";
 import { Compilation, Compiler, EntryPlugin } from "webpack";
 import VirtualModulesPlugin from "webpack-virtual-modules";
-import ExternalNodeModulesPlugin from "./ExternalModules";
+import ExcludeModulesPlugin from "./ExcludeModulesPlugin";
 
 const AssignLibraryPlugin = require('webpack/lib/library/AssignLibraryPlugin');
 const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 
 const EXISTS_FOR = new Set<Compiler>();
 
-interface MicroserviceOptions {
+interface CreateServiceOptions {
   output?: string;
   adapter: string;
 }
 
-export default class MicroservicePlugin {
+export default class CreateServicePlugin {
   constructor(
-    public options: MicroserviceOptions
+    public options: CreateServiceOptions
   ){}
 
   stuff = [] as [string, string][];
@@ -74,7 +74,7 @@ export default class MicroservicePlugin {
       }).apply(child);
 
       if(true)
-        new ExternalNodeModulesPlugin(deps => {}).apply(child);
+        new ExcludeModulesPlugin(deps => {}).apply(child);
 
       compilation.hooks.processAssets.tapAsync({
         name: NAME,
