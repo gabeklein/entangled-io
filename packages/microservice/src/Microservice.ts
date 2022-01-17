@@ -6,12 +6,9 @@ import ExternalNodeModulesPlugin from "./ExternalModules";
 const AssignLibraryPlugin = require('webpack/lib/library/AssignLibraryPlugin');
 const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 
-const DEFAULT_RUNTIME = "@entangled/express";
-
 interface MicroserviceOptions {
   output?: string;
-  namespace?: string;
-  runtime?: string;
+  adapter: string;
 }
 
 const EXISTS_FOR = new Set<Compiler>();
@@ -29,9 +26,7 @@ export default class MicroservicePlugin {
   }
 
   generate(){
-    const {
-      runtime = DEFAULT_RUNTIME
-    } = this.options;
+    const { adapter } = this.options;
 
     const lines = this.stuff
       .map(([name, request]) => {
@@ -39,7 +34,7 @@ export default class MicroservicePlugin {
       })
       .join(",\n");
     
-    return `module.exports = require("${runtime}").default({\n${lines}\n})`;
+    return `module.exports = require("${adapter}").default({\n${lines}\n})`;
   }
 
   apply(compiler: Compiler){

@@ -31,17 +31,10 @@ interface Options {
   include?: RegExp | string;
   options?: (request: RequestInfo) => MicroserviceOptions;
   endpoint?: string;
-  agent?: string;
-  runtime?: string;
+  agent: string;
+  adapter: string;
   namespace?: string;
 }
-
-/**
- * Default service-agent comes included with this plugin.
- * We get webpack to include it by resolving from here.
- * This way, it doesn't need to be a peer-dependency.
- */
-const DEFAULT_AGENT = require.resolve("@entangled/fetch");
 
 export default class ApiReplacementPlugin {
   /** Use name of class to register hooks. */
@@ -59,7 +52,7 @@ export default class ApiReplacementPlugin {
   /** Language service used to scan imports, generate doppelgangers. */
   tsProject: Project;
 
-  constructor(public options: Options = {}){
+  constructor(public options: Options){
     const tsConfigFilePath =
       ts.findConfigFile(process.cwd(), ts.sys.fileExists);
 
@@ -231,7 +224,7 @@ export default class ApiReplacementPlugin {
 
     const {
       endpoint,
-      agent = DEFAULT_AGENT
+      agent
     } = this.options;
 
     const options = JSON.stringify({
