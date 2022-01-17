@@ -6,12 +6,12 @@ import ExternalNodeModulesPlugin from "./ExternalModules";
 const AssignLibraryPlugin = require('webpack/lib/library/AssignLibraryPlugin');
 const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 
+const EXISTS_FOR = new Set<Compiler>();
+
 interface MicroserviceOptions {
   output?: string;
   adapter: string;
 }
-
-const EXISTS_FOR = new Set<Compiler>();
 
 export default class MicroservicePlugin {
   constructor(
