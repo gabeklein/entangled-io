@@ -1,7 +1,0 @@
-{
-  "name": "@entangled/foobar",
-  "version": "2.0.0-alpha.6",
-  "private": true,
-  "main": "lib/index",
-  "license": "ISC"
-}
