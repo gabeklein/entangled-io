@@ -23,18 +23,10 @@ interface RequestInfo {
   type: string;
 }
 
-interface MicroserviceOptions {
-  endpoint?: string;
-  consumer?: string;
-}
-
 interface Options {
   include?: RegExp | string;
-  options?: (request: RequestInfo) => MicroserviceOptions;
   endpoint?: string;
   agent: string;
-  adapter: string;
-  namespace?: string;
 }
 
 export default class ImportAgentPlugin {
