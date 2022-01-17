@@ -24,6 +24,7 @@ interface RequestInfo {
 }
 
 interface Options {
+  single?: boolean;
   include?: RegExp | string;
   endpoint?: string;
   agent: string;
@@ -46,6 +47,9 @@ export default class ImportAgentPlugin {
     public options: Options,
     public didInlcude?: (request: string, uid: string) => void){
 
+    if(!options.endpoint)
+      options.endpoint = process.env.ENDPOINT;
+
     const tsConfigFilePath =
       ts.findConfigFile(process.cwd(), ts.sys.fileExists);
 
@@ -67,6 +71,8 @@ export default class ImportAgentPlugin {
      */
     compiler.hooks.normalModuleFactory.tap(this, (compilation) => {
       compilation.hooks.afterResolve.tap(this, (result) => {
+        const { single } = this.options;
+
         if(result.contextInfo.compiler == CreateServicePlugin.name)
           return;
 
@@ -82,21 +88,21 @@ export default class ImportAgentPlugin {
           return;
         }
 
-        const uid = uniqueHash(result.request, 6);
-        const namespace = this.shouldInclude({
+        const uid = single ? "default" : uniqueHash(result.request, 6);
+        const name = this.shouldInclude({
           type: target.type,
           issuer: result.contextInfo.issuer,
           request: result.request,
           resolved
         })
 
-        if(namespace){
+        if(name){
           if(!/\.tsx?$/.test(resolved)){
             const relative = path.relative(process.cwd(), resolved);
             throw new Error(`Tried to import ${relative} (as external) but is not typescript!`);
           }
 
-          const mock = this.loadRemoteModule(resolved, namespace, uid);
+          const mock = this.loadRemoteModule(resolved, name, uid);
 
           if(this.didInlcude)
             this.didInlcude(resolved, uid);
@@ -153,14 +159,17 @@ export default class ImportAgentPlugin {
     const { request: rawRequest, resolved: resolvedRequest } = request;
     let test = this.options.include;
 
-    if(rawRequest == test){
-      const match = /^@\w\/(\w+)/.exec(test);
+    if(typeof test == "string"){
+      if(rawRequest == test || resolvedRequest == test){
+        const match = /^@(\w+)\/(\w+)/.exec(test);
+  
+        if(match)
+          return `${match[1]}__${match[2]}`;
 
-      if(match)
-        return match[1];
+        return "default";
+      }
     }
-
-    if(test instanceof RegExp){
+    else if(test instanceof RegExp){
       const match =
         test.exec(rawRequest) ||
         test.exec(resolvedRequest);
@@ -175,7 +184,7 @@ export default class ImportAgentPlugin {
     return null;
   }
 
-  loadRemoteModule(request: string, name: string, namespace = "default"){
+  loadRemoteModule(request: string, name: string, namespace: string){
     const tsc = this.tsProject;
     const sourceFile = tsc.addSourceFileAtPath(request);
 
@@ -201,16 +210,18 @@ export default class ImportAgentPlugin {
   
   writeReplacement(mod: ReplacedModule){
     const { endpoint, agent } = this.options;
+    const { name } = mod;
 
     const output = createManifest(mod.sourceFile, mod.watch);
+    const options: any = { endpoint };
+
     const args: {}[] = [ output ];
 
-    const options = {
-      namespace: mod.name,
-      endpoint
-    }
+    if(name !== "default")
+      options.namespace = name;
 
-    args.push(options);
+    if(Object.values(options).some(x => !!x))
+      args.push(options);
 
     const printArguments =
       args.map(x => JSON.stringify(x)).join(", ");
