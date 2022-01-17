@@ -1,5 +1,5 @@
 import path from "path";
-import { Compiler, EntryPlugin } from "webpack";
+import { Compilation, Compiler, EntryPlugin } from "webpack";
 import VirtualModulesPlugin from "webpack-virtual-modules";
 import ExternalNodeModulesPlugin from "./ExternalModules";
 
@@ -76,7 +76,10 @@ export default class MicroservicePlugin {
       if(true)
         new ExternalNodeModulesPlugin(deps => {}).apply(child);
 
-      compilation.hooks.processAssets.tapAsync(NAME, (_assets, onDone) => {
+      compilation.hooks.processAssets.tapAsync({
+        name: NAME,
+        stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+      }, (_assets, onDone) => {
         modulePlugin.writeModule(entry, this.generate());
 
         child.hooks.make.tap(NAME, (childCompilation) => {
