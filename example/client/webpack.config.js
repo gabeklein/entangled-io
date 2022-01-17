@@ -41,7 +41,8 @@ module.exports = {
   plugins: [
     new MicroservicePlugin({
       include: /service\/\w+.ts/,
-      runtime: "@entangled/express"
+      adapter: "@entangled/express",
+      agent: "@entangled/fetch"
     })
   ]
 }
