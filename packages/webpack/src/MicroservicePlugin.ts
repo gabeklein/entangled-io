@@ -25,7 +25,9 @@ class MicroservicePlugin {
       new CreateServicePlugin(options);
 
     const importAgentPlugin =
-      new ImportAgentPlugin(options, createServicePlugin);
+      new ImportAgentPlugin(options, (request, uid) => {
+        createServicePlugin.include(request, uid)
+      });
 
     createServicePlugin.apply(compiler);
     importAgentPlugin.apply(compiler);

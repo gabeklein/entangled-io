@@ -44,7 +44,7 @@ export default class ImportAgentPlugin {
 
   constructor(
     public options: Options,
-    public createServicePlugin?: CreateServicePlugin){
+    public didInlcude?: (request: string, uid: string) => void){
 
     const tsConfigFilePath =
       ts.findConfigFile(process.cwd(), ts.sys.fileExists);
@@ -98,8 +98,8 @@ export default class ImportAgentPlugin {
 
           const mock = this.loadRemoteModule(resolved, namespace, uid);
 
-          if(this.createServicePlugin)
-            this.createServicePlugin.include(resolved, uid);
+          if(this.didInlcude)
+            this.didInlcude(resolved, uid);
 
           useInstead(mock);
         }
