@@ -1,8 +1,6 @@
 const { resolve } = require("path");
 const { MicroservicePlugin } = require("@entangled/webpack");
 
-const dir = path => resolve(process.cwd(), path);
-
 module.exports = {
   mode: "development",
   entry: "./src",
@@ -13,7 +11,7 @@ module.exports = {
   output: {
     filename: "[name].js",
     publicPath: "/",
-    path: dir("public")
+    path: resolve("public")
   },
   devServer: {
     historyApiFallback: true,
@@ -32,8 +30,7 @@ module.exports = {
           transpileOnly: true,
         },
         exclude: [
-          dir("node_modules"), 
-          dir("../../node_modules")
+          /node_modules/
         ]
       }
     ]
