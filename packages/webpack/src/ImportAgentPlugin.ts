@@ -1,5 +1,5 @@
 import path from 'path';
-import { Project, SourceFile, ts } from 'ts-morph';
+import { FileSystemRefreshResult, Project, SourceFile, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
@@ -136,18 +136,41 @@ export default class ImportAgentPlugin {
     compiler.hooks.watchRun.tap(this, (compilation) => {
       const { watchFileSystem } = compilation as any;
       const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
-      const filesUpdated = Object.keys(watcher.mtimes || {});
+      const filesUpdated = watcher.getTimes()
 
       this.replacedModules.forEach(mod => {
         let updates = 0;
 
-        for(const name of filesUpdated)
-          if(mod.watch.has(name))
-            updates++;
+        for(const file of mod.watch)
+          if(file in filesUpdated){
+            const sourceFile = 
+              this.tsProject.getSourceFileOrThrow(file)
+              
+            if(sourceFile.refreshFromFileSystemSync() == FileSystemRefreshResult.Updated)
+              updates++;
+          }
 
         if(updates)
           this.writeReplacement(mod);
       })
+
+      const virtual = (compiler.inputFileSystem as any)._virtualFiles;
+      const fts = compiler.fileTimestamps as any;
+
+      if (virtual && fts && typeof fts.set === 'function') {
+        Object.keys(virtual).forEach((file) => {
+          const mtime = virtual[file].stats.mtime;
+
+          if(mtime)
+            applyMtime(mtime);
+
+          fts.set(file, {
+            accuracy: 0,
+            safeTime: mtime ? mtime + FS_ACCURACY : Infinity,
+            timestamp: mtime
+          });
+        });
+      }
     })
   }
 
@@ -231,3 +254,12 @@ export default class ImportAgentPlugin {
     );
   }
 }
+
+let FS_ACCURACY = 2000;
+
+function applyMtime (mtime: number) {
+    if (FS_ACCURACY > 1 && mtime % 2 !== 0) FS_ACCURACY = 1;
+    else if (FS_ACCURACY > 10 && mtime % 20 !== 0) FS_ACCURACY = 10;
+    else if (FS_ACCURACY > 100 && mtime % 200 !== 0) FS_ACCURACY = 100;
+    else if (FS_ACCURACY > 1000 && mtime % 2000 !== 0) FS_ACCURACY = 1000;
+};

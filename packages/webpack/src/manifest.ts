@@ -1,4 +1,4 @@
-import { Node } from "ts-morph";
+import { Node, SourceFile } from "ts-morph";
 
 export function createManifest(
   node: Node, watch: Set<string>){
@@ -6,11 +6,16 @@ export function createManifest(
   if(Node.isSourceFile(node)){
     const output = {} as any;
 
-    watch.add(node.getFilePath());
-
     node
       .getExportedDeclarations()
       .forEach(([ value ], key) => {
+        const source: SourceFile = (value as any).__sourceFile;
+
+        // some exports may be `export * from "x"`
+        // and come from a different file;
+        // register file dependancies per import
+        watch.add(source.getFilePath());
+
         output[key] = createManifest(value, watch);
       })
 
