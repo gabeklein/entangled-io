@@ -47,7 +47,7 @@ function create(schema: {}, options: CreateOptions){
   const {
     endpoint = DEFAULT_ENDPOINT,
     namespace = ""
-  } = options;
+  } = options || {};
   
   return traverse(schema, endpoint, namespace);
 }

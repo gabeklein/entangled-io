@@ -28,6 +28,7 @@ interface Options {
   include?: RegExp | string;
   endpoint?: string;
   agent: string;
+  runtimeOptions?: {}
 }
 
 export default class ImportAgentPlugin {
@@ -232,19 +233,18 @@ export default class ImportAgentPlugin {
   }
   
   writeReplacement(mod: ReplacedModule){
-    const { endpoint, agent } = this.options;
+    const { endpoint, agent, runtimeOptions } = this.options;
     const { name } = mod;
 
     const output = createManifest(mod.sourceFile, mod.watch);
-    const options: any = { endpoint };
-
+    const opts: any = { endpoint, ...runtimeOptions };
     const args: {}[] = [ output ];
 
     if(name !== "default")
-      options.namespace = name;
+      opts.namespace = name;
 
-    if(Object.values(options).some(x => !!x))
-      args.push(options);
+    if(Object.values(opts).some(x => !!x))
+      args.push(opts);
 
     const printArguments =
       args.map(x => JSON.stringify(x)).join(", ");

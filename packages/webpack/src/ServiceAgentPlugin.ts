@@ -6,7 +6,8 @@ declare namespace ServiceAgent {
   interface Options {
     include: string;
     agent: string;
-    options: {}
+    endpoint?: string;
+    runtimeOptions?: {}
   }
 }
 
