@@ -1,6 +1,6 @@
 {
   "name": "@entangled/client",
-  "version": "2.0.0-alpha.7",
+  "version": "2.0.0-alpha.8",
   "private": true,
   "main": "src",
   "license": "ISC",
@@ -21,6 +21,6 @@
     "webpack-dev-server": "^4.7.2"
   },
   "dependencies": {
-    "@entangled/webpack": "^2.0.0-alpha.7"
+    "@entangled/webpack": "^2.0.0-alpha.8"
   }
 }
