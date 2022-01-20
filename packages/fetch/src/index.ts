@@ -1,4 +1,4 @@
-const DEFAULT_ENDPOINT = process.env.ENDPOINT || "/api";
+const DEFAULT_ENDPOINT = process.env.ENDPOINT || "/";
 
 function format(data: any): any {
   if(data instanceof Date)
