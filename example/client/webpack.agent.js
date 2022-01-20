@@ -36,10 +36,6 @@ module.exports = {
     ]
   },
   plugins: [
-    new ServiceAgentPlugin({
-      include: "@entangled/api",
-      agent: "@entangled/fetch",
-      endpoint: "/api"
-    })
+    new ServiceAgentPlugin("@entangled/*")
   ]
 }

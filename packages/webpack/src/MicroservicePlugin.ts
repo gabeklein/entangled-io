@@ -1,7 +1,7 @@
 import { Compiler } from 'webpack';
 
 import CreateServicePlugin from './CreateServicePlugin';
-import ImportAgentPlugin from './ImportAgentPlugin';
+import ServiceAgentPlugin from './ServiceAgentPlugin';
 
 declare namespace MicroservicePlugin {
   interface Options {
@@ -13,7 +13,7 @@ declare namespace MicroservicePlugin {
   }
 }
 
-class MicroservicePlugin {
+export default class MicroservicePlugin {
   constructor(
     public options: MicroservicePlugin.Options
   ){}
@@ -25,7 +25,7 @@ class MicroservicePlugin {
       new CreateServicePlugin(options);
 
     const importAgentPlugin =
-      new ImportAgentPlugin(options, (request, uid) => {
+      new ServiceAgentPlugin(options, (request, uid) => {
         createServicePlugin.include(request, uid)
       });
 
@@ -33,5 +33,3 @@ class MicroservicePlugin {
     importAgentPlugin.apply(compiler);
   }
 }
-
-export default MicroservicePlugin;
