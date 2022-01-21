@@ -8,8 +8,9 @@
       "cwd": "${workspaceFolder}/example/service",
       "runtimeArgs": [
         "--nolazy",
+        "-r", "ts-node/register", 
         "-r", "source-map-support/register", 
-        "-r", "./lib"
+        "-r", "./src/index.ts"
       ]
     },
     {
