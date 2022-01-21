@@ -11,7 +11,9 @@
     "baseUrl": "./",
     "paths": {
       "@entangled/*": [
-        "packages/*/src",
+        "packages/*/src"
+      ],
+      "@example/*": [
         "example/*/src"
       ]
     }
