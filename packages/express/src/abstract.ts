@@ -1,12 +1,8 @@
 import { RequestHandler, Response } from 'express';
 
 import { Internal, RestError, BadInput } from './errors';
-import { createContext } from './async_hook';
 import { format, parse } from './body';
-
-const { DEBUG_ENDPOINTS } = process.env;
-
-const SerializeError = Internal("Resource returned data which could not be serialized", "serialize_error");
+import { createContext } from './async_hook';
 
 export function abstract(
   handler: Function): RequestHandler {
@@ -30,7 +26,10 @@ export function abstract(
         responder(response, 200, output);
       }
       catch(err){
-        throw SerializeError;
+        throw Internal(
+          "Resource returned data which could not be serialized",
+          "serialize_error"
+        );
       }
     }
     catch(err){
@@ -41,9 +40,6 @@ export function abstract(
         });
 
       else {
-        if(DEBUG_ENDPOINTS)
-          debugger
-          
         responder(response, 500, err);
         throw err;
       }

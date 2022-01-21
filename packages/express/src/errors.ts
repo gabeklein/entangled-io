@@ -8,7 +8,7 @@ export class RestError extends Error {
   }
 }
 
-export function Forbid(message?: string, error?: string) {
+export function Forbidden(message?: string, error?: string) {
   return new RestError(403, message, error)
 }
 
@@ -22,8 +22,4 @@ export function Internal(message?: string, error?: string) {
 
 export function BadInput(message?: string, error?: string) {
   return new RestError(400, message, error)
-}
-
-export function Code(status: number, message?: string, error?: string) {
-  return new RestError(status, message, error)
 }
