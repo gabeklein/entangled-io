@@ -1,6 +1,6 @@
 {
   "name": "@example/client",
-  "version": "2.0.0-alpha.10",
+  "version": "2.0.0-alpha.11",
   "private": true,
   "main": "src",
   "license": "ISC",
@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@entangled/fetch": "^2.0.0-alpha.10",
-    "@example/api": "^2.0.0-alpha.7",
+    "@example/api": "^2.0.0-alpha.11",
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
     "ts-loader": "^6.2.1",
