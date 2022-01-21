@@ -3,5 +3,8 @@
   "version": "2.0.0-alpha.7",
   "private": true,
   "main": "src",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@entangled/express": "^2.0.0-alpha.7"
+  }
 }
