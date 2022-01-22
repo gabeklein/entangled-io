@@ -1,6 +1,18 @@
 import { Response } from 'express';
+import { format } from './body';
 
 const CustomErrors = new Map<typeof Error, string>();
+const getStackTraceEntries =   /^    at (.+)\n?/gm;
+
+function parseStackTrace(from: string){
+  let stack = [] as string[];
+  let match: string[] | null;
+  
+  while(match = getStackTraceEntries.exec(from))
+    stack.push(match[1]);
+  
+  return stack;
+}
 
 export function setCustomError(
   Type: typeof Error,
@@ -17,14 +29,20 @@ export function emitCustomError(
 
   const info = {} as any;
 
-  for(const key of Object.getOwnPropertyNames(error))
-    info[key] = (error as any)[key];
+  for(const key of Object.getOwnPropertyNames(error)){
+    let value = (error as any)[key];
+
+    if(key == "stack")
+      info[key] = parseStackTrace(value);
+    else
+      info[key] = format(value);
+  }
 
   const typeIdentifier =
     CustomErrors.get((error as any).constructor);
 
   if(typeIdentifier)
-    info.uid = typeIdentifier;
+    info.error = typeIdentifier;
 
   response.status(statusCode);
   response.json(info);
