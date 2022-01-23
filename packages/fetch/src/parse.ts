@@ -1,5 +1,6 @@
 export function parse(data: any): any {
   let match;
+
   if(typeof data == "string" && (match = /^(\d+)Z$/.exec(data)))
     return new Date(Number(match[1]) * 1000);
 
