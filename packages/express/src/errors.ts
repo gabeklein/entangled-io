@@ -8,10 +8,16 @@ function parseStackTrace(from: string){
   let stack = [] as string[];
   let match: string[] | null;
   
-  while(match = getStackTraceEntries.exec(from))
-    stack.push(match[1]);
+  while(match = getStackTraceEntries.exec(from)){
+    const at = match[1];
+
+    if(/node:async_hooks/.test(at))
+      break;
+    else
+      stack.push(match[1]);
+  }
   
-  return stack;
+  return stack.slice(0, -2);
 }
 
 export function setCustomError(
