@@ -20,9 +20,11 @@
       "cwd": "${workspaceFolder}/example/client",
       "program": "${workspaceFolder}/node_modules/webpack-dev-server/bin/webpack-dev-server.js",
       "console": "externalTerminal",
-      "runtimeArgs": [
-        "-r", "source-map-support/register",
+      "args": [
         "--config", "./webpack.agent.js"
+      ],
+      "runtimeArgs": [
+        "-r", "source-map-support/register"
       ]
     },
     {
