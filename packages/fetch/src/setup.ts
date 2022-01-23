@@ -32,8 +32,9 @@ export function traverse(target: any, endpoint: string, path = "") {
 
 const CUSTOM_ERROR = new Map<string, typeof Error>();
 
-function newCustomError(uid: string){
-  const match = /\/(\w+)/.exec(uid);
+function newCustomError(path: string){
+  const match = /\/(\w+)$/.exec(path);
+  const uid = "/" + path.toLowerCase();
 
   if(!match)
     throw new Error("");
@@ -48,15 +49,17 @@ function newCustomError(uid: string){
 }
 
 function throwRemoteError(data: any){
-  const { error: uid } = data;
+  const uid = data.error.toLowerCase();
+
   const Type: typeof Error =
     CUSTOM_ERROR.get(uid) || Error;
 
-  const error = new Type(data.message);
+  const error: any = new Type(data.message);
 
   for(const key in data)
     if(key == "stack"){
-      // debugger;
+      // const remoteLines = data.stack.map((x: string) => "    " + x);]
+      error.stack = error.stack.split("\n").splice(1, 2).join("\n");
     }
     else
       (error as any)[key] = data[key];

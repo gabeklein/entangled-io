@@ -2,7 +2,7 @@
  * Error may be imported in front-end code and
  * checked against a catch using `instanceof`. 
  */
-class CustomError extends Error {};
+export class CustomError extends Error {};
 
 export class SuperCustomError extends CustomError {};
 
