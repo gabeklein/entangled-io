@@ -1,6 +1,24 @@
 import { format, parse } from "./parse";
 
 export function traverse(target: any, endpoint: string, path = "") {
+  if(Array.isArray(target)){
+    switch(target[0]){
+      case 0:
+        return () => {
+          throw new Error(`${path} does not lead to an async function. It cannot be called by client.`);
+        }
+
+      case 1:
+        return newHandler(path, endpoint);
+
+      case 2:
+        return newCustomError(path);
+
+      default:
+        throw new Error(`Unknown entity type ${target[0]}`)
+    }
+  }
+
   if(typeof target == "object"){
     const { default: root, ...api } = target;
     const route: any = root ? newHandler(path, endpoint) : {};
@@ -10,8 +28,40 @@ export function traverse(target: any, endpoint: string, path = "") {
 
     return route;
   }
-  else
-    return newHandler(path, endpoint);
+}
+
+const CUSTOM_ERROR = new Map<string, typeof Error>();
+
+function newCustomError(uid: string){
+  const match = /\/(\w+)/.exec(uid);
+
+  if(!match)
+    throw new Error("");
+
+  const ErrorType: typeof Error = new Function(`
+    return class ${match[1]} extends Error {}
+  `)();
+
+  CUSTOM_ERROR.set(uid, ErrorType);
+
+  return ErrorType;
+}
+
+function throwRemoteError(data: any){
+  const { error: uid } = data;
+  const Type: typeof Error =
+    CUSTOM_ERROR.get(uid) || Error;
+
+  const error = new Type(data.message);
+
+  for(const key in data)
+    if(key == "stack"){
+      // debugger;
+    }
+    else
+      (error as any)[key] = data[key];
+
+  return error;
 }
 
 function newHandler(path: string, endpoint: string){
@@ -42,7 +92,7 @@ function jsonHandler(
 
   return async (...args: RestArgument[]) => {
     endpoint = endpoint.replace(/\/$/, "");
-    url = (endpoint + url).toLowerCase();
+    url = (endpoint + "/" + url).toLowerCase();
   
     const body = format(args);
     const init = {
@@ -57,7 +107,7 @@ function jsonHandler(
     const { status } = response;
   
     if(status >= 300)
-      throw output;
+      throw throwRemoteError(output);
     else if("response" in output)
       return output.response;
     else
