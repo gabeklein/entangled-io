@@ -22,4 +22,6 @@ function create(schema: {}, options: CreateOptions){
   return traverse(schema, endpoint, namespace);
 }
 
-export = create;
+export { HttpError } from "./errors";
+
+export default create;

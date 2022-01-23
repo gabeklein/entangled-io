@@ -275,7 +275,7 @@ export default class ServiceAgentPlugin {
       args.map(x => JSON.stringify(x)).join(", ");
 
     this.virtualModulesPlugin.writeModule(mod.filename,
-      `module.exports = require("${agent}")(${printArguments})`  
+      `module.exports = require("${agent}").default(${printArguments})`  
     );
   }
 }

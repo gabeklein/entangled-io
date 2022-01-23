@@ -1,6 +1,6 @@
 import { parse } from "./parse";
 
-const CUSTOM_ERROR = new Map<string, typeof Error>();
+const CUSTOM_ERROR = new Map<string, typeof HttpError>();
 
 export function newCustomError(path: string){
   const match = /\/(\w+)$/.exec(path);
@@ -9,9 +9,12 @@ export function newCustomError(path: string){
   if(!match)
     throw new Error("");
 
-  const ErrorType: typeof Error = new Function(`
-    return class ${match[1]} extends Error {}
-  `)();
+  const factory = new Function(
+    "BaseError",
+    `return class ${match[1]} extends BaseError {}`
+  );
+
+  const ErrorType: typeof HttpError = factory(HttpError);
 
   CUSTOM_ERROR.set(uid, ErrorType);
 
@@ -21,8 +24,8 @@ export function newCustomError(path: string){
 export function throwRemoteError(data: any){
   const uid = data.error.toLowerCase();
 
-  const Type: typeof Error =
-    CUSTOM_ERROR.get(uid) || Error;
+  const Type: typeof HttpError =
+    CUSTOM_ERROR.get(uid) || HttpError;
 
   const error: any = new Type(data.message);
 
@@ -35,4 +38,8 @@ export function throwRemoteError(data: any){
       (error as any)[key] = parse(data[key]);
 
   return error;
+}
+
+export class HttpError extends Error {
+  code: number = 500;
 }
