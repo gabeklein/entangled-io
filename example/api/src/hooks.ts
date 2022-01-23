@@ -1,6 +1,6 @@
 import { useContext } from "@entangled/express";
 
-export function authorized(){
+export async function authorized(){
   /**
    * Just like react, you can make a custom hook
    * filling specific needs. If it needs to act
