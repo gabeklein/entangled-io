@@ -2,10 +2,12 @@
  * Error may be imported in front-end code and
  * checked against a catch using `instanceof`. 
  */
-export class CustomError extends Error {};
+class CustomError extends Error {};
+
+export class SuperCustomError extends CustomError {};
 
 export async function willFail(): Promise<never> {
-  throw new CustomError("Goodbye cruel world!");
+  throw new SuperCustomError("Goodbye cruel world!");
 }
 
 /**
