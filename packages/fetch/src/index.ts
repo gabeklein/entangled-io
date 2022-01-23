@@ -1,17 +1,23 @@
 import { traverse } from './setup';
 
-const DEFAULT_ENDPOINT = process.env.ENDPOINT || "/";
-
 interface CreateOptions {
   endpoint?: string;
   namespace?: string;
 }
 
 function create(schema: {}, options: CreateOptions){
-  const {
-    endpoint = DEFAULT_ENDPOINT,
+  let {
+    endpoint,
     namespace = ""
   } = options || {};
+
+  if(!endpoint)
+    try {
+      endpoint = process.env.ENDPOINT || "/"
+    }
+    catch(err){
+      endpoint = "/";
+    }
   
   return traverse(schema, endpoint, namespace);
 }
