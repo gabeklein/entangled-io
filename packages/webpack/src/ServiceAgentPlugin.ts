@@ -207,8 +207,11 @@ export default class ServiceAgentPlugin {
 
         return "default";
       }
-      else if(/^@\w+\/\*/.test(test)){
-        const match = /^@\w+\/(\w+)/.exec(rawRequest);
+
+      const glob = /^@(\w+)\/\*/.exec(test);
+
+      if(glob){
+        const match = new RegExp(`^@${glob[1]}\\/(\\w+)`).exec(rawRequest);
 
         if(match)
           if(namespace)

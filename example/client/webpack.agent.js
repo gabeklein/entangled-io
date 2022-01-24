@@ -37,7 +37,7 @@ module.exports = {
   },
   plugins: [
     new ServiceAgentPlugin({
-      include: "@entangled/*",
+      include: "@example/*",
       endpoint: "http://localhost:8080/"
     })
   ]

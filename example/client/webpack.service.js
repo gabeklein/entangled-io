@@ -37,7 +37,7 @@ module.exports = {
   },
   plugins: [
     new MicroservicePlugin({
-      include: "@entangled/api",
+      include: "@example/api",
       adapter: "@entangled/express",
       agent: "@entangled/fetch"
     })
