@@ -1,4 +1,4 @@
-import { parse } from "./parse";
+import { unpack } from "@entangled/interface";
 
 const CUSTOM_ERROR = new Map<string, typeof HttpError>();
 
@@ -35,7 +35,7 @@ export function throwRemoteError(data: any){
       error.stack = error.stack.split("\n").splice(1, 2).join("\n");
     }
     else
-      (error as any)[key] = parse(data[key]);
+      (error as any)[key] = unpack(data[key]);
 
   return error;
 }

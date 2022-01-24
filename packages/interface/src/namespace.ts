@@ -37,4 +37,4 @@ declare namespace Entangled {
   }
 }
 
-export = Entangled;
+export default Entangled;

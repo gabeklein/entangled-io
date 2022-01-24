@@ -10,9 +10,6 @@
     "noImplicitReturns": true,
     "baseUrl": "./",
     "paths": {
-      "@entangled/*": [
-        "packages/*/src"
-      ],
       "@example/*": [
         "example/*/src"
       ]

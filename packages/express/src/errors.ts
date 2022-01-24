@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { format } from './body';
+import { pack } from '@entangled/interface';
 
 const CustomErrors = new Map<typeof Error, string>();
 const getStackTraceEntries =   /^    at (.+)\n?/gm;
@@ -41,7 +41,7 @@ export function emitCustomError(
     if(key == "stack")
       info[key] = parseStackTrace(value);
     else
-      info[key] = format(value);
+      info[key] = pack(value);
   }
 
   const typeIdentifier =

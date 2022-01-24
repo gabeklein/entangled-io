@@ -1,5 +1,6 @@
-import { newCustomError, throwRemoteError } from "./errors";
-import { format, parse } from "./parse";
+import { unpack, stringify } from '@entangled/interface';
+
+import { newCustomError, throwRemoteError } from './errors';
 
 export function traverse(target: any, endpoint: string, path = "") {
   if(Array.isArray(target)){
@@ -60,17 +61,16 @@ function jsonHandler(
   return async (...args: RestArgument[]) => {
     endpoint = endpoint.replace(/\/$/, "");
     url = (endpoint + "/" + url).toLowerCase();
-  
-    const body = format(args);
+
     const init = {
       headers,
       method: "POST",
       cache: "no-cache",
-      body: JSON.stringify(body)
+      body: stringify(args)
     } as const;
   
     const response = await fetch(url, init)
-    const output = await response.json().then(parse);
+    const output = await response.json().then(unpack);
     const { status } = response;
   
     if(status >= 300)
