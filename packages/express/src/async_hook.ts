@@ -43,10 +43,6 @@ export function useContext(){
   return ctx;
 }
 
-export function requestID(){
-  return uniqueHash(Math.random(), 10);
-}
-
 export function uniqueHash(
   str: string | number = "",
   length: number){
