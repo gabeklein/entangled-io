@@ -6,7 +6,7 @@ export class CustomError extends Error {};
 
 export class SuperCustomError extends CustomError {};
 
-export async function willFail(): Promise<never> {
+export async function willFail(): Promise<string> {
   throw new SuperCustomError("Goodbye cruel world!");
 }
 
@@ -31,6 +31,6 @@ export class SpecialError extends Error {
   }
 };
 
-export async function willFailWithInfo(info: any): Promise<never> {
+export async function willFailWithInfo(info: any): Promise<string> {
   throw new SpecialError("Goodbye cruel world!", info);
 }
