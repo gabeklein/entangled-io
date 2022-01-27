@@ -196,17 +196,8 @@ export default class ServiceAgentPlugin {
     const { request: rawRequest, resolved: resolvedRequest } = request;
 
     if(typeof test == "string"){
-      if(rawRequest == test || resolvedRequest == test){
-        if(namespace)
-          return namespace;
-
-        const match = /^@\w+\/(\w+)/.exec(test);
-  
-        if(match)
-          return match[1];
-
-        return "default";
-      }
+      if(rawRequest == test || resolvedRequest == test)
+        return namespace || "default";
 
       const glob = /^@(\w+)\/\*/.exec(test);
 
