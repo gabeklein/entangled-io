@@ -1,6 +1,6 @@
 {
   "name": "@example/client",
-  "version": "2.0.0-alpha.11",
+  "version": "2.0.0-alpha.12",
   "private": true,
   "main": "src",
   "license": "ISC",
@@ -9,8 +9,8 @@
     "start:agent": "webpack serve --config webpack.agent.js"
   },
   "devDependencies": {
-    "@entangled/fetch": "^2.0.0-alpha.10",
-    "@example/api": "^2.0.0-alpha.11",
+    "@entangled/fetch": "^2.0.0-alpha.12",
+    "@example/api": "^2.0.0-alpha.12",
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
     "ts-loader": "^6.2.1",
@@ -20,6 +20,6 @@
     "webpack-dev-server": "^4.7.2"
   },
   "dependencies": {
-    "@entangled/webpack": "^2.0.0-alpha.10"
+    "@entangled/webpack": "^2.0.0-alpha.12"
   }
 }

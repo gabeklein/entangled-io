@@ -1,12 +1,12 @@
 {
   "name": "@example/service",
-  "version": "2.0.0-alpha.11",
+  "version": "2.0.0-alpha.12",
   "private": true,
   "main": "src",
   "license": "ISC",
   "devDependencies": {
-    "@entangled/express": "^2.0.0-alpha.11",
-    "@example/api": "^2.0.0-alpha.11"
+    "@entangled/express": "^2.0.0-alpha.12",
+    "@example/api": "^2.0.0-alpha.12"
   },
   "dependencies": {
     "ts-node": "^10.4.0",
