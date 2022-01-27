@@ -1,13 +1,13 @@
 export { default } from "./namespace";
 
-const shouldParse = /^\u200B!(\w+):(.*)$/;
+const shouldParse = /^!(\w+)::(.*)$/;
 
 type Rehydrate = {
   [type: string]: (body: string) => any;
 }
 
 const BASE_REHYDRATE = {
-  "Date": (input: string) => new Date(input)
+  "Date": (input: string) => new Date(Number(input))
 }
 
 export function parse(json: string){
@@ -20,7 +20,7 @@ export function stringify(data: any){
 
 export function pack(data: any): any {
   if(data instanceof Date)
-    return `\u200B!Date:${data.getTime()}`;
+    return `!Date::${data.getTime()}`;
     
   if(typeof data == "function")
     return undefined;
@@ -48,7 +48,7 @@ export function unpack(data: any, handle?: Rehydrate): any {
   }
 
   if(typeof data == "string")
-    return rehydrate(data, handle);
+    return rehydrate(data, handle) || data;
 
   else if(Array.isArray(data))
     return data.map(x => unpack(x, handle));
@@ -64,14 +64,14 @@ function rehydrate(data: string, handle: Rehydrate){
   const match = shouldParse.exec(data);
 
   if(!match)
-    throw new Error(`Could not unpack data "${data}"`);
+    return null;
 
-  const [_, key, body] = match;
+  const key = match[1];
 
   if(!handle[key])
     throw new Error(
       `Tried to unpack data but no handler for "${key}" provided by client.`
     );
 
-  return handle[key](body);
+  return handle[key](match[2]);
 }

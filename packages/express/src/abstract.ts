@@ -21,7 +21,7 @@ export function abstract(
     
           body = unpack(body);
     
-          let output = await handler.call(null, body);
+          let output = await handler.apply(null, body);
 
           try { 
             if(response.headersSent)
