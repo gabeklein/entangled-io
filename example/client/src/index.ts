@@ -1,6 +1,15 @@
-import { Errors } from "@example/api";
+import { Greetings, Errors } from "@example/api";
 
-window.onload = async () => {
+window.onload = testHello;
+
+export async function testHello(){
+  const response =
+    await Greetings.hello("Gabe", new Date("Jan 27"));
+
+  alert(`Server said: ${response}!`);
+}
+
+export async function testErrors(){
   try {
     const response =
       await Errors.willFailWithInfo("Hello Gabe!");
