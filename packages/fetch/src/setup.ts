@@ -56,11 +56,13 @@ type RestArgument =
   | Date
 
 function jsonHandler(
-  url: string, endpoint: string){
+  path: string, endpoint: string){
 
   return async (...args: RestArgument[]) => {
     endpoint = endpoint.replace(/\/$/, "");
-    url = (endpoint + "/" + url).toLowerCase();
+    path = path.replace(/^\//, "");
+
+    const url = (endpoint + "/" + path).toLowerCase();
 
     const init = {
       headers,
