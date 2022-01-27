@@ -1,6 +1,6 @@
 {
   "name": "@entangled/webpack",
-  "version": "2.0.0-alpha.12",
+  "version": "2.0.0-alpha.13",
   "main": "lib/index.js",
   "license": "ISC",
   "files": [
@@ -15,7 +15,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@entangled/fetch": "^2.0.0-alpha.12",
+    "@entangled/fetch": "^2.0.0-alpha.13",
     "ts-morph": "^13.0.2",
     "webpack": "^5.65.0",
     "webpack-virtual-modules": "^0.4.3"
