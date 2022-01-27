@@ -1,5 +1,6 @@
 import { Response } from 'express';
-import { pack } from '@entangled/interface';
+
+import { pack } from './strategy';
 
 const CustomErrors = new Map<typeof Error, string>();
 const getStackTraceEntries =   /^    at (.+)\n?/gm;

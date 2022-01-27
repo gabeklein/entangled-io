@@ -1,8 +1,8 @@
-import { unpack, pack } from '@entangled/interface';
 import { RequestHandler } from 'express';
 
 import { createContext } from './async_hook';
 import { BadInput, emitCustomError, Internal } from './errors';
+import { pack, unpack } from './strategy';
 
 export function abstract(
   handler: Function): RequestHandler {
