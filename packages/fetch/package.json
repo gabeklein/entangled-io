@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "prebuild": "rm -rf lib",
-    "build": "tsc"
+    "build": "tsc",
+    "watch": "tsc -w --sourcemap"
   },
   "publishConfig": {
     "access": "public"
