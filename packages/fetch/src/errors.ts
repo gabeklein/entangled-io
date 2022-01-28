@@ -22,7 +22,7 @@ export function newCustomError(path: string){
 }
 
 export function throwRemoteError(data: any){
-  const uid = data.error.toLowerCase();
+  const uid = data.error && data.error.toLowerCase();
 
   const Type: typeof HttpError =
     CUSTOM_ERROR.get(uid) || HttpError;
