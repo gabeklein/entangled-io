@@ -4,6 +4,9 @@
   "private": true,
   "main": "src",
   "license": "ISC",
+  "scripts": {
+    "start": "ts-node ./src/index.ts"
+  },
   "devDependencies": {
     "@entangled/express": "^2.0.0-alpha.13",
     "@example/api": "^2.0.0-alpha.13"

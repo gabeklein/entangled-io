@@ -6,7 +6,8 @@
   "license": "ISC",
   "scripts": {
     "start:service": "webpack serve --config webpack.service.js",
-    "start:agent": "webpack serve --config webpack.agent.js"
+    "start:agent": "webpack serve --config webpack.agent.js",
+    "start": "npm run start:service"
   },
   "devDependencies": {
     "@entangled/fetch": "^2.0.0-alpha.14",
