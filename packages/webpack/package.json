@@ -1,28 +1,27 @@
 {
   "name": "@entangled/webpack",
-  "version": "2.0.0-alpha.3",
+  "version": "2.0.0-alpha.14",
   "main": "lib/index.js",
   "license": "ISC",
   "files": [
-    "/lib/*.js",
-    "/lib/*.d.ts"
+    "lib"
   ],
   "scripts": {
-    "build": "tsc -b",
-    "prepublish": "tsc -b"
+    "prebuild": "rm -rf lib",
+    "build": "tsc --declaration",
+    "watch": "tsc -w --sourcemap"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@entangled/fetch": "^2.0.0-alpha.2",
-    "@entangled/interface": "^2.0.0-alpha.2",
-    "ts-morph": "^10.0.2",
-    "webpack": "^4.41.5"
+    "@entangled/fetch": "^2.0.0-alpha.14",
+    "ts-morph": "^13.0.2",
+    "webpack": "^5.65.0",
+    "webpack-virtual-modules": "^0.4.3"
   },
   "devDependencies": {
-    "@types/node": "13.7.0",
-    "@types/webpack": "^4.41.4",
+    "@types/webpack": "^5.28.0",
     "typescript": "3.8.3"
   }
 }

@@ -1,12 +1,19 @@
 {
   "name": "@entangled/interface",
-  "version": "2.0.0-alpha.2",
-  "types": "index.d.ts",
+  "version": "2.0.0-alpha.13",
   "license": "ISC",
+  "main": "lib",
+  "types": "lib/index.d.ts",
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "prebuild": "rm -rf lib",
+    "build": "tsc",
+    "watch": "tsc -w --sourcemap"
+  },
   "files": [
+    "lib",
     "index.d.ts"
   ],
   "devDependencies": {

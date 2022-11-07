@@ -2,14 +2,19 @@ import Entangled from '@entangled/interface';
 import { Router } from 'express';
 
 import { abstract } from './abstract';
+import { setCustomError } from './errors';
 
 export function createRoute(
   target: Router, 
   handle: Entangled.Schema | Function, 
   prefix = ""){
 
-  if(typeof handle == "function")
-    target.post(prefix, abstract(handle))
+  if(typeof handle == "function"){
+    if(handle.prototype instanceof Error)
+      setCustomError(handle as any, prefix);
+    else 
+      target.post(prefix, abstract(handle))
+  }
   else
     for(const name in handle){
       let route = prefix;

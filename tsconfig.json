@@ -4,16 +4,13 @@
     "lib": ["es2018"],
     "module": "commonjs",
     "declaration": true,
-    "sourceMap": true,
     "strict": true,
-    "composite": true,
     "esModuleInterop": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
     "baseUrl": "./",
     "paths": {
-      "@entangled/*": [
-        "packages/*/src",
+      "@example/*": [
         "example/*/src"
       ]
     }

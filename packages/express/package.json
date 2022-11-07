@@ -1,24 +1,25 @@
 {
   "name": "@entangled/express",
-  "version": "2.0.0-alpha.2",
+  "version": "2.0.0-alpha.13",
   "main": "lib/index.js",
   "license": "ISC",
   "files": [
-    "/lib/*.js",
-    "/lib/*.d.ts"
+    "lib"
   ],
   "scripts": {
-    "build": "tsc -b",
-    "prepublish": "tsc -b"
+    "prebuild": "rm -rf lib",
+    "build": "tsc",
+    "watch": "tsc -w --sourcemap"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@entangled/interface": "^2.0.0-alpha.2",
+    "@entangled/interface": "^2.0.0-alpha.13",
     "@types/cookie-parser": "^1.4.2",
     "cookie-parser": "^1.4.5",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "simple-argv": "^2.0.4"
   },
   "devDependencies": {
     "@types/express": "^4.17.2",
