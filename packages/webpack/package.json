@@ -17,11 +17,13 @@
   "dependencies": {
     "@entangled/fetch": "^2.0.0-alpha.14",
     "ts-morph": "^13.0.2",
-    "webpack": "^5.65.0",
-    "webpack-virtual-modules": "^0.4.3"
+    "webpack": "^5.74.0",
+    "webpack-node-externals": "^3.0.0",
+    "webpack-virtual-modules": "^0.4.6"
   },
   "devDependencies": {
     "@types/webpack": "^5.28.0",
+    "@types/webpack-node-externals": "^2.5.3",
     "typescript": "3.8.3"
   }
 }
