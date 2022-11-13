@@ -8,14 +8,16 @@ const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 
 const EXISTS_FOR = new Set<Compiler>();
 
-interface CreateServiceOptions {
-  output?: string;
-  adapter: string;
+declare namespace CreateServicePlugin {
+  interface Options {
+    output?: string;
+    adapter: string;
+  }
 }
 
-export default class CreateServicePlugin {
+class CreateServicePlugin {
   constructor(
-    public options: CreateServiceOptions
+    public options: CreateServicePlugin.Options
   ){}
 
   stuff = [] as [string, string][];
@@ -138,3 +140,5 @@ export default class CreateServicePlugin {
     })
   }
 }
+
+export default CreateServicePlugin;
