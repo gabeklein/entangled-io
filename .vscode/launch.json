@@ -30,6 +30,20 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Run Webpack (Server)",
+      "cwd": "${workspaceFolder}/example/api",
+      "program": "${workspaceFolder}/node_modules/webpack/bin/webpack.js",
+      "console": "integratedTerminal",
+      "args": [
+        "--watch"
+      ],
+      "runtimeArgs": [
+        "-r", "source-map-support/register"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Run Webpack (MicroservicePlugin)",
       "cwd": "${workspaceFolder}/example/client",
       "program": "${workspaceFolder}/node_modules/webpack/bin/webpack.js",
