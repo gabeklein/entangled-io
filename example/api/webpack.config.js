@@ -2,7 +2,7 @@ const { ServerPlugin } = require("@entangled/webpack");
 
 module.exports = {
   mode: 'development',
-  entry: "./src/stuff.ts",
+  entry: "./src/index.ts",
   devtool: "source-map",
   output: {
     path: __dirname + '/dist',
