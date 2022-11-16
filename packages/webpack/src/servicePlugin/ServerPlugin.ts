@@ -1,4 +1,3 @@
-import { RunScriptWebpackPlugin } from 'run-script-webpack-plugin';
 import fs from 'fs';
 import { resolve } from 'path';
 import { Compiler, ExternalModule, NormalModule } from 'webpack';
@@ -10,16 +9,10 @@ class ServerPlugin {
 
   apply(compiler: Compiler){
     const externalPlugin = new NodeExternalsPlugin();
-    const hmrPlugin = new HotModuleReplacementPlugin();
     const modPlugin = new ModuleReplacePlugin();
-    const runPlugin = new RunScriptWebpackPlugin({
-      autoRestart: false
-    });
 
-    // modPlugin.apply(compiler);
-    // hmrPlugin.apply(compiler);
+    modPlugin.apply(compiler);
     externalPlugin.apply(compiler);
-    runPlugin.apply(compiler);
   }
 }
 
