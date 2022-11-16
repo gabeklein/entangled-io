@@ -1,7 +1,7 @@
 import { RunScriptWebpackPlugin } from 'run-script-webpack-plugin';
 import fs from 'fs';
 import { resolve } from 'path';
-import { Compiler, ExternalModule, HotModuleReplacementPlugin } from 'webpack';
+import { Compiler, ExternalModule, NormalModule } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
 class ServerPlugin {
@@ -53,6 +53,19 @@ class ModuleReplacePlugin {
 
   apply(compiler: Compiler){
     this.virtual.apply(compiler);
+
+    compiler.hooks.compilation.tap(this, compilation => {
+      const hooks = NormalModule.getCompilationHooks(compilation);
+      
+      hooks.beforeLoaders.tap(this, (_, normalModule) => {
+        if(/src\/index/.test(normalModule.resource))
+          return;
+
+        const loader = resolve(__dirname, "./hotModuleLoader.js");
+
+        normalModule.loaders.unshift({ loader } as any);
+      })
+    })
 
     //gain access to module construction
     compiler.hooks.normalModuleFactory.tap(this, (factory) => {
