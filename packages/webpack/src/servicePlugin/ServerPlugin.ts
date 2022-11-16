@@ -48,19 +48,16 @@ class NodeExternalsPlugin {
 
 class ModuleReplacePlugin {
   name = "ModuleReplacePlugin";
-
-  virtualModules = new VirtualModulesPlugin();
+  virtual = new VirtualModulesPlugin();
   replaced = new Map<string, string>();
-  compiler?: Compiler;
 
   apply(compiler: Compiler){
-    this.virtualModules.apply(compiler);
-    this.compiler = compiler;
+    this.virtual.apply(compiler);
 
     //gain access to module construction
-    compiler.hooks.normalModuleFactory.tap(this, (compilation) => {
+    compiler.hooks.normalModuleFactory.tap(this, (factory) => {
       //when a module is requested, but before webpack looks for it in filesystem
-      compilation.hooks.beforeResolve.tap(this, (result) => {
+      factory.hooks.beforeResolve.tap(this, (result) => {
           const thisModule = "__this__";
           const issuer = result.contextInfo.issuer;
           const replaced = this.replaced.get(issuer);
@@ -75,22 +72,21 @@ class ModuleReplacePlugin {
             return;
           }
 
-          // if(!issuer){
-          //   const moduleName = request.replace(/\.([jt]s)$/, `.serve.js`);
+          if(!issuer){
+            const moduleName = request.replace(/\.([jt]s)$/, `.serve.js`);
 
-          //   if(moduleName == request)
-          //     throw new Error("Incorrect file type.");
+            if(moduleName == request)
+              throw new Error("Incorrect file type.");
 
-          //   const initPath = resolve(compiler.context, moduleName);
-          //   const content = fs.readFileSync(resolve(__dirname, "hot.js"), "utf-8");
+            const original = resolve(compiler.context, request);
+            const wrapper = resolve(compiler.context, moduleName);
+            const content = fs.readFileSync(resolve(__dirname, "poll.js"), "utf-8");
 
-          //   this.virtualModules.writeModule(initPath, content);
+            this.virtual.writeModule(wrapper, content);
 
-          //   const resolved = resolve(compiler.context, moduleName);
-            
-          //   this.replaced.set(initPath, resolved);
-          //   result.request = initPath;
-          // }
+            this.replaced.set(wrapper, original);
+            result.request = wrapper;
+          }
 
           // let replaceWith: string | undefined;
   
@@ -100,12 +96,8 @@ class ModuleReplacePlugin {
           //when a module is requested by the program as an entry point, NOT via require or import.
           // if (replaceWith) {
           // }
-      
-          return;
       });      
     });
-
-
   }
 }
 
