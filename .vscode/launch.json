@@ -32,10 +32,10 @@
       "request": "launch",
       "name": "Run Webpack (Server)",
       "cwd": "${workspaceFolder}/example/api",
-      "program": "${workspaceFolder}/node_modules/webpack/bin/webpack.js",
+      "program": "${workspaceFolder}/packages/cli/bin/entangle.js",
       "console": "integratedTerminal",
       "args": [
-        "--watch"
+        "serve", "./src/index.ts"
       ],
       "runtimeArgs": [
         "-r", "source-map-support/register"

@@ -1,11 +1,9 @@
-import fs from 'fs';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { Compiler, ExternalModule, NormalModule } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
-class ServerPlugin {
-  name = "ServerPlugin";
-  exists = false;
+class ServicePlugin {
+  name = "ServicePluign";
 
   apply(compiler: Compiler){
     const externalPlugin = new NodeExternalsPlugin();
@@ -15,6 +13,8 @@ class ServerPlugin {
     externalPlugin.apply(compiler);
   }
 }
+
+export default ServicePlugin;
 
 class NodeExternalsPlugin {
   name = "NodeExternalsPlugin";
@@ -42,7 +42,6 @@ class NodeExternalsPlugin {
 class ModuleReplacePlugin {
   name = "ModuleReplacePlugin";
   virtual = new VirtualModulesPlugin();
-  replaced = new Map<string, string>();
 
   apply(compiler: Compiler){
     this.virtual.apply(compiler);
@@ -62,18 +61,24 @@ class ModuleReplacePlugin {
 
     //gain access to module construction
     compiler.hooks.normalModuleFactory.tap(this, (factory) => {
+      const replacement = new Map<string, {
+        module: string;
+        proxy: string;
+      }>();
+
       //when a module is requested, but before webpack looks for it in filesystem
       factory.hooks.beforeResolve.tap(this, (result) => {
-          const thisModule = "__this__";
           const issuer = result.contextInfo.issuer;
-          const replaced = this.replaced.get(issuer);
+          const replaced = replacement.get(issuer);
           const { request } = result;
 
           if(replaced){
-            if(request == thisModule)
-              result.request = replaced;
-            else if(request.startsWith("./"))
-              result.request = resolve(__dirname, request);
+            const { module, proxy } = replaced;
+
+            if(request == "__this__")
+              result.request = module;
+            else if(request.startsWith("."))
+              result.request = resolve(dirname(proxy), request);
 
             return;
           }
@@ -84,14 +89,22 @@ class ModuleReplacePlugin {
             if(moduleName == request)
               throw new Error("Incorrect file type.");
 
+            const hotEntryFile = require.resolve("./hotEntry");
+            const content = [
+              `module.exports = require("__this__");`,
+              `require("${hotEntryFile}");`
+            ];
+
             const original = resolve(compiler.context, request);
             const wrapper = resolve(compiler.context, moduleName);
-            const content = fs.readFileSync(resolve(__dirname, "poll.js"), "utf-8");
 
-            this.virtual.writeModule(wrapper, content);
+            this.virtual.writeModule(wrapper, content.join("\n"));
 
-            this.replaced.set(wrapper, original);
             result.request = wrapper;
+            replacement.set(wrapper, {
+              module: original,
+              proxy: hotEntryFile
+            });
           }
 
           // let replaceWith: string | undefined;
@@ -106,5 +119,3 @@ class ModuleReplacePlugin {
     });
   }
 }
-
-export default ServerPlugin;

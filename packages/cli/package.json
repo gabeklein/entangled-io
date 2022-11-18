@@ -3,8 +3,12 @@
   "version": "2.0.0-alpha.13",
   "main": "lib/index.js",
   "bin": {
-    "entangle": "lib/entangled.js"
+    "entangle": "bin/entangle.js"
   },
+  "files": [
+    "bin",
+    "lib"
+  ],
   "scripts": {
     "prebuild": "rm -rf lib",
     "build": "tsc",
@@ -13,7 +17,6 @@
   "dependencies": {
     "@entangled/webpack": "^2.0.0-alpha.13",
     "express": "^4.17.1",
-    "run-script-webpack-plugin": "^0.1.1",
     "simple-argv": "^2.0.4"
   }
 }

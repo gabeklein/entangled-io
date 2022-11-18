@@ -1,24 +1,21 @@
-import { ServerPlugin } from '@entangled/webpack';
+import { DevServerPlugin } from '@entangled/webpack';
 import { resolve } from 'path';
-import { RunScriptWebpackPlugin } from 'run-script-webpack-plugin';
-import webpack, { HotModuleReplacementPlugin } from 'webpack';
+import webpack from 'webpack';
 
-declare namespace watch {
+declare namespace serve {
   interface Options {
 
   }
 }
 
-function watch(entry: string){
-  entry = resolve(entry);
-
+function serve(entry: string, opts: {}){
   const compiler = webpack({
     entry,
     mode: 'development',
     target: 'node',
     devtool: "source-map",
     output: {
-      path: __dirname + '/dist',
+      path: resolve("dist"),
       filename: 'server.js',
     },
     resolve: {
@@ -41,11 +38,7 @@ function watch(entry: string){
       ],
     },
     plugins: [
-      new ServerPlugin(),
-      new HotModuleReplacementPlugin(),
-      new RunScriptWebpackPlugin({
-        autoRestart: false
-      })
+      new DevServerPlugin()
     ]
   });
 
@@ -53,9 +46,10 @@ function watch(entry: string){
     err: Error | null | undefined,
     stats: webpack.Stats | undefined) => {
 
+    // debugger
   }
 
   compiler.watch({}, callback);
 }
 
-export { watch }
+export { serve }
