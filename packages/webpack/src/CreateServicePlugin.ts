@@ -85,12 +85,11 @@ class CreateServicePlugin {
         modulePlugin.writeModule(entry, this.generate());
 
         child.hooks.make.tap(NAME, (childCompilation) => {
-            childCompilation.hooks.afterHash.tap(NAME, () => {
-              childCompilation.hash = compilation.hash;
-              childCompilation.fullHash = compilation.fullHash;
-            });
-          },
-        );
+          childCompilation.hooks.afterHash.tap(NAME, () => {
+            childCompilation.hash = compilation.hash;
+            childCompilation.fullHash = compilation.fullHash;
+          });
+        });
 
         child.runAsChild((err, entries, childCompilation) => {
           if(!childCompilation)
