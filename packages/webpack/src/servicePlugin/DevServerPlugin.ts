@@ -25,31 +25,29 @@ class DevServerPlugin {
       if(compilation.compiler !== compiler)
         return;
 
-      if(worker){
-        if(hotUpdate){
-          hotUpdate = false;
-          worker.send({ type: "webpack_update" });
-        }
+      if(!worker){
+        const { output } = compilation.compiler.options;
+        const name = Object.keys(compilation.assets)[0];
 
-        return;
+        if(!output || !output.path)
+          throw new Error('output.path should be defined in webpack config!');
+
+        const script = `${output.path}/${name}`;
+        
+        worker = fork(script, [], {
+          execArgv: process.execArgv,
+          stdio: 'inherit'
+        });
+
+        return new Promise<void>(resolve => {
+          setTimeout(resolve, 0)
+        });
       }
 
-      const { output } = compilation.compiler.options;
-      const name = Object.keys(compilation.assets)[0];
-
-      if(!output || !output.path)
-        throw new Error('output.path should be defined in webpack config!');
-
-      const script = `${output.path}/${name}`;
-      
-      worker = fork(script, [], {
-        execArgv: process.execArgv,
-        stdio: 'inherit'
-      });
-
-      await new Promise(resolve => {
-        setTimeout(resolve, 0)
-      });
+      if(hotUpdate){
+        hotUpdate = false;
+        worker.send({ type: "webpack_update" });
+      }
     })
   }
 }
