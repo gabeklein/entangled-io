@@ -17,7 +17,6 @@
   "dependencies": {
     "@entangled/fetch": "^2.0.0-alpha.14",
     "ts-morph": "^13.0.2",
-    "run-script-webpack-plugin": "^0.1.1",
     "webpack": "^5.74.0",
     "webpack-node-externals": "^3.0.0",
     "webpack-virtual-modules": "^0.4.6"

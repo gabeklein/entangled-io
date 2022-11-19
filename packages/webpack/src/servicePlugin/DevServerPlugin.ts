@@ -1,6 +1,6 @@
-import { RunScriptWebpackPlugin } from 'run-script-webpack-plugin';
+import { ChildProcess, fork } from 'child_process';
 import { Compiler, HotModuleReplacementPlugin } from 'webpack';
-import { ChildProcess } from "child_process";
+
 import ServicePlugin from './ServicePlugin';
 
 class DevServerPlugin {
@@ -9,15 +9,12 @@ class DevServerPlugin {
   apply(compiler: Compiler){
     const servicePlugin = new ServicePlugin();
     const hotPlugin = new HotModuleReplacementPlugin();
-    const runPlugin = new RunScriptWebpackPlugin({
-      autoRestart: false
-    });
 
     let hotUpdate = false;
+    let worker: ChildProcess | undefined;
 
     servicePlugin.apply(compiler);
     hotPlugin.apply(compiler);
-    runPlugin.apply(compiler);
 
     compiler.hooks.assetEmitted.tapPromise(this, async file => {
       if(/hot-update.json/.test(file))
@@ -25,15 +22,35 @@ class DevServerPlugin {
     })
 
     compiler.hooks.afterEmit.tapPromise(this, async compilation => {
-      if(!hotUpdate || compilation.compiler !== compiler)
+      if(compilation.compiler !== compiler)
         return;
 
-      hotUpdate = false;
+      if(worker){
+        if(hotUpdate){
+          hotUpdate = false;
+          worker.send({ type: "webpack_update" });
+        }
 
-      const worker = (runPlugin as any).worker as ChildProcess;
+        return;
+      }
 
-      worker.send({ type: "webpack_update" });
-    });
+      const { output } = compilation.compiler.options;
+      const name = Object.keys(compilation.assets)[0];
+
+      if(!output || !output.path)
+        throw new Error('output.path should be defined in webpack config!');
+
+      const script = `${output.path}/${name}`;
+      
+      worker = fork(script, [], {
+        execArgv: process.execArgv,
+        stdio: 'inherit'
+      });
+
+      await new Promise(resolve => {
+        setTimeout(resolve, 0)
+      });
+    })
   }
 }
 
