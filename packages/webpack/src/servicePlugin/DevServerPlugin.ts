@@ -1,5 +1,5 @@
 import { ChildProcess, fork } from 'child_process';
-import { Compiler, HotModuleReplacementPlugin, NormalModule } from 'webpack';
+import { Compiler, HotModuleReplacementPlugin, RuntimeModule, Template } from 'webpack';
 
 import ServicePlugin from './ServicePlugin';
 
@@ -20,16 +20,13 @@ class DevServerPlugin {
     })
 
     compiler.hooks.compilation.tap(this, compilation => {
-      const hooks = NormalModule.getCompilationHooks(compilation);
-      
-      hooks.beforeLoaders.tap(this, (_, normalModule) => {
-        if(/hotEntry/.test(normalModule.resource))
-          return;
-
-        normalModule.loaders.unshift({
-          loader: require.resolve("./hotModuleLoader")
-        } as any);
-      })
+      compilation.hooks.additionalTreeRuntimeRequirements.tap(
+        this, chunk => {
+          compilation.addRuntimeModule(
+            chunk, new HMRRuntimeModule()
+          );
+        }
+      );
     })
 
     compiler.hooks.shouldEmit.tap(this, comp => {
@@ -66,6 +63,16 @@ class DevServerPlugin {
       });
     })
   }
+}
+
+class HMRRuntimeModule extends RuntimeModule {
+	constructor() {
+		super("entangled runtime", RuntimeModule.STAGE_ATTACH);
+	}
+
+	generate(){
+    return Template.getFunctionContent(require("./runtime"));
+	}
 }
 
 export default DevServerPlugin;
