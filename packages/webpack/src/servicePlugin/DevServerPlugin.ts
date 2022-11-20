@@ -1,5 +1,4 @@
 import { ChildProcess, fork } from 'child_process';
-import { resolve } from 'path';
 import { Compiler, HotModuleReplacementPlugin, NormalModule } from 'webpack';
 
 import ServicePlugin from './ServicePlugin';
@@ -17,8 +16,7 @@ class DevServerPlugin {
     hotPlugin.apply(compiler);
 
     Object.values(compiler.options.entry).forEach((entry: any) => {
-      const hotEntry = require.resolve("./hotEntry");
-      entry.import.unshift(hotEntry);
+      entry.import.unshift(require.resolve("./hotEntry"));
     })
 
     compiler.hooks.compilation.tap(this, compilation => {
@@ -29,7 +27,7 @@ class DevServerPlugin {
           return;
 
         normalModule.loaders.unshift({
-          loader: resolve(__dirname, "./hotModuleLoader.js")
+          loader: require.resolve("./hotModuleLoader")
         } as any);
       })
     })
