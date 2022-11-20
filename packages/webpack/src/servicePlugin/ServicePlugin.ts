@@ -1,5 +1,5 @@
 import { resolve, dirname } from 'path';
-import { Compiler, ExternalModule, NormalModule } from 'webpack';
+import { Compiler, ExternalModule } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
 class ServicePlugin {
@@ -7,9 +7,9 @@ class ServicePlugin {
 
   apply(compiler: Compiler){
     const externalPlugin = new NodeExternalsPlugin();
-    const modPlugin = new ModuleReplacePlugin();
+    // const modPlugin = new ModuleReplacePlugin();
 
-    modPlugin.apply(compiler);
+    // modPlugin.apply(compiler);
     externalPlugin.apply(compiler);
   }
 }
@@ -39,25 +39,12 @@ class NodeExternalsPlugin {
   }
 }
 
-class ModuleReplacePlugin {
+void class ModuleReplacePlugin {
   name = "ModuleReplacePlugin";
   virtual = new VirtualModulesPlugin();
 
   apply(compiler: Compiler){
     this.virtual.apply(compiler);
-
-    compiler.hooks.compilation.tap(this, compilation => {
-      const hooks = NormalModule.getCompilationHooks(compilation);
-      
-      hooks.beforeLoaders.tap(this, (_, normalModule) => {
-        if(/src\/index/.test(normalModule.resource))
-          return;
-
-        const loader = resolve(__dirname, "./hotModuleLoader.js");
-
-        normalModule.loaders.unshift({ loader } as any);
-      })
-    })
 
     //gain access to module construction
     compiler.hooks.normalModuleFactory.tap(this, (factory) => {
@@ -83,29 +70,29 @@ class ModuleReplacePlugin {
             return;
           }
 
-          if(!issuer){
-            const moduleName = request.replace(/\.([jt]s)$/, `.serve.js`);
+          // if(!issuer){
+          //   const moduleName = request.replace(/\.([jt]s)$/, `.serve.js`);
 
-            if(moduleName == request)
-              throw new Error("Incorrect file type.");
+          //   if(moduleName == request)
+          //     throw new Error("Incorrect file type.");
 
-            const hotEntryFile = require.resolve("./hotEntry");
-            const content = [
-              `module.exports = require("__this__");`,
-              `require("${hotEntryFile}");`
-            ];
+          //   const hotEntryFile = require.resolve("./hotEntry");
+          //   const content = [
+          //     `module.exports = require("__this__");`,
+          //     `require("${hotEntryFile}");`
+          //   ];
 
-            const original = resolve(compiler.context, request);
-            const wrapper = resolve(compiler.context, moduleName);
+          //   const original = resolve(compiler.context, request);
+          //   const wrapper = resolve(compiler.context, moduleName);
 
-            this.virtual.writeModule(wrapper, content.join("\n"));
+          //   this.virtual.writeModule(wrapper, content.join("\n"));
 
-            result.request = wrapper;
-            replacement.set(wrapper, {
-              module: original,
-              proxy: hotEntryFile
-            });
-          }
+          //   result.request = wrapper;
+          //   replacement.set(wrapper, {
+          //     module: original,
+          //     proxy: hotEntryFile
+          //   });
+          // }
 
           // let replaceWith: string | undefined;
   

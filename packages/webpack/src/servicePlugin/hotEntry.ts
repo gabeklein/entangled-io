@@ -1,11 +1,14 @@
+declare const __webpack_modules__: any;
+declare const __webpack_module_cache__: any;
+
 if("hot" in module){
   console.log("[HMR] Hot reload is active.");
-  process.on("message", hotUpdate);
+  process.on("message", reloadModules);
 }
 else 
   throw new Error("[HMR] Hot Module Replacement is disabled.");
 
-async function hotUpdate(fromUpdate?: boolean){
+async function reloadModules(chunk: string){
   const { hot } = module as any;
   const status = hot.status();
 
@@ -15,17 +18,23 @@ async function hotUpdate(fromUpdate?: boolean){
     return;
   }
 
-  try {
-    const updatedModules = await hot.check();
-
-    if(!updatedModules){
-      if(fromUpdate)
-        console.log("[HMR] Update applied.");
-      else
-        console.warn("[HMR] Cannot find update.");
-
-      return;
+  const exports = {} as {
+    id: string,
+    modules: {
+      [key: string]: (m: any, e: any, r: any) => void;
     }
+  };
+
+  try {
+    new Function("exports", chunk)(exports);
+  
+    Object.entries(exports.modules).forEach(([id, factory]) => {
+      const cached = __webpack_module_cache__[id];
+      __webpack_modules__[id] = factory;
+  
+      if(cached)
+        cached.hot.invalidate();
+    })
 
     const renewedModules = await hot.apply({
       ignoreUnaccepted: true,
@@ -37,9 +46,7 @@ async function hotUpdate(fromUpdate?: boolean){
       }
     });
 
-    logApplyResult(updatedModules, renewedModules);
-    hotUpdate(true);
-    return;
+    logApplyResult(Object.keys(exports.modules), renewedModules);
   }
   catch(err){
     const status = hot.status();
@@ -51,7 +58,7 @@ async function hotUpdate(fromUpdate?: boolean){
     }
     console.warn("[HMR] Update failed: " + ((err as any).stack || (err as any).message));
   }
-};
+}
 
 function formatError(err: Error){
 	const message = err.message;

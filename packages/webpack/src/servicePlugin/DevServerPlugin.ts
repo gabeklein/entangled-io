@@ -1,5 +1,6 @@
 import { ChildProcess, fork } from 'child_process';
-import { Compiler, HotModuleReplacementPlugin } from 'webpack';
+import { resolve } from 'path';
+import { Compiler, HotModuleReplacementPlugin, NormalModule } from 'webpack';
 
 import ServicePlugin from './ServicePlugin';
 
@@ -10,44 +11,61 @@ class DevServerPlugin {
     const servicePlugin = new ServicePlugin();
     const hotPlugin = new HotModuleReplacementPlugin();
 
-    let hotUpdate = false;
     let worker: ChildProcess | undefined;
 
     servicePlugin.apply(compiler);
     hotPlugin.apply(compiler);
 
-    compiler.hooks.assetEmitted.tapPromise(this, async file => {
-      if(/hot-update.json/.test(file))
-        hotUpdate = true;
+    Object.values(compiler.options.entry).forEach((entry: any) => {
+      const hotEntry = require.resolve("./hotEntry");
+      entry.import.unshift(hotEntry);
+    })
+
+    compiler.hooks.compilation.tap(this, compilation => {
+      const hooks = NormalModule.getCompilationHooks(compilation);
+      
+      hooks.beforeLoaders.tap(this, (_, normalModule) => {
+        if(/hotEntry/.test(normalModule.resource))
+          return;
+
+        normalModule.loaders.unshift({
+          loader: resolve(__dirname, "./hotModuleLoader.js")
+        } as any);
+      })
+    })
+
+    compiler.hooks.shouldEmit.tap(this, comp => {
+      const [ updateChunk ] = comp.additionalChunkAssets;
+
+      if(!updateChunk)
+        return true;
+
+      if(worker)
+        worker.send(comp.assets[updateChunk].source());
+        
+      return false;
     })
 
     compiler.hooks.afterEmit.tapPromise(this, async compilation => {
-      if(compilation.compiler !== compiler)
+      if(worker || compilation.compiler !== compiler)
         return;
 
-      if(!worker){
-        const { output } = compilation.compiler.options;
-        const name = Object.keys(compilation.assets)[0];
+      const { output } = compilation.compiler.options;
+      const name = Object.keys(compilation.assets)[0];
 
-        if(!output || !output.path)
-          throw new Error('output.path should be defined in webpack config!');
+      if(!output || !output.path)
+        throw new Error('output.path should be defined in webpack config!');
 
-        const script = `${output.path}/${name}`;
-        
-        worker = fork(script, [], {
-          execArgv: process.execArgv,
-          stdio: 'inherit'
-        });
+      const script = `${output.path}/${name}`;
+      
+      worker = fork(script, [], {
+        execArgv: process.execArgv,
+        stdio: 'inherit'
+      });
 
-        return new Promise<void>(resolve => {
-          setTimeout(resolve, 0)
-        });
-      }
-
-      if(hotUpdate){
-        hotUpdate = false;
-        worker.send({ type: "webpack_update" });
-      }
+      return new Promise<void>(resolve => {
+        setTimeout(resolve, 0)
+      });
     })
   }
 }
