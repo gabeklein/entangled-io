@@ -1,12 +1,10 @@
 declare const __webpack_require__: any;
 
-module.exports = function(){
-  __webpack_require__.i.push((options: any) => {
-    const { module, id } = options;
+__webpack_require__.i.push((options: any) => {
+  const { module, id } = options;
 
-    console.log(`Loaded module: ${id}`);
-    
-    if(module.hot)
-      module.hot.accept();
-  })
-}
+  console.log(`Loaded module: ${id}`);
+  
+  if(module.hot)
+    module.hot.accept();
+})
