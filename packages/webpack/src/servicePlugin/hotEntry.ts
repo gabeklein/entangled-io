@@ -18,23 +18,22 @@ async function reloadModules(chunk: string){
     return;
   }
 
-  const exports = {} as {
-    id: string,
-    modules: {
-      [key: string]: (m: any, e: any, r: any) => void;
-    }
-  };
-
   try {
-    new Function("exports", chunk)(exports);
-  
-    Object.entries(exports.modules).forEach(([id, factory]) => {
+    const modules = evaluate(chunk);
+    const updated = Object.keys(modules);
+
+    for(const [id, factory] of Object.entries(modules)){
       const cached = __webpack_module_cache__[id];
       __webpack_modules__[id] = factory;
-  
-      if(cached)
+
+      if(cached){
         cached.hot.invalidate();
-    })
+
+        //TODO: monkeypatch hot.check() instead.
+        //This prevents this module from invalidating parents needlessly.
+        cached.hot._selfInvalidated = false;
+      }
+    }
 
     const renewedModules = await hot.apply({
       ignoreUnaccepted: true,
@@ -46,7 +45,7 @@ async function reloadModules(chunk: string){
       }
     });
 
-    logApplyResult(Object.keys(exports.modules), renewedModules);
+    logApplyResult(updated, renewedModules);
   }
   catch(err){
     const status = hot.status();
@@ -58,6 +57,19 @@ async function reloadModules(chunk: string){
     }
     console.warn("[HMR] Update failed: " + ((err as any).stack || (err as any).message));
   }
+}
+
+function evaluate(code: string){
+  const exports = {} as {
+    id: string,
+    modules: {
+      [key: string]: (m: any, e: any, r: any) => void;
+    }
+  };
+
+  new Function("exports", code)(exports);
+
+  return exports.modules;
 }
 
 function formatError(err: Error){
