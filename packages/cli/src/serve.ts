@@ -1,4 +1,5 @@
 import { DevServerPlugin } from '@entangled/webpack';
+import { readFile, writeFile } from 'fs/promises';
 import { resolve } from 'path';
 import webpack from 'webpack';
 
@@ -50,6 +51,19 @@ function serve(entry: string, opts: {}){
   }
 
   compiler.watch({}, callback);
+
+  setTimeout(editFile, 1000);
+}
+
+async function editFile(){
+  const helloFile = resolve("./src/hello.ts");
+  let file = await readFile(helloFile, "utf-8");
+
+  file = file.replace(/Test #(\d+)/, (_, capture) => {
+    return `Test #${Number(capture) + 1}`;
+  });
+
+  await writeFile(helloFile, file);
 }
 
 export { serve }
