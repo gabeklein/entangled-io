@@ -30,7 +30,7 @@ async function reloadModules(chunk: string){
         cached.hot.invalidate();
 
         //TODO: monkeypatch hot.check() instead.
-        //This prevents this module from invalidating parents needlessly.
+        //This prevents this module from invalidating parents.
         cached.hot._selfInvalidated = false;
       }
     }
