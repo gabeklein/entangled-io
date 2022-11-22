@@ -1,5 +1,4 @@
 import { ChildProcess, fork } from 'child_process';
-import { readFileSync } from 'fs';
 import { Compiler, HotModuleReplacementPlugin, RuntimeModule } from 'webpack';
 
 import ServicePlugin from './ServicePlugin';
@@ -72,7 +71,11 @@ class HMRRuntimeModule extends RuntimeModule {
 	}
 
 	generate(){
-    return readFileSync(require.resolve("./runtime"), "utf-8");
+    const runtime = require.resolve("./hotRuntime");
+
+    return (
+      `__webpack_require__.i.push(require("${runtime}"))`
+    )
 	}
 }
 
