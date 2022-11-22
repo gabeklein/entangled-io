@@ -15,10 +15,6 @@ class DevServerPlugin {
     servicePlugin.apply(compiler);
     hotPlugin.apply(compiler);
 
-    Object.values(compiler.options.entry).forEach((entry: any) => {
-      entry.import.unshift(require.resolve("./hotEntry"));
-    })
-
     compiler.hooks.compilation.tap(this, compilation => {
       compilation.hooks.additionalTreeRuntimeRequirements.tap(
         this, chunk => {
@@ -67,14 +63,14 @@ class DevServerPlugin {
 
 class HMRRuntimeModule extends RuntimeModule {
 	constructor() {
-		super("entangled runtime", RuntimeModule.STAGE_ATTACH);
+		super("entangled hot runtime", RuntimeModule.STAGE_ATTACH);
 	}
 
 	generate(){
     const runtime = require.resolve("./hotRuntime");
 
     return (
-      `__webpack_require__.i.push(require("${runtime}"))`
+      `require("${runtime}")(__webpack_require__)`
     )
 	}
 }
