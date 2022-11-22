@@ -67,7 +67,7 @@ class HMRRuntimeModule extends RuntimeModule {
 	}
 
 	generate(){
-    const runtime = require.resolve("./hotRuntime");
+    const runtime = require.resolve("../runtime/hot");
 
     return (
       `require("${runtime}")(__webpack_require__)`

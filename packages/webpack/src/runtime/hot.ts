@@ -9,7 +9,6 @@ module.exports = (webpackRequire: any) => {
 
 function addWebpackUpdateListener(webpackRequire: any){
   const {
-    // i: requireCallback,
     m: moduleFactories,
     c: cache
   } = webpackRequire;
@@ -54,8 +53,8 @@ function addWebpackUpdateListener(webpackRequire: any){
 
       logApplyResult(updated, renewedModules);
     }
-    catch(err: any){
-      logFailedReload(err, hot);
+    catch(err){
+      logFailedReload(err as Error, hot);
     }
   }
 }
