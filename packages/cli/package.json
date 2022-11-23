@@ -15,7 +15,7 @@
     "watch": "tsc -w --sourcemap"
   },
   "dependencies": {
-    "@entangled/webpack": "^2.0.0-alpha.13",
+    "@entangled/webpack2": "^2.0.0-alpha.13",
     "express": "^4.17.1",
     "simple-argv": "^2.0.4",
     "@babel/core": "^7.20.2",

@@ -1,4 +1,4 @@
-import { DevServerPlugin } from '@entangled/webpack';
+import { DevServerPlugin } from '@entangled/webpack2';
 import { readFile, writeFile } from 'fs/promises';
 import { resolve } from 'path';
 import webpack from 'webpack';
