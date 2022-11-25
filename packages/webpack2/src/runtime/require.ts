@@ -50,24 +50,19 @@ function bootstrap(id: string, exports: any, entry: boolean){
   const proxyExports = {};
 
   for(const name in exports){
-    const value = exports[name];
+    let value = exports[name];
 
     if(typeof value == "function"){
-      const proxy = (...args: any[]) => (
+      register.set(name, value);
+      value = (...args: any[]) => (
         register!.get(name)!.apply(null, args)
       );
-
-      register.set(name, value);
-      Object.defineProperty(proxyExports, name, {
-        enumerable: true,
-        get: () => proxy
-      })
     }
-    else
-      Object.defineProperty(proxyExports, name, {
-        enumerable: true,
-        get: () => value
-      })
+    
+    Object.defineProperty(proxyExports, name, {
+      enumerable: true,
+      get: () => value
+    })
   }
 
   log(`Loaded module: ${id}`);
