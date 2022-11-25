@@ -1,11 +1,21 @@
+/// <reference path="../../../../node_modules/webpack/module.d.ts" />
+
 import { log, warn } from "./logs";
 
 const FUNCTION_REGISTER = new Map<string, Map<string, Function>>();
 
-export function webpackRequireCallback(options: any){
-  const isEntryFile = options.module.parents.length === 0;
+interface WebpackExecOptions {
+  id: string;
+  module: NodeJS.Module & {
+    hot?: webpack.Hot;
+    parents: string[];
+  }
+}
+
+export function webpackRequireCallback(options: WebpackExecOptions){
   const { module, id } = options;
-  const { hot } = module as any;
+  const { hot, parents } = module;
+  const isEntry = parents.length === 0;
 
   if(!hot)
     return;
@@ -16,7 +26,7 @@ export function webpackRequireCallback(options: any){
     configurable: true,
     get: () => {
       if(Object.keys(exports).length){
-        exports = bootstrap(id, exports, isEntryFile);
+        exports = bootstrap(id, exports, isEntry);
         Object.defineProperty(module, "exports", {
           value: exports
         });
