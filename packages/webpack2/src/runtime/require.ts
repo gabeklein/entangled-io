@@ -18,16 +18,14 @@ export function webpackRequireCallback(options: any){
         Object.defineProperty(module, "exports", {
           value: exports
         });
+  
+        hot.accept((error: Error, options: any) => {
+          console.warn(`Loading module '${id}' failed due to error. Refresh module to try again.`);
+        });
       }
       
       return exports;
     }
-  });
-  
-  hot.accept((error: Error, mod: any) => {
-    console.warn(`Loading module '${id}' failed due to error. Refresh module to try again.`);
-    // debugger
-    // hot.decline();
   });
 }
 
