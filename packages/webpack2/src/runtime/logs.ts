@@ -1,13 +1,21 @@
+export function log(message: string){
+	console.log(message);
+}
+
+export function warn(message: string){
+	console.warn(message); 
+}
+
 export function logFailedReload(err: Error, hot: any){
 	const status = hot && hot.status() || "fail";
 
 	if(["abort", "fail"].includes(status)){
-		console.warn("[HMR] Cannot apply update.");
-		console.warn("[HMR] " + formatError((err as any)));
-		console.warn("[HMR] You need to restart the application!");
+		warn("[HMR] Cannot apply update.");
+		warn("[HMR] " + formatError((err as any)));
+		warn("[HMR] You need to restart the application!");
 		return;
 	}
-	console.warn("[HMR] Update failed: " + ((err as any).stack || (err as any).message));
+	warn("[HMR] Update failed: " + ((err as any).stack || (err as any).message));
 }
 
 export function logApplyResult(
@@ -19,31 +27,31 @@ export function logApplyResult(
 	});
 
 	if(unacceptedModules.length > 0){
-		console.warn(
+		warn(
 			"[HMR] The following modules couldn't be hot updated: (They would need a full reload!)"
 		);
 		unacceptedModules.forEach((moduleId: string) => {
-			console.warn("[HMR]  - " + moduleId);
+			warn("[HMR]  - " + moduleId);
 		});
 	}
 
 	if(!renewedModules || renewedModules.length === 0){
-		console.log("[HMR] Nothing hot updated.");
+		log("[HMR] Nothing hot updated.");
 		return;
 	}
 
-	console.log("[HMR] Updated modules:");
+	log("[HMR] Updated modules:");
 
 	renewedModules.forEach((moduleId: string) => {
 		if(typeof moduleId === "string" && moduleId.indexOf("!") !== -1){
 			const parts = moduleId.split("!");
 
 			console.groupCollapsed("[HMR]  - " + parts.pop());
-			console.log("[HMR]  - " + moduleId);
+			log("[HMR]  - " + moduleId);
 			console.groupEnd();
 			return;
 		}
-		console.log("[HMR]  - " + moduleId);
+		log("[HMR]  - " + moduleId);
 	});
 
 	const numberIds = renewedModules.every((moduleId: string) => {
@@ -51,7 +59,7 @@ export function logApplyResult(
 	});
 
 	if(numberIds)
-		console.log(
+		log(
 			'[HMR] Consider using the optimization.moduleIds: "named" for module names.'
 		);
 };

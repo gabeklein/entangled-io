@@ -1,3 +1,5 @@
+import { log, warn } from "./logs";
+
 const FUNCTION_REGISTER = new Map<string, Map<string, Function>>();
 
 export function webpackRequireCallback(options: any){
@@ -20,7 +22,7 @@ export function webpackRequireCallback(options: any){
         });
   
         hot.accept((error: Error, options: any) => {
-          console.warn(`Loading module '${id}' failed due to error. Refresh module to try again.`);
+          warn(`Loading module '${id}' failed due to error. Refresh module to try again.`);
         });
       }
       
@@ -58,7 +60,7 @@ function bootstrap(id: string, exports: any, entry: boolean){
       })
   }
 
-  console.log(`Loaded module: ${id}`);
+  log(`Loaded module: ${id}`);
 
   return proxyExports;
 }
