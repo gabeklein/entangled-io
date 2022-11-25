@@ -14,13 +14,10 @@ export function webpackRequireCallback(options: any){
     configurable: true,
     get: () => {
       if(Object.keys(exports).length){
-        exports = bootstrap(id, exports);
+        exports = bootstrap(id, exports, isEntryFile);
         Object.defineProperty(module, "exports", {
           value: exports
         });
-
-        if(isEntryFile)
-          debugger
       }
       
       return exports;
@@ -34,7 +31,7 @@ export function webpackRequireCallback(options: any){
   });
 }
 
-function bootstrap(id: string, exports: any){
+function bootstrap(id: string, exports: any, entry: boolean){
   let register = FUNCTION_REGISTER.get(id);
 
   if(!register)
