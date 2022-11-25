@@ -1,4 +1,4 @@
-import { logApplyResult, logFailedReload } from './logs';
+import { log, logApplyResult, logFailedReload, warn } from './logs';
 import { webpackRequireCallback } from './require';
 
 module.exports = (webpackRequire: any) => {
@@ -13,7 +13,7 @@ function addWebpackUpdateListener(webpackRequire: any){
   } = webpackRequire;
 
   process.on("message", applyHotReload);
-  console.log("[HMR] Hot reload is active.");
+  log("[HMR] Hot reload is active.");
 
   async function applyHotReload(chunk: string){
     let hot: any;
@@ -28,7 +28,7 @@ function addWebpackUpdateListener(webpackRequire: any){
 
         if(!cached){
           // TODO: handle newly created modules
-          console.warn(`Module ${id} was updated but doesn't already exist. Ignoring.`)
+          warn(`Module ${id} was updated but doesn't already exist. Ignoring.`)
           continue;
         }
 
@@ -43,7 +43,7 @@ function addWebpackUpdateListener(webpackRequire: any){
       const renewedModules = await hot.apply({
         ignoreUnaccepted: true,
         onUnaccepted(data: any){
-          console.warn(
+          warn(
             "Ignored an update to unaccepted module " +
               data.chain.join(" -> ")
           );
