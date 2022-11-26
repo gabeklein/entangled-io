@@ -13,12 +13,7 @@ interface WebpackExecOptions {
 }
 
 export function webpackRequireCallback(options: WebpackExecOptions){
-  const { module, id } = options;
-  const { hot, parents } = module;
-  const isEntry = parents.length === 0;
-
-  if(!hot)
-    return;
+  const { module } = options;
 
   let exports = {};
   
@@ -26,22 +21,18 @@ export function webpackRequireCallback(options: WebpackExecOptions){
     configurable: true,
     get: () => {
       if(Object.keys(exports).length){
-        exports = bootstrap(id, exports, isEntry);
-        Object.defineProperty(module, "exports", {
-          value: exports
-        });
-  
-        hot.accept((error: Error, options: any) => {
-          warn(`Loading module '${id}' failed due to error. Refresh module to try again.`);
-        });
+        exports = bootstrap(options);
+        Object.defineProperty(module, "exports", { value: exports });
       }
-      
+    
       return exports;
     }
   });
 }
 
-function bootstrap(id: string, exports: any, entry: boolean){
+function bootstrap(options: WebpackExecOptions){
+  const { module, id } = options;
+
   let register = FUNCTION_REGISTER.get(id);
 
   if(!register)
@@ -66,6 +57,10 @@ function bootstrap(id: string, exports: any, entry: boolean){
   }
 
   log(`Loaded module: ${id}`);
+
+  module.hot.accept((error: Error, options: any) => {
+    warn(`Loading module '${id}' failed due to error. Refresh module to try again.`);
+  });
 
   return proxyExports;
 }
