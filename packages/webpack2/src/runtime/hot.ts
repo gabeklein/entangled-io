@@ -3,58 +3,59 @@ import { webpackRequireCallback } from './require';
 
 module.exports = (webpackRequire: any) => {
   webpackRequire.i.push(webpackRequireCallback);
-  addWebpackUpdateListener(webpackRequire);
+  
+  process.on("message", chunk => {
+    applyHotReload(
+      evaluate(chunk),
+      webpackRequire.m,
+      webpackRequire.c
+    );
+  });
+
+  log("[HMR] Hot reload is active.");
 }
 
-function addWebpackUpdateListener(webpackRequire: any){
-  const {
-    m: moduleFactories,
-    c: cache
-  } = webpackRequire;
+async function applyHotReload(
+  update: any,
+  modules: any,
+  cache: any){
 
-  process.on("message", applyHotReload);
-  log("[HMR] Hot reload is active.");
+  const updated = Object.keys(update);
+  let hot: any;
 
-  async function applyHotReload(chunk: string){
-    let hot: any;
+  try {
+    for(const id of updated){
+      const cached = cache[id];
+      modules[id] = update[id];
 
-    try {
-      const modules = evaluate(chunk);
-      const updated = Object.keys(modules);
-
-      for(const [id, factory] of Object.entries(modules)){
-        const cached = cache[id];
-        moduleFactories[id] = factory;
-
-        if(!cached){
-          // TODO: handle newly created modules
-          warn(`Module ${id} was updated but doesn't already exist. Ignoring.`)
-          continue;
-        }
-
-        hot = cached.hot;
-        hot.invalidate();
-
-        //TODO: monkeypatch hot.check() instead.
-        //This prevents this module from invalidating parents.
-        hot._selfInvalidated = false;
+      if(!cached){
+        // TODO: handle newly created modules
+        warn(`Module ${id} was updated but doesn't already exist. Ignoring.`);
+        continue;
       }
 
-      const renewedModules = await hot.apply({
-        ignoreUnaccepted: true,
-        onUnaccepted(data: any){
-          warn(
-            "Ignored an update to unaccepted module " +
-              data.chain.join(" -> ")
-          );
-        }
-      });
+      hot = cached.hot;
+      hot.invalidate();
 
-      logApplyResult(updated, renewedModules);
+      //TODO: monkeypatch hot.check() instead.
+      //This prevents this module from invalidating parents.
+      hot._selfInvalidated = false;
     }
-    catch(err){
-      logFailedReload(err as Error, hot);
-    }
+
+    const renewedModules = await hot.apply({
+      ignoreUnaccepted: true,
+      onUnaccepted(data: any){
+        warn(
+          "Ignored an update to unaccepted module " +
+            data.chain.join(" -> ")
+        );
+      }
+    });
+
+    logApplyResult(updated, renewedModules);
+  }
+  catch(err){
+    logFailedReload(err as Error, hot);
   }
 }
 

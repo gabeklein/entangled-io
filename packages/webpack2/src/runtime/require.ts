@@ -15,6 +15,7 @@ interface WebpackExecOptions {
 
 export function webpackRequireCallback(options: WebpackExecOptions){
   const { module } = options;
+  const { hot } = module;
 
   let exports = {};
   
@@ -23,7 +24,7 @@ export function webpackRequireCallback(options: WebpackExecOptions){
     get: () => {
       if(Object.keys(exports).length)
         Object.defineProperty(module, "exports", {
-          value: exports = bootstrap(options)
+          value: exports = bootstrap(options.id, exports, hot)
         });
 
       return exports;
@@ -31,8 +32,7 @@ export function webpackRequireCallback(options: WebpackExecOptions){
   });
 }
 
-function bootstrap(options: WebpackExecOptions){
-  const { id, module } = options;
+function bootstrap(id: string, exports: any, hot: webpack.Hot){
   const proxyExports = {};
 
   for(const name in exports){
@@ -47,7 +47,7 @@ function bootstrap(options: WebpackExecOptions){
 
   log(`Loaded module: ${id}`);
 
-  module.hot.accept((error: Error, options: any) => {
+  hot.accept((error: Error, options: any) => {
     warn(`Loading module '${id}' failed due to error. Refresh module to try again.`);
   });
 
