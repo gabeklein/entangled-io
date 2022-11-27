@@ -1,11 +1,10 @@
 /// <reference path="../../../../node_modules/webpack/module.d.ts" />
 
-import { log, warn } from "./logs";
+import { entry, proxy } from './host';
+import { log, warn } from './logs';
 
-const REGISTER = new Map<string, Function>();
-const LOOKUP = new WeakMap<Function, string>();
 
-interface WebpackExecOptions {
+export interface WebpackExecOptions {
   id: string;
   module: NodeJS.Module & {
     hot?: webpack.Hot;
@@ -15,17 +14,21 @@ interface WebpackExecOptions {
 
 export function webpackRequireCallback(options: WebpackExecOptions){
   const { module } = options;
-  const { hot } = module;
+  const { hot, parents } = module;
 
   let exports = {};
   
   Object.defineProperty(module, "exports", {
     configurable: true,
     get: () => {
-      if(Object.keys(exports).length)
+      if(Object.keys(exports).length){
         Object.defineProperty(module, "exports", {
           value: exports = bootstrap(options.id, exports, hot)
         });
+
+        if(parents.length === 0)
+          entry.call(options, exports);
+      }
 
       return exports;
     }
@@ -36,9 +39,9 @@ function bootstrap(id: string, exports: any, hot: webpack.Hot){
   const proxyExports = {};
 
   for(const name in exports){
-    const uid = id + ":" + name;
-    const value = proxy(uid, exports[name]);
+    const value = proxy(`${id}:${name}`, exports[name]);
     
+    // Duplicating webpack - why do these need to be getters?
     Object.defineProperty(proxyExports, name, {
       enumerable: true,
       get: () => value
@@ -52,17 +55,4 @@ function bootstrap(id: string, exports: any, hot: webpack.Hot){
   });
 
   return proxyExports;
-}
-
-function proxy(uid: string, value?: any){
-  REGISTER.set(uid, value);
-
-  if(typeof value == "function"){
-    value = () =>
-      REGISTER.get(uid)!.apply(null, arguments);
-  
-    LOOKUP.set(value, uid);
-  }
-
-  return value;
 }
