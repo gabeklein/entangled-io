@@ -20,11 +20,13 @@ export function webpackRequireCallback(options: WebpackExecOptions){
   
   Object.defineProperty(module, "exports", {
     configurable: true,
+    set(value){
+      Object.defineProperty(module, "exports", { value });
+    },
     get: () => {
       if(Object.keys(exports).length){
-        Object.defineProperty(module, "exports", {
-          value: exports = bootstrap(options.id, exports, hot)
-        });
+        exports = bootstrap(options.id, exports, hot)
+        Object.defineProperty(module, "exports", { value: exports });
 
         if(parents.length === 0)
           entry.call(options, exports);
