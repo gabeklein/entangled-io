@@ -10,8 +10,9 @@ export function proxy(uid: string, value?: any){
   REGISTER.set(uid, value);
 
   if(typeof value == "function"){
-    value = () =>
-      REGISTER.get(uid)!.apply(null, arguments);
+    value = function(){
+      return REGISTER.get(uid)!.apply(null, arguments);
+    }
 
     LOOKUP.set(value, uid);
   }
@@ -32,6 +33,4 @@ export function entry(
   }
 
   register(exports);
-
-  debugger
 }
