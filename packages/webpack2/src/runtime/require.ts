@@ -2,7 +2,8 @@
 
 import { log, warn } from "./logs";
 
-const FUNCTION_REGISTER = new Map<string, Map<string, Function>>();
+const REGISTER = new Map<string, Function>();
+const LOOKUP = new WeakMap<Function, string>();
 
 interface WebpackExecOptions {
   id: string;
@@ -20,35 +21,23 @@ export function webpackRequireCallback(options: WebpackExecOptions){
   Object.defineProperty(module, "exports", {
     configurable: true,
     get: () => {
-      if(Object.keys(exports).length){
-        exports = bootstrap(options);
-        Object.defineProperty(module, "exports", { value: exports });
-      }
-    
+      if(Object.keys(exports).length)
+        Object.defineProperty(module, "exports", {
+          value: exports = bootstrap(options)
+        });
+
       return exports;
     }
   });
 }
 
 function bootstrap(options: WebpackExecOptions){
-  const { module, id } = options;
-
-  let register = FUNCTION_REGISTER.get(id);
-
-  if(!register)
-    FUNCTION_REGISTER.set(id, register = new Map());
-
+  const { id, module } = options;
   const proxyExports = {};
 
   for(const name in exports){
-    let value = exports[name];
-
-    if(typeof value == "function"){
-      register.set(name, value);
-      value = (...args: any[]) => (
-        register!.get(name)!.apply(null, args)
-      );
-    }
+    const uid = id + ":" + name;
+    const value = proxy(uid, exports[name]);
     
     Object.defineProperty(proxyExports, name, {
       enumerable: true,
@@ -63,4 +52,17 @@ function bootstrap(options: WebpackExecOptions){
   });
 
   return proxyExports;
+}
+
+function proxy(uid: string, value?: any){
+  REGISTER.set(uid, value);
+
+  if(typeof value == "function"){
+    value = () =>
+      REGISTER.get(uid)!.apply(null, arguments);
+  
+    LOOKUP.set(value, uid);
+  }
+
+  return value;
 }

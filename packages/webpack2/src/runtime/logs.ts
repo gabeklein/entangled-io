@@ -15,6 +15,7 @@ export function logFailedReload(err: Error, hot: any){
 		warn("[HMR] You need to restart the application!");
 		return;
 	}
+
 	warn("[HMR] Update failed: " + ((err as any).stack || (err as any).message));
 }
 
