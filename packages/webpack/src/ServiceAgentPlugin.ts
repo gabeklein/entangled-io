@@ -91,14 +91,14 @@ export default class ServiceAgentPlugin {
 
         const target = result.createData as any;
         const resolved = target.resource;
-        const substitute = (x: string) => {
+        const replaceWith = (x: string) => {
           target.resource = target.userRequest = x;
         }
 
         const info = this.replacedModules.get(resolved);
 
         if(info){
-          substitute(info.filename);
+          replaceWith(info.filename);
           return;
         }
 
@@ -107,21 +107,22 @@ export default class ServiceAgentPlugin {
           issuer: result.contextInfo.issuer,
           request: result.request,
           resolved
-        })
+        });
 
-        if(name){
-          if(!/\.tsx?$/.test(resolved)){
-            const relative = path.relative(process.cwd(), resolved);
-            throw new Error(`Tried to import ${relative} (as external) but is not typescript!`);
-          }
+        if(!name)
+          return;
 
-          const mock = this.loadRemoteModule(resolved, name);
-
-          if(this.didInlcude)
-            this.didInlcude(resolved, name);
-
-          substitute(mock);
+        if(!/\.tsx?$/.test(resolved)){
+          const relative = path.relative(process.cwd(), resolved);
+          throw new Error(`Tried to import ${relative} (as external) but is not typescript!`);
         }
+
+        const mock = this.loadRemoteModule(resolved, name);
+
+        if(this.didInlcude)
+          this.didInlcude(resolved, name);
+
+        replaceWith(mock);
       })
     });
 
