@@ -1,38 +1,42 @@
-import { FunctionDeclaration, Node, SourceFile } from "ts-morph";
+import { FunctionDeclaration, Node, SourceFile } from 'ts-morph';
 
 export function createManifest(
   node: Node, watch: Set<string>){
 
-  return (
-    handleSourceFile(node, watch) ||
-    handleFunction(node) ||
-    handleErrorType(node) || 
-    null
-  )
+  if(Node.isSourceFile(node))
+    return handleSourceFile(node, watch);
+
+  if(Node.isFunctionDeclaration(node))
+    return handleFunction(node);
+
+  if(isErrorType(node))
+    return [2];
+
+  return null;
 }
 
-function handleSourceFile(node: Node, watch: Set<string>){
-  if(Node.isSourceFile(node)){
-    const output = {} as any;
+function handleSourceFile(
+  node: SourceFile, watch: Set<string>){
 
-    node
-      .getExportedDeclarations()
-      .forEach(([ value ], key) => {
-        const source: SourceFile = (value as any).__sourceFile;
+  const output = {} as any;
 
-        // some exports may be `export * from "x"`
-        // and come from a different file;
-        // register file dependancies per import
-        watch.add(source.getFilePath());
+  node
+    .getExportedDeclarations()
+    .forEach(([ value ], key) => {
+      const source: SourceFile = (value as any).__sourceFile;
 
-        output[key] = createManifest(value, watch);
-      })
+      // some exports may be `export * from "x"`
+      // and come from a different file;
+      // register file dependancies per import  `
+      watch.add(source.getFilePath());
 
-    return output;
-  }
+      output[key] = createManifest(value, watch);
+    })
+
+  return output;
 }
 
-function handleErrorType(node: Node){
+function isErrorType(node: Node){
   try {
     while(Node.isClassDeclaration(node)){
       const exp = node.getExtendsOrThrow().getExpression();
@@ -40,35 +44,31 @@ function handleErrorType(node: Node){
       if(Node.isIdentifier(exp))
         node = exp.getSymbolOrThrow().getValueDeclarationOrThrow();
       else
-        return;
+        break;
     }
 
     if(Node.isVariableDeclaration(node) && 
       node.getText() == "Error:ErrorConstructor")
-        return [2];
+        return true;
   }
-  catch(err){
-    return;
-  }
-  return;
+  catch(err){}
+
+  return false;
 }
 
-function handleFunction(node: Node){
-  if(Node.isFunctionDeclaration(node)){
-    const signatures =
-      [ node, ...node.getOverloads() ].map(params);
+function handleFunction(node: FunctionDeclaration){
+  const signatures = [ node, ...node.getOverloads() ];
 
-    if(node.getAsyncKeyword())
-      return [1, ...signatures.filter(x => x.length)];
-    else
-      return [0];
-  }
-  
-  return undefined;
+  if(!node.getAsyncKeyword())
+    return [0];
+
+  const overloads = signatures.map(getParams).filter(x => x.length);
+
+  return [1, overloads];  
 }
 
-function params(node: FunctionDeclaration){
-  const args = [] as string[];
+function getParams(node: FunctionDeclaration){
+  const parameters = [] as string[];
 
   for(const param of node.getParameters()){
     let {
@@ -83,8 +83,8 @@ function params(node: FunctionDeclaration){
     if(hasQuestionToken)
       name += "?";
 
-    args.push(name);
+    parameters.push(name);
   }
 
-  return args;
+  return parameters;
 }
