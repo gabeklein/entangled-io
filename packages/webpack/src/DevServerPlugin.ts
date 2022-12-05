@@ -60,6 +60,8 @@ class DevServerPlugin {
   }
 }
 
+export default DevServerPlugin;
+
 class HotRuntimeModule extends RuntimeModule {
 	constructor() {
 		super("entangled hot runtime", RuntimeModule.STAGE_ATTACH);
@@ -71,5 +73,3 @@ class HotRuntimeModule extends RuntimeModule {
     return `require("${runtime}")(__webpack_require__)`;
 	}
 }
-
-export { DevServerPlugin };
