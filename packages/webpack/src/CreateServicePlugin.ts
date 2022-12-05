@@ -1,5 +1,5 @@
 import path from "path";
-import { Compilation, Compiler, EntryPlugin } from "webpack";
+import { Compilation, Compiler, EntryPlugin, HotModuleReplacementPlugin } from "webpack";
 import VirtualModulesPlugin from "webpack-virtual-modules";
 import ExcludeModulesPlugin from "./ExcludeModulesPlugin";
 
@@ -53,36 +53,39 @@ class CreateServicePlugin {
         this.options.output || "service.js",  
       );
 
-      const settings = {
+      const entry = path.resolve(compiler.context, "./.service/index.js");
+      const entryPlugin = new EntryPlugin(compiler.context, entry);
+      const virtualModules = new VirtualModulesPlugin();
+      const nodeTarget = new NodeTargetPlugin();
+      const excludeModules = new ExcludeModulesPlugin(deps => {});
+      const assignLibrary = new AssignLibraryPlugin({
+        type: "commonjs2",
+        prefix: ["module", "exports"],
+        declare: false,
+        unnamed: "assign"
+      });
+      const hotPlugin = new HotModuleReplacementPlugin();
+
+      const child = compilation.createChildCompiler(NAME, {
         filename: path.basename(output),
         path: path.dirname(output),
         library: {
           type: 'commonjs2',
         },
-      }
-
-      const child = compilation.createChildCompiler(NAME, settings, []);
-      const entry = path.resolve(child.context, "./.service/index.js");
-      const modulePlugin = new VirtualModulesPlugin();
-
-      modulePlugin.apply(child);
-      new EntryPlugin(child.context, entry).apply(child);
-      new NodeTargetPlugin().apply(child);
-      new AssignLibraryPlugin({
-        type: "commonjs2",
-        prefix: ["module", "exports"],
-        declare: false,
-        unnamed: "assign"
-      }).apply(child);
-
-      if(true)
-        new ExcludeModulesPlugin(deps => {}).apply(child);
+      }, [
+        entryPlugin,
+        virtualModules,
+        nodeTarget,
+        assignLibrary,
+        excludeModules,
+        hotPlugin
+      ]);
 
       compilation.hooks.processAssets.tapAsync({
         name: NAME,
         stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
       }, (_assets, onDone) => {
-        modulePlugin.writeModule(entry, this.generate());
+        virtualModules.writeModule(entry, this.generate());
 
         child.hooks.make.tap(NAME, (childCompilation) => {
           childCompilation.hooks.afterHash.tap(NAME, () => {
