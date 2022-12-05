@@ -4,8 +4,8 @@ import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
 import CreateServicePlugin from './CreateServicePlugin';
-import { uniqueHash } from './hash';
-import { createManifest } from './manifest';
+import { parse } from './manifest';
+import { uniqueHash } from './util';
 
 const DEFAULT_AGENT = require.resolve("@entangled/fetch");
 
@@ -256,7 +256,7 @@ export default class ServiceAgentPlugin {
     const { endpoint, agent, runtimeOptions } = this.options;
     const { name } = mod;
 
-    const output = createManifest(mod.sourceFile, mod.watch);
+    const output = parse(mod.sourceFile, mod.watch);
     const opts: any = { endpoint, ...runtimeOptions };
     const args: {}[] = [ output ];
 

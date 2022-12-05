@@ -1,6 +1,6 @@
 import { FunctionDeclaration, Node, SourceFile } from 'ts-morph';
 
-export function createManifest(
+export function parse(
   node: Node, watch: Set<string>){
 
   if(Node.isSourceFile(node))
@@ -12,7 +12,7 @@ export function createManifest(
   if(isErrorType(node))
     return [2];
 
-  return null;
+  return isErrorType(node) || null
 }
 
 function handleSourceFile(
@@ -30,7 +30,7 @@ function handleSourceFile(
       // register file dependancies per import  `
       watch.add(source.getFilePath());
 
-      output[key] = createManifest(value, watch);
+      output[key] = parse(value, watch);
     })
 
   return output;
@@ -49,7 +49,7 @@ function isErrorType(node: Node){
 
     if(Node.isVariableDeclaration(node) && 
       node.getText() == "Error:ErrorConstructor")
-        return true;
+        return true
   }
   catch(err){}
 
