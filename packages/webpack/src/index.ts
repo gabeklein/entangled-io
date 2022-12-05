@@ -1,6 +1,6 @@
 import MicroservicePlugin from './MicroservicePlugin';
 import ServiceAgentPlugin from './ServiceAgentPlugin';
-import DevServerPlugin from './DevServerPlugin';
+import DevServerPlugin from './devServerPlugin/DevServerPlugin';
 import ServicePlugin from './ServicePlugin';
 
 export {

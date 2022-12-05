@@ -1,30 +1,19 @@
 import { ChildProcess, fork } from 'child_process';
 import { Compiler, HotModuleReplacementPlugin, RuntimeModule } from 'webpack';
-
-import ServicePlugin from './ServicePlugin';
+import ExcludeModulesPlugin from '../ExcludeModulesPlugin';
 
 class DevServerPlugin {
   name = "DevServerPlugin";
   worker: ChildProcess | undefined;
 
-  async childProcess(script: string){
-    this.worker = fork(script, [], {
-      execArgv: process.execArgv,
-      stdio: 'inherit'
-    });
-
-    return new Promise<void>(resolve => {
-      setTimeout(resolve, 0)
-    });
-  }
-
   apply(compiler: Compiler){
-    const servicePlugin = new ServicePlugin();
     const hotPlugin = new HotModuleReplacementPlugin();
+    const nodeModules = new ExcludeModulesPlugin();
 
-    servicePlugin.apply(compiler);
     hotPlugin.apply(compiler);
+    nodeModules.apply(compiler);
 
+    /** Inject HMR runtime */
     compiler.hooks.compilation.tap(this, compilation => {
       compilation.hooks.additionalTreeRuntimeRequirements.tap(
         this, chunk => {
@@ -33,6 +22,7 @@ class DevServerPlugin {
       );
     });
 
+    /** Intercept emitted assets */
     compiler.hooks.shouldEmit.tap(this, comp => {
       const [ updateChunk ] = comp.additionalChunkAssets;
 
@@ -45,7 +35,7 @@ class DevServerPlugin {
       return false;
     })
 
-    compiler.hooks.afterEmit.tapPromise(this, async compilation => {
+    compiler.hooks.afterEmit.tap(this, (compilation) => {
       if(this.worker || compilation.compiler !== compiler)
         return;
 
@@ -55,7 +45,10 @@ class DevServerPlugin {
       if(!output || !output.path)
         throw new Error('output.path should be defined in webpack config!');
 
-      await this.childProcess(`${output.path}/${name}`);
+      this.worker = fork(`${output.path}/${name}`, [], {
+        execArgv: process.execArgv,
+        stdio: 'inherit'
+      });
     })
   }
 }
@@ -68,7 +61,7 @@ class HotRuntimeModule extends RuntimeModule {
 	}
 
 	generate(){
-    const runtime = require.resolve("./runtime/hot");
+    const runtime = require.resolve("./hotRuntime");
 
     return `require("${runtime}")(__webpack_require__)`;
 	}
