@@ -70,7 +70,12 @@ function handleFunction(node: FunctionDeclaration){
 function getParams(node: FunctionDeclaration){
   const parameters = [] as string[];
 
+  // const [ jsDoc ] = node.getJsDocs();
+  // const docs = jsDoc.getStructure();
+
   for(const param of node.getParameters()){
+    // const type = param.getType();
+    
     let {
       name,
       isRestParameter,

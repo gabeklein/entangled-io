@@ -65,6 +65,7 @@ class ServicePlugin {
   }
 
   apply(compiler: Compiler){
+    this.virtualModulesPlugin.apply(compiler);
     new NodeExternalsPlugin().apply(compiler);
 
     let entryFile: string;
@@ -77,9 +78,16 @@ class ServicePlugin {
       return false;
     });
 
-    compiler.hooks.make.tapAsync(this, (compilation, cb) => {
-      this.loadRemoteModule(entryFile, "main");
-    });
+    compiler.hooks.normalModuleFactory.tap(this, nmf => {
+      nmf.hooks.resolve.tapAsync(this, (resolve, callback) => {
+        debugger
+        callback();
+      })
+    })
+
+    // compiler.hooks.make.tapAsync(this, (compilation, cb) => {
+    //   this.loadRemoteModule(entryFile, "main");
+    // });
   }
 
   loadRemoteModule(request: string, name: string){

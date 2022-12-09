@@ -1,6 +1,5 @@
 import { Compiler } from 'webpack';
 
-import CreateServicePlugin from './CreateServicePlugin';
 import ServiceAgentPlugin from './ServiceAgentPlugin';
 
 declare namespace MicroservicePlugin {
@@ -20,16 +19,19 @@ export default class MicroservicePlugin {
 
   apply(compiler: Compiler){
     const { options } = this;
-    
-    const createServicePlugin =
-      new CreateServicePlugin(options);
+    const requests = {} as {
+      [uid: string]: string;
+    }
 
     const importAgentPlugin =
       new ServiceAgentPlugin(options, (request, uid) => {
-        createServicePlugin.include(request, uid)
+        requests[uid] = request;
       });
 
-    createServicePlugin.apply(compiler);
     importAgentPlugin.apply(compiler);
+
+    // compiler.hooks.tapPromise("MicroservicePlugin", async () => {
+    //   debugger;
+    // })
   }
 }
