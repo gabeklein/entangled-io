@@ -1,21 +1,20 @@
 import path from 'path';
-import { FileSystemRefreshResult, Project, SourceFile, ts } from 'ts-morph';
+import { Project, SourceFile, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
 import VirtualModulesPlugin from 'webpack-virtual-modules';
 
-import CreateServicePlugin from './CreateServicePlugin';
 import { parse } from './manifest';
-import { uniqueHash } from './util';
 
 const DEFAULT_AGENT = require.resolve("@entangled/fetch");
+const RawModule = require('webpack/lib/RawModule');
 
 interface ReplacedModule {
-  name: string;
-  request: string;
+  name?: string;
+  request?: string;
   watch: Set<string>;
-  sourceFile: SourceFile;
-  location: string;
-  filename: string;
+  sourceFile?: SourceFile;
+  location?: string;
+  filename?: string;
 }
 
 interface RequestInfo {
@@ -84,46 +83,38 @@ export default class ServiceAgentPlugin {
      * As we resolve modules, if we run into one marked for 
      * override, we generate the replacement proxy implementation. 
      */
-    compiler.hooks.normalModuleFactory.tap(this, (compilation) => {
-      compilation.hooks.afterResolve.tap(this, (result) => {
-        if(result.contextInfo.compiler == CreateServicePlugin.name)
-          return;
+    compiler.hooks.normalModuleFactory.tap(this, (factory) => {
+      factory.hooks.resolve.tapAsync(this, (data, callback) => {
+        const request = data.dependencies[0].request;
 
-        const target = result.createData as any;
-        const resolved = target.resource;
-        const replaceWith = (x: string) => {
-          target.resource = target.userRequest = x;
-        }
+        factory
+          .getResolver("normal", data.resolveOptions)
+          .resolve({}, data.context, request, data, (_err, resolved) => {
+            if(!resolved)
+              throw new Error("Could not resolve");
 
-        const info = this.replacedModules.get(resolved);
+            const name = this.shouldInclude({
+              type: "",
+              issuer: data.contextInfo.issuer,
+              request: data.request,
+              resolved
+            });
 
-        if(info){
-          replaceWith(info.filename);
-          return;
-        }
+            if(!name){
+              callback();
+              return;
+            }
 
-        const name = this.shouldInclude({
-          type: target.type,
-          issuer: result.contextInfo.issuer,
-          request: result.request,
-          resolved
-        });
+            if(!/\.tsx?$/.test(resolved)){
+              const relative = path.relative(process.cwd(), resolved);
+              throw new Error(`Tried to import ${relative} (as external) but is not typescript!`);
+            }
 
-        if(!name)
-          return;
+            const replacement = this.agentModule(name, request, resolved);
 
-        if(!/\.tsx?$/.test(resolved)){
-          const relative = path.relative(process.cwd(), resolved);
-          throw new Error(`Tried to import ${relative} (as external) but is not typescript!`);
-        }
-
-        const mock = this.loadRemoteModule(resolved, name);
-
-        if(this.didInlcude)
-          this.didInlcude(resolved, name);
-
-        replaceWith(mock);
-      })
+            callback(null, replacement);
+          });
+        })
     });
 
     /*
@@ -146,7 +137,7 @@ export default class ServiceAgentPlugin {
 
     /*
      * Where files server have updated, regenerate API polyfill for compilation.
-     */
+     *
     compiler.hooks.watchRun.tap(this, (compilation) => {
       const { watchFileSystem } = compilation as any;
       const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
@@ -185,7 +176,38 @@ export default class ServiceAgentPlugin {
           });
         });
       }
+    }) */
+  }
+
+  agentModule(name: string, request: string, resolved: string){
+    const {
+      agent = DEFAULT_AGENT,
+      endpoint,
+      runtimeOptions
+    } = this.options;
+    const watch = new Set<string>();
+    const sourceFile = this.tsProject.addSourceFileAtPath(resolved);
+
+    this.replacedModules.set(resolved, {
+      watch
     })
+
+    this.tsProject.resolveSourceFileDependencies();
+
+    const output = parse(sourceFile, watch);
+    const opts: any = { endpoint, ...runtimeOptions };
+    const args: {}[] = [ output ];
+
+    if(name !== "default")
+      opts.namespace = name;
+
+    if(Object.values(opts).some(x => !!x))
+      args.push(opts);
+
+    const printArguments = JSON.stringify(args).slice(1, -1);
+    const code = `module.exports = require("${agent}").default(${printArguments})`;
+    
+    return new RawModule(code, resolved, `Entangled adapter for \`${request}\``);
   }
 
   /**
@@ -225,53 +247,6 @@ export default class ServiceAgentPlugin {
     }
 
     return null;
-  }
-
-  loadRemoteModule(request: string, name: string){
-    const tsc = this.tsProject;
-    const sourceFile = tsc.addSourceFileAtPath(request);
-
-    tsc.resolveSourceFileDependencies();
-
-    const location = path.dirname(request);
-    const uid = uniqueHash(request, 6);
-    const filename = path.join(location, `${name}.${uid}.js`);
-
-    const mod: ReplacedModule = {
-      name,
-      request,
-      location,
-      sourceFile,
-      filename,
-      watch: new Set()
-    };
-
-    this.replacedModules.set(request, mod);
-    this.writeReplacement(mod);
-
-    return filename;
-  }
-  
-  writeReplacement(mod: ReplacedModule){
-    const { endpoint, agent, runtimeOptions } = this.options;
-    const { name } = mod;
-
-    const output = parse(mod.sourceFile, mod.watch);
-    const opts: any = { endpoint, ...runtimeOptions };
-    const args: {}[] = [ output ];
-
-    if(name !== "default")
-      opts.namespace = name;
-
-    if(Object.values(opts).some(x => !!x))
-      args.push(opts);
-
-    const printArguments =
-      args.map(x => JSON.stringify(x)).join(", ");
-
-    this.virtualModulesPlugin.writeModule(mod.filename,
-      `module.exports = require("${agent}").default(${printArguments})`  
-    );
   }
 }
 
