@@ -1,12 +1,12 @@
 import path from 'path';
 import { Project, SourceFile, ts } from 'ts-morph';
 import { Compiler } from 'webpack';
-import VirtualModulesPlugin from 'webpack-virtual-modules';
 
 import { parse } from './manifest';
 
 const DEFAULT_AGENT = require.resolve("@entangled/fetch");
 const RawModule = require('webpack/lib/RawModule');
+const RuntimeGlobals = require("webpack/lib/RuntimeGlobals");
 
 interface ReplacedModule {
   name?: string;
@@ -21,7 +21,6 @@ interface RequestInfo {
   issuer: string;
   request: string;
   resolved: string;
-  type: string;
 }
 
 interface Options {
@@ -43,9 +42,6 @@ export default class ServiceAgentPlugin {
 
   /** Simple cache of requires tagged for replacement. */
   replacedModules = new Map<string, ReplacedModule>();
-
-  /** Separate plugin will manage imaginary files for bundle. */
-  virtualModulesPlugin: VirtualModulesPlugin;
 
   constructor(
     options: Options | string,
@@ -71,36 +67,43 @@ export default class ServiceAgentPlugin {
       tsConfigFilePath,
       skipAddingFilesFromTsConfig: true
     });
-
-    this.virtualModulesPlugin =
-      new VirtualModulesPlugin();
   }
 
   apply(compiler: Compiler) {
-    this.virtualModulesPlugin.apply(compiler);
-
     /*
      * As we resolve modules, if we run into one marked for 
      * override, we generate the replacement proxy implementation. 
      */
     compiler.hooks.normalModuleFactory.tap(this, (factory) => {
       factory.hooks.resolve.tapAsync(this, (data, callback) => {
-        const request = data.dependencies[0].request;
+        const [ dependancy ] = data.dependencies;
+        const imported = dependancy.request;
+
+        const {
+          context,
+          contextDependencies,
+          contextInfo: { issuer },
+          fileDependencies,
+          missingDependencies,
+          request,
+          resolveOptions
+        } = data;
+
+        const resolveContext = {
+          fileDependencies,
+          missingDependencies,
+          contextDependencies
+        };
 
         factory
-          .getResolver("normal", data.resolveOptions)
-          .resolve({}, data.context, request, data, (_err, resolved) => {
+          .getResolver("normal", resolveOptions)
+          .resolve({}, context, imported, resolveContext, (_err, resolved) => {
             if(!resolved)
               throw new Error("Could not resolve");
 
-            const name = this.shouldInclude({
-              type: "",
-              issuer: data.contextInfo.issuer,
-              request: data.request,
-              resolved
-            });
+            const namespace = this.shouldInclude({ issuer, request, resolved });
 
-            if(!name){
+            if(!namespace){
               callback();
               return;
             }
@@ -110,11 +113,11 @@ export default class ServiceAgentPlugin {
               throw new Error(`Tried to import ${relative} (as external) but is not typescript!`);
             }
 
-            const replacement = this.agentModule(name, request, resolved);
+            const replacement = this.agentModule(namespace, imported, resolved);
 
             callback(null, replacement);
           });
-        })
+      })
     });
 
     /*
@@ -188,15 +191,12 @@ export default class ServiceAgentPlugin {
     const watch = new Set<string>();
     const sourceFile = this.tsProject.addSourceFileAtPath(resolved);
 
-    this.replacedModules.set(resolved, {
-      watch
-    })
-
+    this.replacedModules.set(resolved, { watch });
     this.tsProject.resolveSourceFileDependencies();
 
-    const output = parse(sourceFile, watch);
+    const manifest = parse(sourceFile, watch);
     const opts: any = { endpoint, ...runtimeOptions };
-    const args: {}[] = [ output ];
+    const args: {}[] = [ manifest ];
 
     if(name !== "default")
       opts.namespace = name;
@@ -204,10 +204,17 @@ export default class ServiceAgentPlugin {
     if(Object.values(opts).some(x => !!x))
       args.push(opts);
 
-    const printArguments = JSON.stringify(args).slice(1, -1);
-    const code = `module.exports = require("${agent}").default(${printArguments})`;
+    const code = [
+      `const { default: createProxy } = require("${agent}");`,
+      `const manifest = ${JSON.stringify(manifest)};`,
+      `const options = ${JSON.stringify(opts)};`,
+      `module.exports = createProxy(manifest, options);`
+    ].join("\n");
     
-    return new RawModule(code, resolved, `Entangled adapter for \`${request}\``);
+    const readable = `Entangled adapter for \`${request}\``;
+    const globals = new Set([ RuntimeGlobals.module ]);
+    
+    return new RawModule(code, resolved, readable, globals);
   }
 
   /**
