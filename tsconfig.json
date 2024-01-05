@@ -12,6 +12,9 @@
     "paths": {
       "@example/*": [
         "example/*/src"
+      ],
+      "@entangled/*": [
+        "packages/*/src"
       ]
     }
   }
