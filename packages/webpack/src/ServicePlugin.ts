@@ -60,8 +60,7 @@ class ServicePlugin {
       skipAddingFilesFromTsConfig: true
     });
 
-    this.virtualModulesPlugin =
-      new VirtualModulesPlugin();
+    this.virtualModulesPlugin = new VirtualModulesPlugin();
   }
 
   apply(compiler: Compiler){
@@ -129,12 +128,10 @@ class ServicePlugin {
     if(Object.values(opts).some(x => !!x))
       args.push(opts);
 
-    const printArguments =
-      args.map(x => JSON.stringify(x)).join(", ");
+    const printArguments = args.map(x => JSON.stringify(x)).join(", ");
+    const virtual = `module.exports = require("${agent}").default(${printArguments})`;
 
-    this.virtualModulesPlugin.writeModule(filename,
-      `module.exports = require("${agent}").default(${printArguments})`  
-    );
+    this.virtualModulesPlugin.writeModule(filename, virtual);
   }
 }
 

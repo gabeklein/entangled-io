@@ -190,6 +190,7 @@ export default class ServiceAgentPlugin {
     } = this.options;
     const watch = new Set<string>();
     const sourceFile = this.tsProject.addSourceFileAtPath(resolved);
+    const readable = `Entangled adapter for \`${request}\``;
 
     this.replacedModules.set(resolved, { watch });
     this.tsProject.resolveSourceFileDependencies();
@@ -211,7 +212,6 @@ export default class ServiceAgentPlugin {
       `module.exports = createProxy(manifest, options);`
     ].join("\n");
     
-    const readable = `Entangled adapter for \`${request}\``;
     const globals = new Set([ RuntimeGlobals.module ]);
     
     return new RawModule(code, resolved, readable, globals);
