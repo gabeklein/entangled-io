@@ -30,6 +30,18 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Run vite",
+      "cwd": "${workspaceFolder}/example/client",
+      "program": "node_modules/vite/bin/vite.js",
+      "console": "integratedTerminal",
+      "runtimeArgs": [
+        "-r", "ts-node/register",
+        "-r", "source-map-support/register"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Run Webpack (Server)",
       "cwd": "${workspaceFolder}/example/api",
       "program": "${workspaceFolder}/packages/cli/bin/entangle.js",

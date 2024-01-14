@@ -3,18 +3,16 @@
     "target": "es2018",
     "lib": ["es2018"],
     "module": "commonjs",
-    "declaration": true,
     "strict": true,
     "esModuleInterop": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
-    "baseUrl": "./",
     "paths": {
       "@example/*": [
-        "example/*/src"
+        "./example/*/src"
       ],
       "@entangled/*": [
-        "packages/*/src"
+        "./packages/*/src"
       ]
     }
   }

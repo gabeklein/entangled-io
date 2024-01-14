@@ -1,8 +1,14 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
+    "target": "ES6",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "outDir": "./lib",
-    "lib": ["es2018", "dom"]
+    "lib": ["DOM", "ESNext"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true
   }
 }
