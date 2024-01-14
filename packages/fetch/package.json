@@ -14,8 +14,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "@entangled/interface": "^2.0.0-alpha.13"
+  },
   "devDependencies": {
-    "@entangled/interface": "^2.0.0-alpha.13",
     "@typescript-eslint/parser": "2.18.0",
     "eslint": "6.8.0",
     "typescript": "3.8.3"
