@@ -6,10 +6,7 @@ interface CreateOptions {
 }
 
 function create(schema: {}, options: CreateOptions){
-  let {
-    endpoint,
-    namespace = ""
-  } = options || {};
+  let { endpoint, namespace = "" } = options || {};
 
   if(!endpoint)
     try {

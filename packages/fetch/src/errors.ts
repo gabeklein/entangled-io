@@ -2,6 +2,12 @@ import { unpack } from "@entangled/interface";
 
 const CUSTOM_ERROR = new Map<string, typeof HttpError>();
 
+export function notAsyncError(path: string){
+  return () => {
+    throw new Error(`${path} does not lead to an async function. It cannot be called by client.`);
+  }
+}
+
 export function newCustomError(path: string){
   const match = /\/(\w+)$/.exec(path);
   const uid = "/" + path.toLowerCase();

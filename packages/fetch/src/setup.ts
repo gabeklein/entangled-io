@@ -1,14 +1,12 @@
-import { unpack, stringify } from '@entangled/interface';
+import { stringify, unpack } from '@entangled/interface';
 
-import { newCustomError, throwRemoteError } from './errors';
+import { newCustomError, notAsyncError, throwRemoteError } from './errors';
 
 export function traverse(target: any, endpoint: string, path = "") {
   if(Array.isArray(target)){
     switch(target[0]){
       case 0:
-        return () => {
-          throw new Error(`${path} does not lead to an async function. It cannot be called by client.`);
-        }
+        return notAsyncError(path);
 
       case 1:
         return newHandler(path, endpoint);
