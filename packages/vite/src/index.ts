@@ -17,6 +17,13 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
     endpoint = "/api"
   } = options;
 
+  const cache = new Map<string, {
+    id: string;
+    code: string;
+    watch: Set<string>;
+    moduleSideEffects: boolean;
+  }>();
+
   const entangled = new Map<string, {
     namespace: string;
     resolved: string;
@@ -38,7 +45,8 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
 
     const { namespace, resolved } = module;
 
-    // const watch = new Set<string>([resolved]);
+    const watch = new Set<string>([resolved]);
+
     const sourceFile = tsProject.addSourceFileAtPath(resolved);
 
     tsProject.resolveSourceFileDependencies();
@@ -77,6 +85,8 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
       if(Node.isFunctionDeclaration(value)){
         needsEndpoint();
 
+        watch.add(value.getSourceFile().getFilePath());
+
         if(!value.getAsyncKeyword()){
           code.push(`export const ${key} = () => ${handle}("${key}", { async: false });`);
           continue;
@@ -93,13 +103,15 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
     }
 
     return {
+      id,
+      watch,
       code: code.join("\n"),
       moduleSideEffects: false
     }
   }
 
   return {
-    name: 'service-agent-plugin',
+    name: 'entangled:client-plugin',
     enforce: 'pre',
     async resolveId(source, importer){
       if(source.startsWith("virtual:"))
@@ -111,12 +123,14 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
         const resolved = await
           this.resolve(source, importer, { skipSelf: true });
 
-        if(resolved)
-          entangled.set(identifier, {
-            baseUrl: endpoint,
-            resolved: resolved.id,
-            namespace
-          });
+        if(!resolved)
+          throw new Error(`Cannot resolve ${source} from ${importer}`);
+
+        entangled.set(identifier, {
+          baseUrl: endpoint,
+          resolved: resolved.id,
+          namespace
+        });
 
         return identifier;
       }
@@ -124,15 +138,43 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
       return null;
     },
     load(id){
-      if(id.startsWith("virtual:"))
-        return agentModule(id);
+      if(id.startsWith("virtual:")){
+        const agent = cache.get(id) || agentModule(id)!;
+        
+        for(const resolved of agent.watch){
+          cache.set(resolved, agent);
+          this.addWatchFile(resolved);
+        }
+
+        return agent;
+      }
 
       return null;
     },
     handleHotUpdate({ file, server }){
-      debugger;
-      // Handle HMR for dependencies of virtual modules
-      // Trigger retransform if necessary
+      const module = cache.get(file);
+
+      if(!module)
+        return;
+
+      const existingSourceFile = tsProject.getSourceFile(file);
+  
+      if(existingSourceFile)
+        tsProject.removeSourceFile(existingSourceFile);
+
+      const result = agentModule(module.id)!;
+
+      if(module.code == result.code)
+        return [];
+
+      const { moduleGraph } = server!;
+      const shouldUpdate = moduleGraph.getModuleById(module.id)!;
+
+      cache.set(file, result);
+
+      return [
+        shouldUpdate
+      ]
     }
   };
 }
