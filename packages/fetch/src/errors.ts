@@ -4,7 +4,7 @@ const CUSTOM_ERROR = new Map<string, typeof HttpError>();
 
 export function notAsyncError(path: string){
   return () => {
-    throw new Error(`${path} does not lead to an async function. It cannot be called by client.`);
+    throw new Error(`${path} is not an async function. It cannot be called by client.`);
   }
 }
 
