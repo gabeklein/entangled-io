@@ -19,8 +19,8 @@
     "ts-morph": "^21.0.1"
   },
   "devDependencies": {
-    "typescript": "3.8.3",
-    "vite": "^5.0.10"
+    "typescript": "5.3.3",
+    "vite": "^4.5.1"
   },
   "peerDependencies": {
     "vite": ">=4.0.0"
