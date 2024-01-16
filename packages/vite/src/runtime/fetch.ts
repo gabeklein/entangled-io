@@ -4,32 +4,40 @@ import { newCustomError, notAsyncError, throwRemoteError } from './errors';
 
 type RestArgument = string | boolean | number | Date;
 
-interface FunctionOptions {
+export interface FunctionOptions {
   async?: boolean;
 }
 
-export default function factory(baseUrl: string){
-  baseUrl = baseUrl.replace(/\/$/, "");
+export interface ConfigOptions {
+  baseUrl?: string;
+}
 
-  function rpc(name: string, options: FunctionOptions = {}){
-    if(options.async === false)
-      return notAsyncError(name);
-    
-    const url = (baseUrl + "/" + name).toLowerCase();
-    const Module = {
-      [name](...args: RestArgument[]){
-        return postRequest(url, args);
-      }
-    }
-    
-    return Module[name];
-  }
+export default function configure(options: ConfigOptions){
+  const BASE_URL = options.baseUrl.replace(/\/$/, "") || "";
 
-  function error(path: string){
-    return newCustomError(baseUrl + "/" + path);
-  }
+  return function factory(namespace: string){
+    namespace = namespace.replace(/\/$/, "");
+  
+    function rpc(name: string, options: FunctionOptions = {}){
+      if(options.async === false)
+        return notAsyncError(name);
       
-  return Object.assign(rpc, { error });
+      const url = (BASE_URL + "/" + namespace + "/" + name).toLowerCase();
+      const Module = {
+        [name](...args: RestArgument[]){
+          return postRequest(url, args);
+        }
+      }
+      
+      return Module[name];
+    }
+  
+    function error(path: string){
+      return newCustomError(namespace + "/" + path);
+    }
+        
+    return Object.assign(rpc, { error });
+  }
 }
 
 async function postRequest<B extends {}>(url: string, body: B){

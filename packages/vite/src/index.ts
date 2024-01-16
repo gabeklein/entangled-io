@@ -3,18 +3,27 @@ import Vite from 'vite';
 
 const DEFAULT_AGENT = require.resolve("./runtime/fetch");
 
+type AsyncMaybe<T> = T | Promise<T>;
+
+namespace Options {
+  export type Test =
+    (request: string, resolve: () => Promise<Vite.Rollup.ResolvedId>) =>
+      AsyncMaybe<string | null | false>;
+}
+
 interface Options {
-  include?: RegExp | string;
-  endpoint?: string;
-  namespace?: string;
+  baseUrl?: string;
   agent?: string;
-  runtimeOptions?: {}
+  test?: Options.Test | string | RegExp;
+  runtimeOptions?: {};
 }
 
 function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
-  const {
+  let {
     agent = DEFAULT_AGENT,
-    endpoint = "/api"
+    baseUrl = "/",
+    test,
+    runtimeOptions = {}
   } = options;
 
   const cache = new Map<string, {
@@ -44,10 +53,8 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
       return;
 
     const { namespace, resolved } = module;
-
-    const watch = new Set<string>([resolved]);
-
     const sourceFile = tsProject.addSourceFileAtPath(resolved);
+    const watch = new Set<string>([resolved]);
 
     tsProject.resolveSourceFileDependencies();
 
@@ -59,8 +66,8 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
       if(!handle){
         handle = "rpc";
         code.push(
-          `import endpoint from "${agent}";\n`,
-          `const ${handle} = endpoint("/${namespace}");\n`
+          `import endpoint from "virtual:entangled-agent";\n`,
+          `const ${handle} = endpoint("${namespace}");\n`
         );
       }
 
@@ -117,17 +124,41 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
       if(source.startsWith("virtual:"))
         return source;
 
-      if(source == "@example/api"){
-        const namespace = "api";
+      let resolved: Vite.Rollup.ResolvedId | undefined;
+
+      const resolver = () => this
+        .resolve(source, importer, { skipSelf: true })
+        .then(x => resolved = x!);
+
+      if(typeof test === "string"){
+        const expect = test;
+        test = (source) => {
+          return source == expect ? "api" : null;
+        };
+      }
+
+      if(test instanceof RegExp){
+        const regex = test;
+        test = (source) => {
+          const match = regex.exec(source);
+          return match ? match[1] || "api" : null;
+        };
+      }
+
+      const name = test && await test(source, resolver);
+
+      if(name){
+        const namespace = typeof name === "string" ? name : "";
         const identifier = `virtual:${namespace}`;
-        const resolved = await
-          this.resolve(source, importer, { skipSelf: true });
+
+        if(!resolved)
+          await resolver();
 
         if(!resolved)
           throw new Error(`Cannot resolve ${source} from ${importer}`);
 
         entangled.set(identifier, {
-          baseUrl: endpoint,
+          baseUrl,
           resolved: resolved.id,
           namespace
         });
@@ -139,14 +170,22 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
     },
     load(id){
       if(id.startsWith("virtual:")){
-        const agent = cache.get(id) || agentModule(id)!;
+        if(id == "virtual:entangled-agent")
+          return [
+            `import agent from "${agent}";`,
+            `export default agent(${JSON.stringify({
+              baseUrl, ...runtimeOptions
+            })});`
+          ].join("\n");
+
+        const module = cache.get(id) || agentModule(id)!;
         
-        for(const resolved of agent.watch){
-          cache.set(resolved, agent);
+        for(const resolved of module.watch){
+          cache.set(resolved, module);
           this.addWatchFile(resolved);
         }
 
-        return agent;
+        return module;
       }
 
       return null;
