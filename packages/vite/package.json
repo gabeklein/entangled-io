@@ -5,7 +5,8 @@
   "types": "lib/index.d.ts",
   "license": "ISC",
   "files": [
-    "lib"
+    "lib",
+    "runtime"
   ],
   "scripts": {
     "prebuild": "rm -rf lib",

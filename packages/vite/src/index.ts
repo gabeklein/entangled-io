@@ -1,7 +1,7 @@
 import { Node, Project, ts } from 'ts-morph';
 import { Plugin, Rollup } from 'vite';
 
-const DEFAULT_AGENT = require.resolve("./runtime/fetch");
+const DEFAULT_AGENT = require.resolve("../runtime/fetch");
 
 type AsyncMaybe<T> = T | Promise<T>;
 
@@ -66,8 +66,8 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
       if(!handle){
         handle = "rpc";
         code.push(
-          `import endpoint from "virtual:entangled-agent";\n`,
-          `const ${handle} = endpoint("${namespace}");\n`
+          `import * as agent from "virtual:entangled-agent";\n`,
+          `const ${handle} = agent.default("${namespace}");\n`
         );
       }
 
@@ -171,8 +171,8 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
       if(id.startsWith("virtual:")){
         if(id == "virtual:entangled-agent")
           return [
-            `import agent from "${agent}";`,
-            `export default agent(${JSON.stringify({
+            `import * as agent from "${agent}";`,
+            `export default agent.default(${JSON.stringify({
               baseUrl, ...runtimeOptions
             })});`
           ].join("\n");

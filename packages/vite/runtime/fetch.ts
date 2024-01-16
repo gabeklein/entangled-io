@@ -13,7 +13,7 @@ export interface ConfigOptions {
 }
 
 export default function configure(options: ConfigOptions){
-  const BASE_URL = options.baseUrl.replace(/\/$/, "") || "";
+  const BASE_URL = options.baseUrl?.replace(/\/$/, "") || "";
 
   return function factory(namespace: string){
     namespace = namespace.replace(/\/$/, "");
