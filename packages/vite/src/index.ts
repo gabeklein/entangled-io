@@ -14,7 +14,7 @@ namespace Options {
 interface Options {
   baseUrl?: string;
   agent?: string;
-  test?: Options.Test | string | RegExp;
+  include?: Options.Test | string | RegExp;
   runtimeOptions?: {};
 }
 
@@ -22,7 +22,7 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
   let {
     agent = DEFAULT_AGENT,
     baseUrl = "/",
-    test,
+    include,
     runtimeOptions = {}
   } = options;
 
@@ -130,22 +130,21 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
         .resolve(source, importer, { skipSelf: true })
         .then(x => resolved = x!);
 
-      if(typeof test === "string"){
-        const expect = test;
-        test = (source) => {
-          return source == expect ? "api" : null;
+      if(typeof include === "string"){
+        const [expect, namespace = "api"] = include.split(":");
+        include = (source) => {
+          return source == expect ? namespace : null;
         };
       }
-
-      if(test instanceof RegExp){
-        const regex = test;
-        test = (source) => {
+      else if(include instanceof RegExp){
+        const regex = include;
+        include = (source) => {
           const match = regex.exec(source);
           return match ? match[1] || "api" : null;
         };
       }
 
-      const name = test && await test(source, resolver);
+      const name = include && await include(source, resolver);
 
       if(name){
         const namespace = typeof name === "string" ? name : "";
