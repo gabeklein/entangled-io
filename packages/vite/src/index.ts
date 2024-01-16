@@ -1,5 +1,5 @@
 import { Node, Project, ts } from 'ts-morph';
-import Vite from 'vite';
+import { Plugin, Rollup } from 'vite';
 
 const DEFAULT_AGENT = require.resolve("./runtime/fetch");
 
@@ -7,7 +7,7 @@ type AsyncMaybe<T> = T | Promise<T>;
 
 namespace Options {
   export type Test =
-    (request: string, resolve: () => Promise<Vite.Rollup.ResolvedId>) =>
+    (request: string, resolve: () => Promise<Rollup.ResolvedId>) =>
       AsyncMaybe<string | null | false>;
 }
 
@@ -18,7 +18,7 @@ interface Options {
   runtimeOptions?: {};
 }
 
-function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
+function ServiceAgentPlugin(options: Options = {}): Plugin {
   let {
     agent = DEFAULT_AGENT,
     baseUrl = "/",
@@ -124,7 +124,7 @@ function ServiceAgentPlugin(options: Options = {}): Vite.Plugin {
       if(source.startsWith("virtual:"))
         return source;
 
-      let resolved: Vite.Rollup.ResolvedId | undefined;
+      let resolved: Rollup.ResolvedId | undefined;
 
       const resolver = () => this
         .resolve(source, importer, { skipSelf: true })
