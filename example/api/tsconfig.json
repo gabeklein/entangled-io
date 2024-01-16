@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "outDir": "./lib",
+    "target": "ES6",
+    "moduleResolution": "Node",
+    "lib": ["DOM", "ES2018"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "noUnusedLocals": true,
+    "paths": {
+      "@example/*": [
+        "../../example/*/src"
+      ],
+      "@entangled/*": [
+        "../../packages/*/src"
+      ]
+    }
+  },
+}
