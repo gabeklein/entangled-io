@@ -31,10 +31,9 @@ export function createNamespace(branch: Entangled.Schema){
   for(const name in routes){
     const route = routes[name];
 
-    if(typeof route === "function")
-      scope[name] = forceAsync(route);
-    else
-      scope[name] = createNamespace(route);
+    scope[name] = typeof route === "function"
+      ? forceAsync(route)
+      : createNamespace(route);
   }
   
   return scope as Entangled.Namespace<any>;

@@ -9,7 +9,7 @@ export type ExpressExec = {
 const expressContextMap = new Map<string, ExpressExec>();
 const entangledContext = new AsyncLocalStorage();
 
-export function createContext<T>(
+export async function createContext<T>(
   context: ExpressExec,
   handler: () => Promise<T>
 ): Promise<T> {
