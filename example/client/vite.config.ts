@@ -4,7 +4,7 @@ import ClientPlugin from '@entangled/vite/src';
 export default <Vite.UserConfig> {
   plugins: [
     ClientPlugin({
-      test: /@example\/(\w+)/,
+      include: /@example\/(\w+)/,
       baseUrl: "http://localhost:8080"
     })
   ]
