@@ -20,6 +20,6 @@
   "devDependencies": {
     "@typescript-eslint/parser": "2.18.0",
     "eslint": "6.8.0",
-    "typescript": "3.8.3"
+    "typescript": "5.3.3"
   }
 }

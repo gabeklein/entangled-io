@@ -24,6 +24,6 @@
   "devDependencies": {
     "@types/webpack": "^5.28.0",
     "@types/webpack-node-externals": "^2.5.3",
-    "typescript": "3.8.3"
+    "typescript": "5.3.3"
   }
 }

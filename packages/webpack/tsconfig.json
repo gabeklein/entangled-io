@@ -1,7 +1,15 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "src/",
-    "outDir": "lib/"
-  }
+    "outDir": "./lib",
+    "target": "ES6",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["DOM", "ESNext"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "noUnusedLocals": true
+  },
+  "include": ["./src"],
+  "exclude": ["node_modules", "lib"]
 }
