@@ -1,6 +1,6 @@
 {
   "name": "@entangled/express",
-  "version": "2.0.0-alpha.13",
+  "version": "2.0.0-y.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "license": "ISC",
@@ -16,7 +16,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@entangled/interface": "^2.0.0-alpha.13",
+    "@entangled/interface": "^2.0.0-y.0",
     "@types/cookie-parser": "^1.4.2",
     "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
