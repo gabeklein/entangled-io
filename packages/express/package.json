@@ -2,6 +2,7 @@
   "name": "@entangled/express",
   "version": "2.0.0-alpha.13",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "license": "ISC",
   "files": [
     "lib"
