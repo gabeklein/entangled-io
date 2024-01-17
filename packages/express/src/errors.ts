@@ -5,7 +5,7 @@ const CustomErrors = new Map<typeof Error, string>();
 const getStackTraceEntries =   /^    at (.+)\n?/gm;
 
 function parseStackTrace(from: string){
-  let stack = [] as string[];
+  const stack = [] as string[];
   let match: string[] | null;
   
   while(match = getStackTraceEntries.exec(from)){
@@ -36,12 +36,11 @@ export function emitCustomError(
   const info = {} as any;
 
   for(const key of Object.getOwnPropertyNames(error)){
-    let value = (error as any)[key];
+    const value = (error as any)[key];
 
-    if(key == "stack")
-      info[key] = parseStackTrace(value);
-    else
-      info[key] = pack(value);
+    info[key] = key == "stack"
+      ? parseStackTrace(value)
+      : pack(value);
   }
 
   const typeIdentifier =
