@@ -9,6 +9,9 @@
     "bin",
     "lib"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prebuild": "rm -rf lib",
     "build": "tsc",
