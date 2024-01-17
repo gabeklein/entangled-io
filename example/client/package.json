@@ -1,6 +1,6 @@
 {
   "name": "@example/client",
-  "version": "2.0.0-alpha.15",
+  "version": "2.0.0-alpha.16",
   "private": true,
   "main": "src",
   "license": "ISC",
@@ -11,9 +11,9 @@
   },
   "devDependencies": {
     "@entangled/fetch": "^2.0.0-alpha.14",
-    "@entangled/vite": "^2.0.0-alpha.15",
+    "@entangled/vite": "^2.0.0-alpha.16",
     "@entangled/webpack": "^2.0.0-alpha.14",
-    "@example/api": "^2.0.0-alpha.15",
+    "@example/api": "^2.0.0-alpha.16",
     "@types/node": "^18.19.6",
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",

@@ -1,6 +1,6 @@
 {
   "name": "@example/service",
-  "version": "2.0.0-alpha.15",
+  "version": "2.0.0-alpha.16",
   "private": true,
   "main": "src",
   "license": "ISC",
@@ -8,8 +8,8 @@
     "start": "ts-node ./src/index.ts"
   },
   "dependencies": {
-    "@entangled/express": "^2.0.0-alpha.15",
-    "@example/api": "^2.0.0-alpha.15",
+    "@entangled/express": "^2.0.0-alpha.16",
+    "@example/api": "^2.0.0-alpha.16",
     "express": "4.17.1"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 {
   "name": "@entangled/vite",
-  "version": "2.0.0-alpha.15",
+  "version": "2.0.0-alpha.16",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "license": "ISC",
@@ -17,7 +17,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@entangled/interface": "^2.0.0-alpha.15",
+    "@entangled/interface": "^2.0.0-alpha.16",
     "ts-morph": "^21.0.1"
   },
   "devDependencies": {
