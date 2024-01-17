@@ -1,9 +1,9 @@
 import Vite from 'vite';
-import ClientPlugin from '@entangled/vite/src';
+import Entangle from '@entangled/vite';
 
 export default <Vite.UserConfig> {
   plugins: [
-    ClientPlugin({
+    Entangle({
       include: /@example\/(\w+)/,
       baseUrl: "http://localhost:8080"
     })
