@@ -13,15 +13,15 @@ export async function createContext<T>(
   context: ExpressExec,
   handler: () => Promise<T>
 ): Promise<T> {
-  const uuid = uniqueHash(Math.random(), 10);
+  const key = uid();
 
   return entangledContext
-    .run(uuid, () => {   
-      expressContextMap.set(uuid, context);
+    .run(key, () => {   
+      expressContextMap.set(key, context);
       return handler();
     })
     .finally(() => {
-      expressContextMap.delete(uuid);
+      expressContextMap.delete(key);
     })
 }
 
@@ -43,25 +43,6 @@ export function useContext(){
   return ctx;
 }
 
-export function uniqueHash(
-  str: string | number = "",
-  length: number){
-
-  const id = String(str);
-  const m32 = Math.imul;
-  const x = 0x85ebca6b, y = 0xc2b2ae35;
-  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
-
-  for(let i = 0, ch; i < id.length; i++){
-    ch = id.charCodeAt(i);
-    h1 = m32(h1 ^ ch, 0x9e3779b1);
-    h2 = m32(h2 ^ ch, 0x5f356495);
-  }
-
-  h1 = m32(h1 ^ (h1>>>16), x) ^ m32(h2 ^ (h2>>>13), y);
-  h2 = m32(h2 ^ (h2>>>16), x) ^ m32(h1 ^ (h1>>>13), y);
-
-  const out = 0x100000000 * (0x1fffff & h2) + (h1>>>0);
-
-  return out.toString(16).substring(0, length).toUpperCase();
+export function uid(){
+  return (Math.random() * 0.722 + 0.278).toString(36).substring(2, 8).toUpperCase();
 }
