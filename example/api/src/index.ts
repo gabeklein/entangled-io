@@ -1,2 +1,2 @@
-export * as Greetings from "./greetings";
+export * as Greetings from "./hello";
 export * as Error from "./errors";
