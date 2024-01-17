@@ -1,5 +1,6 @@
-import { Node, Project, ts } from 'ts-morph';
 import { Plugin, Rollup } from 'vite';
+
+import { Parser } from './parse';
 
 const DEFAULT_AGENT = require.resolve("../runtime/fetch.ts");
 
@@ -39,28 +40,20 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
     baseUrl: string;
   }>();
 
-  const tsProject = new Project({
-    skipAddingFilesFromTsConfig: true,
-    tsConfigFilePath: ts.findConfigFile(
-      process.cwd(), ts.sys.fileExists
-    )
-  });
+  const parser = new Parser();
 
-  function agentModule(id: string){
+  function agentModule(id: string, reload: boolean = false){
     const module = entangled.get(id);
 
     if(!module)
       return;
 
     const { namespace, resolved } = module;
-    const sourceFile = tsProject.addSourceFileAtPath(resolved);
     const watch = new Set<string>([resolved]);
-
-    tsProject.resolveSourceFileDependencies();
+    const items = parser.include(resolved, reload);
 
     let handle = "";
     const code = [] as string[];
-    const exports = sourceFile.getExportedDeclarations();
 
     function needsEndpoint(){
       if(!handle){
@@ -73,41 +66,40 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
 
       return handle;
     }
-  
-    for(const [ key, [ value ] ] of exports){
-      if(Node.isSourceFile(value)){
-        const name = `${namespace}/${key}`.toLowerCase();
-        const virtual = `virtual:${name}`;
 
-        entangled.set(virtual, {
-          baseUrl: module.baseUrl,
-          resolved: value.getFilePath(),
-          namespace: name,
-        });
+    for(const item of items)
+      switch(item.type){
+        case "module":
+          const name = `${namespace}/${item.name}`.toLowerCase();
+          const virtual = `virtual:${name}`;
 
-        code.push(`export * as ${key} from "${virtual}";`);
-        continue;
+          entangled.set(virtual, {
+            baseUrl: module.baseUrl,
+            resolved: item.path,
+            namespace: name,
+          });
+
+          code.push(`export * as ${item.name} from "${virtual}";`);
+        break;
+
+        case "function":
+          needsEndpoint();
+
+          watch.add(item.name);
+
+          if(!item.async){
+            code.push(`export const ${item.name} = () => ${handle}("${item.name}", { async: false });`);
+            continue;
+          }
+
+          code.push(`export const ${item.name} = ${handle}("${item.name}");`);
+        break;
+
+        case "error":
+          needsEndpoint();
+          code.push(`export const ${item.name} = ${handle}.error("${item.name}");`);
+        break;
       }
-
-      if(Node.isFunctionDeclaration(value)){
-        needsEndpoint();
-
-        watch.add(value.getSourceFile().getFilePath());
-
-        if(!value.getAsyncKeyword()){
-          code.push(`export const ${key} = () => ${handle}("${key}", { async: false });`);
-          continue;
-        }
-
-        code.push(`export const ${key} = ${handle}("${key}");`);
-        continue;
-      }
-
-      if(isErrorType(value)){
-        needsEndpoint();
-        code.push(`export const ${key} = ${handle}.error("${key}");`);
-      }
-    }
 
     return {
       id,
@@ -195,12 +187,7 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
       if(!module)
         return;
 
-      const existingSourceFile = tsProject.getSourceFile(file);
-  
-      if(existingSourceFile)
-        tsProject.removeSourceFile(existingSourceFile);
-
-      const result = agentModule(module.id)!;
+      const result = agentModule(module.id, true)!;
 
       if(module.code == result.code)
         return [];
@@ -215,26 +202,6 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
       ]
     }
   };
-}
-
-export function isErrorType(node: Node){
-  try {
-    while(Node.isClassDeclaration(node)){
-      const exp = node.getExtendsOrThrow().getExpression();
-      
-      if(Node.isIdentifier(exp))
-        node = exp.getSymbolOrThrow().getValueDeclarationOrThrow();
-      else
-        break;
-    }
-
-    if(Node.isVariableDeclaration(node) && 
-      node.getText() == "Error:ErrorConstructor")
-        return true
-  }
-  catch(err){}
-
-  return false;
 }
 
 export default ServiceAgentPlugin;
