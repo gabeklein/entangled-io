@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./lib",
     "target": "ES6",
-    "module": "CommonJS",
     "moduleResolution": "Node",
     "lib": ["DOM", "ESNext"],
     "esModuleInterop": true,

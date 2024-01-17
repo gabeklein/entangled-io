@@ -2,21 +2,21 @@
   "name": "@entangled/interface",
   "version": "2.0.0-alpha.16",
   "license": "ISC",
-  "main": "lib",
-  "types": "lib/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "prebuild": "rm -rf lib",
-    "build": "tsc",
-    "watch": "tsc -w --sourcemap"
+    "prebuild": "rm -rf dist",
+    "build": "tsup src/index.ts --dts --format cjs,esm"
   },
   "files": [
-    "lib",
-    "index.d.ts"
+    "dist"
   ],
   "devDependencies": {
+    "tsup": "^8.0.1",
     "typescript": "5.3.3"
   }
 }
