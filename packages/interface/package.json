@@ -1,6 +1,6 @@
 {
   "name": "@entangled/interface",
-  "version": "2.0.0-alpha.13",
+  "version": "2.0.0-alpha.15",
   "license": "ISC",
   "main": "lib",
   "types": "lib/index.d.ts",

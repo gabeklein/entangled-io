@@ -1,6 +1,6 @@
 {
   "name": "@example/api",
-  "version": "2.0.0-alpha.13",
+  "version": "2.0.0-alpha.15",
   "private": true,
   "main": "src",
   "license": "ISC",
@@ -8,8 +8,8 @@
     "start": "entangle serve ./src/index.ts"
   },
   "devDependencies": {
-    "@entangled/cli": "^2.0.0-alpha.13",
-    "@entangled/express": "^2.0.0-alpha.13",
+    "@entangled/cli": "^2.0.0-alpha.15",
+    "@entangled/express": "^2.0.0-alpha.15",
     "typescript": "5.3.3"
   }
 }
