@@ -1,7 +1,7 @@
 import { Node, Project, ts } from 'ts-morph';
 import { Plugin, Rollup } from 'vite';
 
-const DEFAULT_AGENT = require.resolve("../runtime/fetch");
+const DEFAULT_AGENT = require.resolve("../runtime/fetch.ts");
 
 type AsyncMaybe<T> = T | Promise<T>;
 
