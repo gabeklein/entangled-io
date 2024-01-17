@@ -17,7 +17,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@entangled/interface": "^2.0.0-alpha.16",
+    "@entangled/interface": "2.0.0-alpha.16",
     "ts-morph": "^21.0.1"
   },
   "devDependencies": {
