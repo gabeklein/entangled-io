@@ -1,6 +1,6 @@
 {
   "name": "@example/client",
-  "version": "2.0.0-alpha.16",
+  "version": "2.0.0-alpha.17",
   "private": true,
   "main": "src",
   "license": "ISC",
@@ -8,8 +8,8 @@
     "dev": "vite"
   },
   "devDependencies": {
-    "@entangled/vite": "^2.0.0-alpha.16",
-    "@example/api": "^2.0.0-alpha.16",
+    "@entangled/vite": "^2.0.0-alpha.17",
+    "@example/api": "^2.0.0-alpha.17",
     "typescript": "5.3.3",
     "vite": "^4.5.1"
   }
