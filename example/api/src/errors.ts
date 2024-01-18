@@ -1,20 +1,21 @@
 /**
  * Error may be imported in front-end code and
- * checked against a catch using `instanceof`. 
+ * checked against a catch using `instanceof` to
+ * do different things. 
  */
 export class CustomError extends Error {};
 
 export class SuperCustomError extends CustomError {};
 
-export async function willFail(): Promise<string> {
+export async function willFail(): Promise<never> {
   throw new SuperCustomError("Goodbye cruel world!");
 }
 
 /**
- * Custom information will forwarded in the response
- * (ala-stacktrace) and be present on the client error.
+ * Entangled will forward your custom metadata in the response.
+ * It'll be present (along with stack track) on clientside error.
  * 
- * Use a custom switch to access those custom values with intellisense enabled.
+ * Use an if-statement to access those values with intellisense enabled.
  * 
  * ```
  * if(err instanceof SpecialError){
@@ -31,6 +32,6 @@ export class SpecialError extends Error {
   }
 };
 
-export async function willFailWithInfo(info: any): Promise<string> {
+export async function willFailWithInfo(info: any): Promise<never> {
   throw new SpecialError("Goodbye cruel world!", info);
 }
