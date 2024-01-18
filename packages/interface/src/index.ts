@@ -10,14 +10,6 @@ const BASE_REHYDRATE = {
   "Date": (input: string) => new Date(Number(input))
 }
 
-export function parse(json: string){
-  return unpack(JSON.parse(json));
-}
-
-export function stringify(data: any){
-  return JSON.stringify(pack(data));
-}
-
 export function pack(data: any): any {
   if(data instanceof Date)
     return `!Date::${data.getTime()}`;
@@ -28,7 +20,7 @@ export function pack(data: any): any {
   if(data === null)
     return null;
 
-  if(Array.isArray(data))
+  if(data instanceof Array)
     return data.map(pack);
 
   if(typeof data == "object"){

@@ -1,4 +1,4 @@
-import { stringify, unpack } from '@entangled/interface';
+import { pack, unpack } from '@entangled/interface';
 
 import { newCustomError, notAsyncError, throwRemoteError } from './errors';
 
@@ -48,7 +48,7 @@ async function postRequest<B extends {}>(url: string, body: B){
       ['Content-Type']: 'application/json',
       ['Accept']: 'application/json'
     },
-    body: stringify(body)
+    body: JSON.stringify(pack(body))
   });
 
   const output = await response.json().then(unpack);
