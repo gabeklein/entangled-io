@@ -1,27 +1,26 @@
 import service from '@entangled/express';
-import express, { Handler } from 'express';
+import express from 'express';
 
-import * as API from '.';
+import * as MODULE_EXPORTS from '.';
 
-async function run(){
-  const PORT = 8080;
-  const entangled = service(API);
+async function run(port = 8080){
   const app = express();
+  const api = service(MODULE_EXPORTS);
 
-  app.use("/api", cors, entangled);
+  app.use("/api", cors, api);
 
-  app.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`);
+  app.listen(port, () => {
+    console.log(`Listening on port ${port}`);
   }) 
 }
 
-const cors: Handler = (req, res, next) => {
+const cors: express.Handler = (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "*");
   res.header("Access-Control-Allow-Methods", "*");
 
   if(req.method === 'OPTIONS')
-    res.sendStatus(200)
+    res.sendStatus(200);
   else
     next();
 }
