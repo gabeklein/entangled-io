@@ -28,7 +28,7 @@ importers:
   example/api:
     devDependencies:
       '@entangled/express':
-        specifier: 2.0.0-alpha.17
+        specifier: ^2.0.0
         version: link:../../packages/express
       '@types/express':
         specifier: ^4.17.21
@@ -43,10 +43,10 @@ importers:
   example/client:
     devDependencies:
       '@entangled/vite':
-        specifier: 2.0.0-alpha.17
+        specifier: ^2.0.0
         version: link:../../packages/vite
       '@example/api':
-        specifier: 2.0.0-alpha.17
+        specifier: ^2.0.0
         version: link:../api
       typescript:
         specifier: 5.3.3
@@ -88,7 +88,7 @@ importers:
   packages/express:
     dependencies:
       '@entangled/interface':
-        specifier: 2.0.0-alpha.16
+        specifier: ^2.0.0
         version: link:../interface
       '@types/cookie-parser':
         specifier: ^1.4.2
@@ -125,7 +125,7 @@ importers:
   packages/vite:
     dependencies:
       '@entangled/interface':
-        specifier: 2.0.0-alpha.16
+        specifier: ^2.0.0
         version: link:../interface
       ts-morph:
         specifier: ^21.0.1
@@ -478,11 +478,11 @@ packages:
   /@entangled/fetch@2.0.0-y.0:
     resolution: {integrity: sha512-BCotbElzofgF/esvtqBKbQX3L3g1KJzVeG7oO6mL7++hEv5vgIw8MO3xskbpdHHzsm0pbkwCQCxGf9RVIgD39w==}
     dependencies:
-      '@entangled/interface': 2.0.0-y.0
+      '@entangled/interface': 2.0.0
     dev: false
 
-  /@entangled/interface@2.0.0-y.0:
-    resolution: {integrity: sha512-6dOYkBQo3xQ5B+YBo+Qqtfz/j8L/oL1Zy/7Dw7LTA3ZBn2SoQ2AU9iK4tWEXigAY4h5ZkAlM1AElW9AKnjCl+Q==}
+  /@entangled/interface@2.0.0:
+    resolution: {integrity: sha512-AjcMRaW8knepfnEzK4ApUVGNEofwaTEx/Zz0HgJET8QII1sFE0YLbFjfz0bw9+VWoOu4XrJbgnvXCZEe2ndmuQ==}
     dev: false
 
   /@entangled/webpack@2.0.0-alpha.13(webpack-cli@4.10.0):
