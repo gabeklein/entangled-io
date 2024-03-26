@@ -5,7 +5,7 @@
   "main": "src",
   "license": "ISC",
   "scripts": {
-    "dev": "ts-node-dev ./src/start.ts --inspect"
+    "start": "ts-node-dev ./src/start.ts --inspect"
   },
   "devDependencies": {
     "@entangled/express": "^2.0.0",

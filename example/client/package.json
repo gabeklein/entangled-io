@@ -5,7 +5,7 @@
   "main": "src",
   "license": "ISC",
   "scripts": {
-    "dev": "vite"
+    "start": "vite"
   },
   "devDependencies": {
     "@entangled/vite": "^2.0.0",
