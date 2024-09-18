@@ -1,12 +1,10 @@
 import { Greetings, Error } from "@example/api";
 
-window.onload = testHello;
-
 export async function testHello(){
   const response = await
     Greetings.hello("Gabe", new Date("Jan 27"));
 
-  alert(`Server said: ${response}!`);
+  console.log(`Server said: ${response}!`)
 }
 
 export async function testErrors(){

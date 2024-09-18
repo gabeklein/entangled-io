@@ -1,9 +1,11 @@
-import Vite from 'vite';
-import Entangle from '@entangled/vite';
+import apiPlugin from '@entangled/vite';
+import jsxPlugin from '@expressive/vite-plugin';
+import vite from 'vite';
 
-export default <Vite.UserConfig> {
+export default <vite.UserConfig> {
   plugins: [
-    Entangle({
+    jsxPlugin(),
+    apiPlugin({
       include: /@example\/(\w+)/,
       baseUrl: "http://localhost:8080"
     })
