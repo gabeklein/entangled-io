@@ -51,26 +51,29 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
     const { namespace, resolved } = module;
     const watch = new Set<string>([resolved]);
     const items = parser.include(resolved, reload);
-
-    let handle = "";
     const code = [] as string[];
 
-    function needsEndpoint(){
+    let handle = "";
+
+    function add(name: string, inject: string){
       if(!handle){
         handle = "rpc";
-        code.push(
+        code.unshift(
           `import * as agent from "virtual:entangled-agent";\n`,
           `const ${handle} = agent.default("${namespace}");\n`
         );
       }
 
-      return handle;
+      code.push(`export const ${name} = ${inject}`);
     }
 
-    for(const item of items)
+    for(const item of items){
+      let { name } = item;
+
       switch(item.type){
         case "module":
-          const name = `${namespace}/${item.name}`.toLowerCase();
+          name = `${namespace}/${name}`.toLowerCase();
+  
           const virtual = `virtual:${name}`;
 
           entangled.set(virtual, {
@@ -79,27 +82,26 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
             namespace: name,
           });
 
-          code.push(`export * as ${item.name} from "${virtual}";`);
+          code.push(`export * as ${name} from "${virtual}";`);
         break;
 
         case "function":
-          needsEndpoint();
-
-          watch.add(item.name);
+          watch.add(name);
 
           if(!item.async){
-            code.push(`export const ${item.name} = () => ${handle}("${item.name}", { async: false });`);
+            add(name, `() => ${handle}("${name}", { async: false });`);
             continue;
           }
 
-          code.push(`export const ${item.name} = ${handle}("${item.name}");`);
+          add(name, `${handle}("${name}");`);
         break;
 
         case "error":
-          needsEndpoint();
-          code.push(`export const ${item.name} = ${handle}.error("${item.name}");`);
+          add(name, `${handle}.error("${name}");`);
         break;
       }
+
+    }
 
     return {
       id,
@@ -160,13 +162,13 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
       return null;
     },
     load(id){
+      const options = JSON.stringify({ baseUrl, ...runtimeOptions });
+
       if(id.startsWith("virtual:")){
         if(id == "virtual:entangled-agent")
           return [
             `import * as agent from "${agent}";`,
-            `export default agent.default(${JSON.stringify({
-              baseUrl, ...runtimeOptions
-            })});`
+            `export default agent.default(${options});`
           ].join("\n");
 
         const module = cache.get(id) || agentModule(id)!;
@@ -197,9 +199,7 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
 
       cache.set(file, result);
 
-      return [
-        shouldUpdate
-      ]
+      return [ shouldUpdate ]
     }
   };
 }
