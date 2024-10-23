@@ -55,6 +55,9 @@ importers:
       '@example/api':
         specifier: ^2.0.0
         version: link:../api
+      '@expressive/react':
+        specifier: ^0.52.0
+        version: 0.52.1(react@18.3.1)
       '@expressive/vite-plugin':
         specifier: ^0.2.5
         version: 0.2.5(vite@4.5.1)
@@ -1042,6 +1045,19 @@ packages:
       easing-coordinates: 2.0.2
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@expressive/mvc@0.52.1:
+    resolution: {integrity: sha512-Bd1+Qa9BzFJgV89n/GSFz7008aH92fTSN3HPNGjJOlhj15aUx1jaAdY8nkC6Y+2RKLnhvx3sc2YQFaF65+YORA==}
+    dev: true
+
+  /@expressive/react@0.52.1(react@18.3.1):
+    resolution: {integrity: sha512-98QNnjRrQhFbPJP3Ur68kZ6rgi5YIccKIbFUdNEUHyp5VuZ7oPe6WqfETt96BhFA2rWvoji3v3TJBCoeXUE7IQ==}
+    peerDependencies:
+      react: '>=16.8.0 <19.0.0'
+    dependencies:
+      '@expressive/mvc': 0.52.1
+      react: 18.3.1
     dev: true
 
   /@expressive/vite-plugin@0.2.5(vite@4.5.1):
@@ -4850,7 +4866,6 @@ packages:
     hasBin: true
     dependencies:
       js-tokens: 4.0.0
-    dev: false
 
   /lru-cache@10.1.0:
     resolution: {integrity: sha512-/1clY/ui8CzjKFyjdvwPWJUYKiFVXG2I2cY0ssG7h4+hwk+XOIX7ZSG9Q7TW8TW3Kp3BUSqgFWBLgL4PJ+Blag==}
@@ -5917,7 +5932,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dependencies:
       loose-envify: 1.4.0
-    dev: false
 
   /read-cmd-shim@2.0.0:
     resolution: {integrity: sha512-HJpV9bQpkl6KwjxlJcBoqu9Ba0PQg8TqSNIOrulGt54a0uup0HtevreFHzYzkm0lpnleRdNBzXznKrgxglEHQw==}
