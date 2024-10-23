@@ -19,13 +19,8 @@ interface Options {
   runtimeOptions?: {};
 }
 
-function ServiceAgentPlugin(options: Options = {}): Plugin {
-  let {
-    agent = DEFAULT_AGENT,
-    baseUrl = "/",
-    include,
-    runtimeOptions = {}
-  } = options;
+function ServiceAgentPlugin(options?: Options): Plugin {
+  const { agent, baseUrl, include, agentOptions } = configure(options);
 
   const cache = new Map<string, {
     id: string;
@@ -51,62 +46,59 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
     const { namespace, resolved } = module;
     const watch = new Set<string>([resolved]);
     const items = parser.include(resolved, reload);
-    const code = [] as string[];
 
     let handle = "";
+    let code = ""
 
-    function add(name: string, inject: string){
+    function inject(name: string, inject: () => string){
       if(!handle){
         handle = "rpc";
-        code.unshift(
-          `import * as agent from "virtual:entangled-agent";\n`,
-          `const ${handle} = agent.default("${namespace}");\n`
-        );
+        code +=
+          `import * as agent from "virtual:entangled-agent";\n` +
+          `const ${handle} = agent.default("${namespace}");\n\n`
       }
 
-      code.push(`export const ${name} = ${inject}`);
+      code += `export const ${name} = ${inject()}\n`;
     }
 
     for(const item of items){
-      let { name } = item;
+      const { name } = item;
 
       switch(item.type){
-        case "module":
-          name = `${namespace}/${name}`.toLowerCase();
-  
-          const virtual = `virtual:${name}`;
+        case "module": {
+          const mod = `virtual:${name}`;
+          const path = `${namespace}/${name}`.toLowerCase();
 
-          entangled.set(virtual, {
+          entangled.set(mod, {
             baseUrl: module.baseUrl,
             resolved: item.path,
-            namespace: name,
+            namespace: path,
           });
 
-          code.push(`export * as ${name} from "${virtual}";`);
+          code += `export * as ${name} from "${mod}";`
+        }
         break;
 
-        case "function":
+        case "function": {
           watch.add(name);
 
-          if(!item.async){
-            add(name, `() => ${handle}("${name}", { async: false });`);
-            continue;
-          }
-
-          add(name, `${handle}("${name}");`);
+          if(!item.async)
+            inject(name, () => `() => ${handle}("${name}", { async: false });`);
+          else
+            inject(name, () => `${handle}("${name}");`);
+        }
         break;
 
         case "error":
-          add(name, `${handle}.error("${name}");`);
+          inject(name, () => `${handle}.error("${name}");`);
         break;
       }
-
     }
 
     return {
       id,
       watch,
-      code: code.join("\n"),
+      code,
       moduleSideEffects: false
     }
   }
@@ -122,56 +114,38 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
 
       const resolver = () => this
         .resolve(source, importer, { skipSelf: true })
-        .then(x => resolved = x!);
-
-      if(typeof include === "string"){
-        const [expect, namespace = "api"] = include.split(":");
-        include = (source) => {
-          return source == expect ? namespace : null;
-        };
-      }
-      else if(include instanceof RegExp){
-        const regex = include;
-        include = (source) => {
-          const match = regex.exec(source);
-          return match ? match[1] || "api" : null;
-        };
-      }
+        .then(x => resolved = x);
 
       const name = include && await include(source, resolver);
 
-      if(name){
-        const namespace = typeof name === "string" ? name : "";
-        const identifier = `virtual:${namespace}`;
+      if(!name)
+        return null;
 
-        if(!resolved)
-          await resolver();
+      const identifier = `virtual:${name}`;
 
-        if(!resolved)
-          throw new Error(`Cannot resolve ${source} from ${importer}`);
+      if(!resolved)
+        await resolver();
 
-        entangled.set(identifier, {
-          baseUrl,
-          resolved: resolved.id,
-          namespace
-        });
+      if(!resolved)
+        throw new Error(`Cannot resolve ${source} from ${importer}`);
 
-        return identifier;
-      }
+      entangled.set(identifier, {
+        baseUrl,
+        resolved: resolved.id,
+        namespace: name
+      });
 
-      return null;
+      return identifier;
     },
     load(id){
-      const options = JSON.stringify({ baseUrl, ...runtimeOptions });
-
       if(id.startsWith("virtual:")){
         if(id == "virtual:entangled-agent")
           return [
             `import * as agent from "${agent}";`,
-            `export default agent.default(${options});`
+            `export default agent.default(${agentOptions});`
           ].join("\n");
 
-        const module = cache.get(id) || agentModule(id)!;
+        const module = cache.get(id) || agentModule(id);
         
         for(const resolved of module.watch){
           cache.set(resolved, module);
@@ -202,6 +176,31 @@ function ServiceAgentPlugin(options: Options = {}): Plugin {
       return [ shouldUpdate ]
     }
   };
+}
+
+function configure(options: Options | undefined){
+  let {
+    agent = DEFAULT_AGENT,
+    baseUrl = "/",
+    include,
+    runtimeOptions = {}
+  } = options || {};
+
+  const agentOptions = JSON.stringify({ baseUrl, ...runtimeOptions });
+
+  if(typeof include === "string"){
+    const [expect, namespace = "api"] = include.split(":");
+    include = (src) => src == expect ? namespace : null
+  }
+  else if(include instanceof RegExp){
+    const regex = include;
+    include = (src) => {
+      const match = regex.exec(src);
+      return match ? match[1] || "api" : null;
+    };
+  }
+  
+  return { agent, baseUrl, include, agentOptions };
 }
 
 export default ServiceAgentPlugin;
