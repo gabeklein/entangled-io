@@ -1,8 +1,8 @@
 import apiPlugin from '@entangled/vite';
 import jsxPlugin from '@expressive/vite-plugin';
-import vite from 'vite';
+import { defineConfig } from 'vite';
 
-export default <vite.UserConfig> {
+export default defineConfig({
   plugins: [
     jsxPlugin(),
     apiPlugin({
@@ -10,4 +10,4 @@ export default <vite.UserConfig> {
       baseUrl: "http://localhost:8080"
     })
   ]
-}
+})

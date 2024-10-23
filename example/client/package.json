@@ -11,6 +11,7 @@
     "@entangled/vite": "^2.0.0",
     "@example/api": "^2.0.0",
     "@expressive/vite-plugin": "^0.2.5",
+    "@expressive/react": "^0.52.0",
     "@types/react": "^18.3.7",
     "@types/react-dom": "^18.3.0",
     "typescript": "5.3.3",
