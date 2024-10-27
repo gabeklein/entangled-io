@@ -1,11 +1,33 @@
 import Entangled from '@entangled/interface';
-import * as Express from 'express';
+import express from 'express';
 
 import { abstract } from './abstract';
 import { setCustomError } from './errors';
 
-export function service(exports: {}): Express.Router {
-  const router = Express.Router().use(Express.json());
+const noCors: express.Handler = (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "*");
+  res.header("Access-Control-Allow-Methods", "*");
+
+  if(req.method === 'OPTIONS')
+    res.sendStatus(200);
+  else
+    next();
+}
+
+export function serve(module: {}, baseUrl = "/api", port = 8080){
+  const app = express();
+  const api = service(module);
+
+  app.use(baseUrl, noCors, api);
+
+  app.listen(port, () => {
+    console.log(`Listening on port ${port}`);
+  }) 
+}
+
+export function service(exports: {}): express.Router {
+  const router = express.Router().use(express.json());
 
   function register(
     handle: Entangled.Schema | Function, 
