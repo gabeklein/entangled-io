@@ -18,7 +18,7 @@ declare namespace Parser {
     }
 }
 
-export class Parser extends Project {
+class Parser extends Project {
   constructor(){
     super({
       skipAddingFilesFromTsConfig: true,
@@ -93,3 +93,5 @@ function isErrorType(node: Node){
 
   return false;
 }
+
+export { Parser }
