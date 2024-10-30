@@ -6,6 +6,9 @@ const DEFAULT_AGENT = require.resolve("../runtime/fetch.ts");
 
 type AsyncMaybe<T> = T | Promise<T>;
 
+const VIRTUAL = "\0virtual:"
+const AGENT_ID = VIRTUAL + "entangled-agent";
+
 namespace Options {
   export type Test =
     (request: string, resolve: () => Promise<Rollup.ResolvedId>) =>
@@ -19,60 +22,56 @@ interface Options {
   runtimeOptions?: {};
 }
 
-function ServiceAgentPlugin(options?: Options): Plugin {
-  const { agent, baseUrl, include, agentOptions } = configure(options);
+interface AgentModule {
+  id: string;
+  code: string;
+  watch: Set<string>;
+  moduleSideEffects: boolean;
+}
 
-  const cache = new Map<string, {
-    id: string;
-    code: string;
-    watch: Set<string>;
-    moduleSideEffects: boolean;
-  }>();
+interface CachedModule {
+  namespace: string;
+  resolved: string;
+  // baseUrl: string;
+}
 
-  const entangled = new Map<string, {
-    namespace: string;
-    resolved: string;
-    baseUrl: string;
-  }>();
+class AgentModules {
+  modules = new Map<string, CachedModule>();
+  parser = new Parser();
 
-  const parser = new Parser();
-
-  function agentModule(id: string, reload: boolean = false){
-    const module = entangled.get(id);
+  get(id: string, reload: boolean = false): AgentModule | undefined {
+    const module = this.modules.get(id);
 
     if(!module)
       return;
 
     const { namespace, resolved } = module;
+    const exports = this.parser.include(resolved, reload);
     const watch = new Set<string>([resolved]);
-    const items = parser.include(resolved, reload);
 
     let handle = "";
     let code = ""
 
-    function inject(name: string, inject: () => string){
+    function add(inject: () => string){
       if(!handle){
         handle = "rpc";
-        code +=
-          `import * as agent from "virtual:entangled-agent";\n` +
-          `const ${handle} = agent.default("${namespace}");\n\n`
+        code += `import * as agent from "${AGENT_ID}";\n`
+        code += `const ${handle} = agent.default("${namespace}");\n\n`
       }
 
-      code += `export const ${name} = ${inject()}\n`;
+      code += inject() + "\n";
     }
 
-    for(const item of items){
+    for(const item of exports){
       const { name } = item;
 
       switch(item.type){
         case "module": {
-          const mod = `virtual:${name}`;
-          const path = `${namespace}/${name}`.toLowerCase();
+          const mod = VIRTUAL + name;
 
-          entangled.set(mod, {
-            baseUrl: module.baseUrl,
+          this.modules.set(mod, {
             resolved: item.path,
-            namespace: path,
+            namespace: `${namespace}/${name}`,
           });
 
           code += `export * as ${name} from "${mod}";`
@@ -82,15 +81,15 @@ function ServiceAgentPlugin(options?: Options): Plugin {
         case "function": {
           watch.add(name);
 
-          if(!item.async)
-            inject(name, () => `() => ${handle}("${name}", { async: false });`);
-          else
-            inject(name, () => `${handle}("${name}");`);
+          add(() => item.async
+            ? `export const ${name} = ${handle}("${name}");`
+            : `export const ${name} = () => ${handle}("${name}", { async: false });`
+          );
         }
         break;
 
         case "error":
-          inject(name, () => `${handle}.error("${name}");`);
+          add(() => `export const ${name} = ${handle}.error("${name}");`);
         break;
       }
     }
@@ -103,11 +102,26 @@ function ServiceAgentPlugin(options?: Options): Plugin {
     }
   }
 
+  set(key: string, info: CachedModule){
+    this.modules.set(key, info)
+  }
+}
+
+function ServiceAgentPlugin(options?: Options): Plugin {
+  const { agent, include, agentOptions } = configure(options);
+
+  const cache = new Map<string, AgentModule>();
+  const agentModules = new AgentModules();
+
+  const AGENT_CODE = 
+    `import * as agent from "${agent}";\n` +
+    `export default agent.default(${agentOptions});`
+
   return {
     name: 'entangled:client-plugin',
     enforce: 'pre',
     async resolveId(source, importer){
-      if(source.startsWith("virtual:"))
+      if(source.startsWith(VIRTUAL))
         return source;
 
       let resolved: Rollup.ResolvedId | undefined;
@@ -121,7 +135,7 @@ function ServiceAgentPlugin(options?: Options): Plugin {
       if(!name)
         return null;
 
-      const identifier = `virtual:${name}`;
+      const identifier = VIRTUAL + name;
 
       if(!resolved)
         await resolver();
@@ -129,8 +143,7 @@ function ServiceAgentPlugin(options?: Options): Plugin {
       if(!resolved)
         throw new Error(`Cannot resolve ${source} from ${importer}`);
 
-      entangled.set(identifier, {
-        baseUrl,
+      agentModules.set(identifier, {
         resolved: resolved.id,
         namespace: name
       });
@@ -138,24 +151,20 @@ function ServiceAgentPlugin(options?: Options): Plugin {
       return identifier;
     },
     load(id){
-      if(id.startsWith("virtual:")){
-        if(id == "virtual:entangled-agent")
-          return [
-            `import * as agent from "${agent}";`,
-            `export default agent.default(${agentOptions});`
-          ].join("\n");
+      if(!id.startsWith(VIRTUAL))
+        return null;
+      
+      if(id == AGENT_ID)
+        return AGENT_CODE;
 
-        const module = cache.get(id) || agentModule(id);
-        
-        for(const resolved of module.watch){
-          cache.set(resolved, module);
-          this.addWatchFile(resolved);
-        }
-
-        return module;
+      const module = cache.get(id) || agentModules.get(id);
+      
+      for(const resolved of module.watch){
+        cache.set(resolved, module);
+        this.addWatchFile(resolved);
       }
 
-      return null;
+      return module;
     },
     handleHotUpdate({ file, server }){
       const module = cache.get(file);
@@ -163,7 +172,7 @@ function ServiceAgentPlugin(options?: Options): Plugin {
       if(!module)
         return;
 
-      const result = agentModule(module.id, true)!;
+      const result = agentModules.get(module.id, true)!;
 
       if(module.code == result.code)
         return [];
