@@ -26,80 +26,73 @@ interface AgentModule {
   id: string;
   code: string;
   watch: Set<string>;
-  moduleSideEffects: boolean;
 }
 
 interface CachedModule {
-  namespace: string;
-  resolved: string;
-  // baseUrl: string;
+  path: string;
+  id: string;
 }
 
-class AgentModules {
+class AgentModules extends Parser {
+  cache = new Map<string, AgentModule>();
   modules = new Map<string, CachedModule>();
-  parser = new Parser();
 
   get(id: string, reload: boolean = false): AgentModule | undefined {
+    const cached = this.cache.get(id);
+
+    if(cached && !reload)
+      return cached;
+
     const module = this.modules.get(id);
 
     if(!module)
       return;
 
-    const { namespace, resolved } = module;
-    const exports = this.parser.include(resolved, reload);
+    const { path, id: resolved } = module;
+    const exports = this.include(resolved, reload);
     const watch = new Set<string>([resolved]);
 
     let handle = "";
     let code = ""
 
-    function add(inject: () => string){
-      if(!handle){
-        handle = "rpc";
-        code += `import * as agent from "${AGENT_ID}";\n`
-        code += `const ${handle} = agent.default("${namespace}");\n\n`
-      }
-
-      code += inject() + "\n";
-    }
-
     for(const item of exports){
       const { name } = item;
 
+      if(item.type == "module"){
+        const mod = VIRTUAL + name;
+
+        this.modules.set(mod, {
+          id: item.path,
+          path: `${path}/${name}`,
+        });
+
+        code += `export * as ${name} from "${mod}";\n`
+
+        continue;
+      }
+
+      if(!handle){
+        handle = "rpc";
+        code += `import * as agent from "${AGENT_ID}";\n`
+        code += `const ${handle} = agent.default("${path}");\n\n`
+      }
+
       switch(item.type){
-        case "module": {
-          const mod = VIRTUAL + name;
-
-          this.modules.set(mod, {
-            resolved: item.path,
-            namespace: `${namespace}/${name}`,
-          });
-
-          code += `export * as ${name} from "${mod}";`
-        }
-        break;
-
-        case "function": {
+        case "function":
           watch.add(name);
 
-          add(() => item.async
-            ? `export const ${name} = ${handle}("${name}");`
-            : `export const ${name} = () => ${handle}("${name}", { async: false });`
-          );
-        }
+          code += item.async
+            ? `export const ${name} = ${handle}("${name}");\n`
+            : `export const ${name} = () => ${handle}("${name}", { async: false });\n`
+
         break;
 
         case "error":
-          add(() => `export const ${name} = ${handle}.error("${name}");`);
-        break;
+          code += `export const ${name} = ${handle}.error("${name}");\n`
       }
     }
 
-    return {
-      id,
-      watch,
-      code,
-      moduleSideEffects: false
-    }
+    return { code, id, watch }
   }
 
   set(key: string, info: CachedModule){
@@ -112,10 +105,6 @@ function ServiceAgentPlugin(options?: Options): Plugin {
 
   const cache = new Map<string, AgentModule>();
   const agentModules = new AgentModules();
-
-  const AGENT_CODE = 
-    `import * as agent from "${agent}";\n` +
-    `export default agent.default(${agentOptions});`
 
   return {
     name: 'entangled:client-plugin',
@@ -144,8 +133,8 @@ function ServiceAgentPlugin(options?: Options): Plugin {
         throw new Error(`Cannot resolve ${source} from ${importer}`);
 
       agentModules.set(identifier, {
-        resolved: resolved.id,
-        namespace: name
+        id: resolved.id,
+        path: name
       });
 
       return identifier;
@@ -155,13 +144,16 @@ function ServiceAgentPlugin(options?: Options): Plugin {
         return null;
       
       if(id == AGENT_ID)
-        return AGENT_CODE;
+        return (
+          `import * as agent from "${agent}";\n` +
+          `export default agent.default(${agentOptions});`
+        );
 
-      const module = cache.get(id) || agentModules.get(id);
+      const module = agentModules.get(id);
       
-      for(const resolved of module.watch){
-        cache.set(resolved, module);
-        this.addWatchFile(resolved);
+      for(const dependancy of module.watch){
+        cache.set(dependancy, module);
+        this.addWatchFile(dependancy);
       }
 
       return module;
