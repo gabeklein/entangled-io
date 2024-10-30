@@ -51,7 +51,16 @@ class AgentModules extends Parser {
     const { path, id: resolved } = module;
     const exports = this.include(resolved, reload);
     const watch = new Set<string>([resolved]);
+    const code = this.code(path, exports);
 
+    for(const item of exports)
+      if(item.type == "module")
+        watch.add(item.path);
+
+    return { code, id, watch }
+  }
+
+  code(path: string, exports: Set<Parser.ExportItem>){
     let handle = "";
     let code = ""
 
@@ -79,8 +88,6 @@ class AgentModules extends Parser {
 
       switch(item.type){
         case "function":
-          watch.add(name);
-
           code += item.async
             ? `export const ${name} = ${handle}("${name}");\n`
             : `export const ${name} = () => ${handle}("${name}", { async: false });\n`
@@ -92,7 +99,7 @@ class AgentModules extends Parser {
       }
     }
 
-    return { code, id, watch }
+    return code;
   }
 
   set(key: string, info: CachedModule){
