@@ -16,6 +16,17 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Run File",
+      "program": "${relativeFile}",
+      "runtimeArgs": [
+        "--nolazy",
+        "-r", "ts-node/register/transpile-only",
+        "-r", "source-map-support/register"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Run webpack-dev-server",
       "cwd": "${workspaceFolder}/example/client",
       "program": "${workspaceFolder}/node_modules/webpack-dev-server/bin/webpack-dev-server.js",
