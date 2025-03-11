@@ -5,12 +5,12 @@
       "type": "node",
       "request": "launch",
       "name": "Run Service",
-      "cwd": "${workspaceFolder}/example/service",
+      "cwd": "${workspaceFolder}/packages/express",
       "runtimeArgs": [
         "--nolazy",
         "-r", "ts-node/register", 
         "-r", "source-map-support/register", 
-        "-r", "./src/index.ts"
+        "-r", "./src/serve.ts"
       ]
     },
     {
