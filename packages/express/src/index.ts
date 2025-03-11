@@ -15,7 +15,7 @@ const noCors: express.Handler = (req, res, next) => {
     next();
 }
 
-export function serve(module: {}, baseUrl = "/api", port = 8080){
+function serve(module: {}, baseUrl = "/api", port = 8080){
   const app = express();
   const api = service(module);
 
@@ -26,7 +26,7 @@ export function serve(module: {}, baseUrl = "/api", port = 8080){
   }) 
 }
 
-export function service(exports: {}): express.Router {
+function service(exports: {}): express.Router {
   const router = express.Router().use(express.json());
 
   function register(
@@ -53,5 +53,6 @@ export function service(exports: {}): express.Router {
   return router;
 }
 
+export { serve };
 export { useContext } from './async_hook';
 export default service;
