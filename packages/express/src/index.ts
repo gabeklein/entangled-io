@@ -53,6 +53,6 @@ function service(exports: {}): express.Router {
   return router;
 }
 
-export { serve };
+export { serve, service };
 export { useContext } from './async_hook';
-export default service;
+export default serve;

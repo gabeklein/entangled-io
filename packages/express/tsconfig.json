@@ -10,9 +10,7 @@
     "declaration": true,
     "noUnusedLocals": true,
     "paths": {
-      "@entangled/*": [
-        "../*/src"
-      ]
+      "@entangled/*": ["../*/src"]
     }
   },
   "include": ["src"],

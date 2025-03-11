@@ -1,16 +1,16 @@
 {
   "name": "@entangled/express",
   "version": "2.0.0",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "license": "ISC",
   "files": [
-    "lib"
+    "dist"
   ],
   "scripts": {
     "prebuild": "rm -rf lib",
-    "build": "tsc --declaration",
-    "watch": "tsc -w --sourcemap"
+    "build": "tsup src/index.ts --dts --format esm,cjs"
   },
   "publishConfig": {
     "access": "public"
@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/express": "^4.17.2",
     "@types/node": "^14.6.0",
+    "tsup": "^8.0.1",
     "typescript": "5.3.3"
   }
 }
