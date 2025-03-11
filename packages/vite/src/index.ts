@@ -108,7 +108,26 @@ class AgentModules extends Parser {
 }
 
 function ServiceAgentPlugin(options?: Options): Plugin {
-  const { agent, include, agentOptions } = configure(options);
+  let {
+    agent = DEFAULT_AGENT,
+    baseUrl = "/",
+    include,
+    runtimeOptions = {}
+  } = options || {};
+
+  const agentOptions = JSON.stringify({ baseUrl, ...runtimeOptions });
+
+  if(typeof include === "string"){
+    const [expect, namespace = "api"] = include.split(":");
+    include = (src) => src == expect ? namespace : null
+  }
+  else if(include instanceof RegExp){
+    const regex = include;
+    include = (src) => {
+      const match = regex.exec(src);
+      return match ? match[1] || "api" : null;
+    };
+  }
 
   const cache = new Map<string, AgentModule>();
   const agentModules = new AgentModules();
@@ -184,31 +203,6 @@ function ServiceAgentPlugin(options?: Options): Plugin {
       return [ shouldUpdate ]
     }
   };
-}
-
-function configure(options: Options | undefined){
-  let {
-    agent = DEFAULT_AGENT,
-    baseUrl = "/",
-    include,
-    runtimeOptions = {}
-  } = options || {};
-
-  const agentOptions = JSON.stringify({ baseUrl, ...runtimeOptions });
-
-  if(typeof include === "string"){
-    const [expect, namespace = "api"] = include.split(":");
-    include = (src) => src == expect ? namespace : null
-  }
-  else if(include instanceof RegExp){
-    const regex = include;
-    include = (src) => {
-      const match = regex.exec(src);
-      return match ? match[1] || "api" : null;
-    };
-  }
-  
-  return { agent, baseUrl, include, agentOptions };
 }
 
 export default ServiceAgentPlugin;
