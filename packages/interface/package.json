@@ -10,13 +10,9 @@
   },
   "scripts": {
     "prebuild": "rm -rf dist",
-    "build": "tsup src/index.ts --dts --format cjs,esm"
+    "build": "tsup"
   },
   "files": [
     "dist"
-  ],
-  "devDependencies": {
-    "tsup": "^8.0.1",
-    "typescript": "5.3.3"
-  }
+  ]
 }

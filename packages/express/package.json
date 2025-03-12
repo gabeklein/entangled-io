@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "prebuild": "rm -rf lib",
-    "build": "tsup src/index.ts --dts --format esm,cjs"
+    "build": "tsup"
   },
   "publishConfig": {
     "access": "public"
