@@ -206,3 +206,4 @@ function ServiceAgentPlugin(options?: Options): Plugin {
 }
 
 export default ServiceAgentPlugin;
+export { ServiceAgentPlugin };
