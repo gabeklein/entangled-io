@@ -6,11 +6,11 @@ const DEFAULT_AGENT = require.resolve("../runtime/fetch.ts");
 
 type AsyncMaybe<T> = T | Promise<T>;
 
-const VIRTUAL = "\0virtual:api:";
+const VIRTUAL = "\0virtual:entangle:";
 const AGENT_ID = VIRTUAL + "entangled-agent";
 
 export type TestFunction = (
-  request: string, 
+  request: string,
   resolve: () => Promise<Rollup.ResolvedId | null>
 ) => AsyncMaybe<string | null | false>;
 
@@ -19,19 +19,18 @@ interface Options {
   agent?: string;
   include?: TestFunction | string | RegExp;
   runtimeOptions?: Record<string, unknown>;
+  cacheStrategy?: 'aggressive' | 'conservative' | 'disabled';
   debug?: boolean;
   hmr?: {
     enabled?: boolean;
     strategy?: 'full-reload' | 'module-reload';
   };
-  cacheStrategy?: 'aggressive' | 'conservative' | 'disabled';
 }
 
 interface AgentModule {
   id: string;
   code: string;
   watch: Set<string>;
-  timestamp: number;
 }
 
 interface CachedModule {
@@ -42,95 +41,76 @@ interface CachedModule {
 class AgentModules extends Parser {
   private cache = new Map<string, AgentModule>();
   private modules = new Map<string, CachedModule>();
-  private logDebug: (message: string) => void;
   private cacheStrategy: Options['cacheStrategy'];
 
-  constructor(debugFn: (message: string) => void, cacheStrategy: Options['cacheStrategy'] = 'conservative') {
+  constructor(cacheStrategy: Options['cacheStrategy'] = 'conservative') {
     super();
-    this.logDebug = debugFn;
     this.cacheStrategy = cacheStrategy;
   }
 
   clear(): void {
-    this.logDebug('Clearing AgentModules cache');
     this.cache.clear();
     this.modules.clear();
   }
 
   validateCache(id: string): boolean {
-    if (this.cacheStrategy === 'disabled') return false;
-    
+    if (this.cacheStrategy === 'disabled')
+      return false;
+
     const cached = this.cache.get(id);
-    if (!cached) return false;
-    
-    if (this.cacheStrategy === 'aggressive') return true;
-    
+
+    if (!cached)
+      return false;
+
+    if (this.cacheStrategy === 'aggressive')
+      return true;
+
     // For conservative strategy, check if watched files still exist and are valid
     try {
-      for (const file of cached.watch) {
-        if (!this.fileExists(file)) {
-          this.logDebug(`Cache invalidated for ${id}: watched file ${file} no longer exists`);
+      for (const file of cached.watch)
+        if (!this.fileExists(file))
           return false;
-        }
-      }
+
       return true;
     } catch (error) {
-      this.logDebug(`Error validating cache for ${id}: ${error}`);
       return false;
     }
   }
 
   fileExists(path: string): boolean {
     try {
-      const sourceFile = this.getSourceFile(path);
-      return !!sourceFile;
+      return !!this.getSourceFile(path);
     } catch {
       return false;
     }
   }
 
   get(id: string, reload: boolean = false): AgentModule | undefined {
-    this.logDebug(`Getting module: ${id}, reload: ${reload}`);
-    
     const cached = this.cache.get(id);
 
-    if (cached && !reload && this.validateCache(id)) {
-      this.logDebug(`Using cached module for ${id}`);
+    if (cached && !reload && this.validateCache(id))
       return cached;
-    }
 
     const module = this.modules.get(id);
 
-    if (!module) {
-      this.logDebug(`No module found for ${id}`);
+    if (!module)
       return;
-    }
 
     try {
       const { path, id: resolved } = module;
-      this.logDebug(`Generating code for ${id} from ${resolved}`);
-      
       const exports = this.include(resolved, reload);
       const watch = new Set<string>([resolved]);
       const code = this.code(path, exports);
 
-      for (const item of exports) {
-        if (item.type == "module") {
+      for (const item of exports)
+        if (item.type == "module")
           watch.add(item.path);
-        }
-      }
 
-      const result: AgentModule = { 
-        code, 
-        id, 
-        watch,
-        timestamp: Date.now()
-      };
-      
+      const result: AgentModule = { code, id, watch };
+
       this.cache.set(id, result);
       return result;
     } catch (error) {
-      this.logDebug(`Error generating module for ${id}: ${error}`);
       return undefined;
     }
   }
@@ -177,7 +157,6 @@ class AgentModules extends Parser {
   }
 
   set(key: string, info: CachedModule) {
-    this.logDebug(`Setting module info for ${key}`);
     this.modules.set(key, info);
   }
 }
@@ -187,14 +166,13 @@ function normalizeInclude(include: Options['include']): TestFunction {
     const [expect, namespace = "api"] = include.split(":");
     return (src) => src === expect ? namespace : null;
   }
-  
-  if (include instanceof RegExp) {
+
+  if (include instanceof RegExp)
     return (src) => {
       const match = include.exec(src);
       return match ? match[1] || "api" : null;
     };
-  }
-  
+
   return include || (() => null);
 }
 
@@ -204,34 +182,22 @@ function ServiceAgentPlugin(options?: Options): Plugin {
     baseUrl = "/",
     include,
     runtimeOptions = {},
-    debug = false,
     hmr = { enabled: true, strategy: 'module-reload' },
     cacheStrategy = 'conservative'
   } = options || {};
 
   const agentOptions = JSON.stringify({ baseUrl, ...runtimeOptions });
-  
-  const logDebug = (message: string) => {
-    if (debug) console.log(`[entangled:client-plugin] ${message}`);
-  };
-
   const testInclude = normalizeInclude(include);
   const cache = new Map<string, AgentModule>();
-  const agentModules = new AgentModules(logDebug, cacheStrategy);
+  const agentModules = new AgentModules(cacheStrategy);
 
   return {
     name: 'entangled:client-plugin',
     enforce: 'pre',
-    
-    configResolved(config) {
-      logDebug(`Plugin initialized with ${config.mode} mode`);
-    },
-    
+
     async resolveId(source, importer) {
-      if (source.startsWith(VIRTUAL)) {
-        logDebug(`Resolved virtual module: ${source}`);
+      if (source.startsWith(VIRTUAL))
         return source;
-      }
 
       let resolved: Rollup.ResolvedId | null = null;
 
@@ -240,7 +206,7 @@ function ServiceAgentPlugin(options?: Options): Plugin {
           resolved = await this.resolve(source, importer, { skipSelf: true });
           return resolved;
         } catch (error) {
-          this.warn(`Failed to resolve ${source} from ${importer}: ${error}`);
+          console.warn(`Failed to resolve ${source} from ${importer}: ${error}`);
           return null;
         }
       };
@@ -248,26 +214,18 @@ function ServiceAgentPlugin(options?: Options): Plugin {
       try {
         const name = testInclude && await testInclude(source, resolver);
 
-        if (!name) {
-          logDebug(`Module ${source} does not match include pattern`);
+        if (!name)
           return null;
-        }
 
         const identifier = VIRTUAL + name;
-        logDebug(`Identified ${source} as entangled module: ${identifier}`);
 
-        if (!resolved) {
+        if (!resolved)
           await resolver();
-        }
 
-        if (!resolved) {
+        if (!resolved)
           throw new Error(`Cannot resolve ${source} from ${importer}`);
-        }
 
-        agentModules.set(identifier, {
-          id: resolved.id,
-          path: name
-        });
+        agentModules.set(identifier, { id: resolved.id, path: name });
 
         return identifier;
       } catch (error) {
@@ -275,32 +233,24 @@ function ServiceAgentPlugin(options?: Options): Plugin {
         return null;
       }
     },
-    
+
     load(id) {
-      if (!id.startsWith(VIRTUAL)) {
+      if (!id.startsWith(VIRTUAL))
         return null;
-      }
-      
-      logDebug(`Loading virtual module: ${id}`);
-      
-      if (id == AGENT_ID) {
-        logDebug(`Loading agent entry point from ${agent}`);
+
+      if (id == AGENT_ID)
         return (
           `import * as agent from "${agent}";\n` +
           `export default agent.default(${agentOptions});`
         );
-      }
 
       try {
         const module = agentModules.get(id);
-        
-        if (!module) {
-          this.warn(`Could not load module: ${id}`);
+
+        if (!module)
           return null;
-        }
-        
+
         for (const dependency of module.watch) {
-          logDebug(`Adding watch dependency: ${dependency} for ${id}`);
           cache.set(dependency, module);
           this.addWatchFile(dependency);
         }
@@ -311,56 +261,41 @@ function ServiceAgentPlugin(options?: Options): Plugin {
         return null;
       }
     },
-    
+
     handleHotUpdate({ file, server }) {
-      if (!hmr.enabled) {
-        logDebug(`HMR is disabled, ignoring update for ${file}`);
+      if (!hmr.enabled)
         return;
-      }
-      
+
       if (hmr.strategy === 'full-reload') {
-        logDebug(`Full reload strategy, restarting server for ${file}`);
         server.restart();
         return [];
       }
-      
+
       const module = cache.get(file);
 
-      if (!module) {
-        logDebug(`No cached module for ${file}, ignoring update`);
+      if (!module)
         return;
-      }
 
-      logDebug(`HMR: Updating module ${module.id} due to file change: ${file}`);
-      
       try {
         const result = agentModules.get(module.id, true);
 
-        if (!result) {
-          logDebug(`Failed to get updated module for ${module.id}`);
+        if (!result)
           return;
-        }
 
-        if (module.code === result.code) {
-          logDebug(`No changes detected in ${module.id}, skipping HMR`);
+        if (module.code === result.code)
           return [];
-        }
 
         const { moduleGraph } = server;
-        if (!moduleGraph) {
-          logDebug(`No moduleGraph available, cannot perform HMR`);
+
+        if (!moduleGraph)
           return;
-        }
-        
+
         const moduleToUpdate = moduleGraph.getModuleById(module.id);
-        
-        if (!moduleToUpdate) {
-          logDebug(`Module ${module.id} not found in moduleGraph`);
+
+        if (!moduleToUpdate)
           return;
-        }
 
         cache.set(file, result);
-        logDebug(`HMR: Successfully updated ${module.id}`);
 
         return [moduleToUpdate];
       } catch (error) {
@@ -368,9 +303,8 @@ function ServiceAgentPlugin(options?: Options): Plugin {
         return;
       }
     },
-    
+
     closeBundle() {
-      logDebug('Closing bundle, cleaning up resources');
       agentModules.clear();
       cache.clear();
     }
