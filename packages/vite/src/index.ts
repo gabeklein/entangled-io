@@ -7,7 +7,7 @@ const DEFAULT_AGENT = require.resolve("../runtime/fetch.ts");
 type AsyncMaybe<T> = T | Promise<T>;
 
 const VIRTUAL = "\0virtual:entangle:";
-const AGENT_ID = VIRTUAL + "entangled-agent";
+const AGENT_ID = VIRTUAL.slice(0, -1);
 
 export type TestFunction = (
   request: string,
