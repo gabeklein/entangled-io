@@ -3,7 +3,7 @@
       "outDir": "lib/",
       "baseUrl": "src/",
       "target": "ES6",
-      "jsx": "react",
+      "jsx": "react-jsx",
       "module": "ES2022",
       "moduleResolution": "node",
       "noUnusedLocals": true,
