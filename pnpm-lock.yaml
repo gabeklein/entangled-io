@@ -40,7 +40,7 @@ importers:
         specifier: ^2.2.0
         version: link:../../packages/express
       '@entangled/vite':
-        specifier: ^2.2.0
+        specifier: ^2.2.1
         version: link:../../packages/vite
       '@types/express':
         specifier: ^4.17.21
@@ -62,10 +62,10 @@ importers:
         version: 18.3.1(react@18.3.1)
     devDependencies:
       '@entangled/vite':
-        specifier: ^2.2.0
+        specifier: ^2.2.1
         version: link:../../packages/vite
       '@example/api':
-        specifier: ^2.2.0
+        specifier: ^2.2.1
         version: link:../api
       '@expressive/react':
         specifier: ^0.52.0
