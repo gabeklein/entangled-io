@@ -4,8 +4,8 @@ import { Options, TestFunction } from './types';
 
 const DEFAULT_AGENT = "@entangled/vite/fetch";
 
-const VIRTUAL = "\0virtual:entangle:";
-const AGENT_ID = VIRTUAL.slice(0, -1);
+export const VIRTUAL = "\0virtual:entangle:";
+export const AGENT_ID = VIRTUAL.slice(0, -1);
 
 function ServiceAgentPlugin(options?: Options): Plugin {
   const {

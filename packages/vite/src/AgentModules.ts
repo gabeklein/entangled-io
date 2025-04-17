@@ -1,9 +1,7 @@
 import { Node, Project, ts } from 'ts-morph';
 
 import { CacheStrategy } from './types';
-
-const VIRTUAL = "\0virtual:entangle:";
-const AGENT_ID = VIRTUAL.slice(0, -1);
+import { AGENT_ID, VIRTUAL } from './ServiceAgentPlugin';
 
 // ExportItem type moved from Parser
 type ExportItem =
