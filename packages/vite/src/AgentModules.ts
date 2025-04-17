@@ -1,6 +1,6 @@
 import { Node, Project, ts } from 'ts-morph';
 
-import { CacheStrategy } from './types';
+type CacheStrategy = 'disabled' | 'conservative' | 'aggressive';
 
 // ExportItem type moved from Parser
 type ExportItem =
@@ -163,4 +163,4 @@ function isErrorType(node: Node) {
   return false;
 }
 
-export { AgentModules, AgentModule };
+export { AgentModules, AgentModule, CacheStrategy };

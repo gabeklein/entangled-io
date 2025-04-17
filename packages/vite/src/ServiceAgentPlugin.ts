@@ -1,15 +1,38 @@
 import { Plugin, Rollup } from 'vite';
-import { AgentModule, AgentModules } from './AgentModules';
-import { Options, TestFunction } from './types';
 
-const DEFAULT_AGENT = "@entangled/vite/fetch";
+import { AgentModule, AgentModules, CacheStrategy } from './AgentModules';
 
-export const VIRTUAL = "\0virtual:entangle:";
-export const AGENT_ID = VIRTUAL.slice(0, -1);
+const AGENT_DEFAULT = "@entangled/vite/fetch";
+const VIRTUAL = "\0virtual:entangle:";
+const AGENT_ID = VIRTUAL.slice(0, -1);
+
+type Async<T> = T | Promise<T>;
+
+type TestFunction = (
+  request: string,
+  resolve: () => Promise<Rollup.ResolvedId | null>
+) => Async<string | null | false>;
+
+interface Options {
+  baseUrl?: string;
+  agent?: string;
+  include?: TestFunction | RegExp | string;
+  runtimeOptions?: Record<string, unknown>;
+  cacheStrategy?: CacheStrategy;
+  debug?: boolean;
+  hmr?: {
+    enabled?: boolean;
+    strategy?: 'full-reload' | 'module-reload';
+  };
+}
+
+declare namespace ServiceAgentPlugin {
+  export { TestFunction, Options };
+}
 
 function ServiceAgentPlugin(options?: Options): Plugin {
   const {
-    agent = DEFAULT_AGENT,
+    agent = AGENT_DEFAULT,
     baseUrl = "/",
     include,
     runtimeOptions = {},
