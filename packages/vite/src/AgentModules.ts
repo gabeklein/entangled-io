@@ -22,8 +22,9 @@ type ExportItem =
 
 interface AgentModule {
   id: string;
-  code: string;
+  path: string;
   watch: string[];
+  exports: ExportItem[];
 }
 
 interface CachedModule {
@@ -139,60 +140,18 @@ class AgentModules extends Project {
       const { path, id: resolved } = module;
       const exports = this.include(resolved, reload);
       const watch = [resolved];
-      const code = this.code(path, exports);
 
       for (const item of exports)
         if (item.type == "module")
           watch.push(item.path);
 
-      const result: AgentModule = { code, id, watch };
+      const result: AgentModule = { exports, path, id, watch };
 
       this.cache.set(id, result);
       return result;
     } catch (error) {
       return undefined;
     }
-  }
-
-  code(path: string, exports: ExportItem[]) {
-    let handle = "";
-    let code = "";
-
-    for (const item of exports) {
-      const { name } = item;
-
-      if (item.type == "module") {
-        const mod = VIRTUAL + name;
-
-        this.modules.set(mod, {
-          id: item.path,
-          path: `${path}/${name}`,
-        });
-
-        code += `export * as ${name} from "${mod}";\n`;
-        continue;
-      }
-
-      if (!handle) {
-        handle = "rpc";
-        code += `import * as agent from "${AGENT_ID}";\n`;
-        code += `const ${handle} = agent.default("${path}");\n\n`;
-      }
-
-      switch (item.type) {
-        case "function":
-          code += item.async
-            ? `export const ${name} = ${handle}("${name}");\n`
-            : `export const ${name} = () => ${handle}("${name}", { async: false });\n`;
-          break;
-
-        case "error":
-          code += `export const ${name} = ${handle}.error("${name}");\n`;
-          break;
-      }
-    }
-
-    return code;
   }
 
   set(key: string, info: CachedModule) {

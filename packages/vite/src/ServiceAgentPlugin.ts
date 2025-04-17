@@ -88,7 +88,44 @@ function ServiceAgentPlugin(options?: Options): Plugin {
           this.addWatchFile(dependency);
         }
 
-        return module.code;
+        let handle = "";
+        let code = "";
+
+        for (const item of module.exports) {
+          const { name } = item;
+
+          if (item.type == "module") {
+            const mod = VIRTUAL + name;
+
+            agentModules.set(mod, {
+              id: item.path,
+              path: `${module.path}/${name}`,
+            });
+
+            code += `export * as ${name} from "${mod}";\n`;
+            continue;
+          }
+
+          if (!handle) {
+            handle = "rpc";
+            code += `import * as agent from "${AGENT_ID}";\n`;
+            code += `const ${handle} = agent.default("${module.path}");\n\n`;
+          }
+
+          switch (item.type) {
+            case "function":
+              code += item.async
+                ? `export const ${name} = ${handle}("${name}");\n`
+                : `export const ${name} = () => ${handle}("${name}", { async: false });\n`;
+              break;
+
+            case "error":
+              code += `export const ${name} = ${handle}.error("${name}");\n`;
+              break;
+          }
+        }
+
+        return code;
       } catch (error) {
         this.error(`Error loading module ${id}: ${error}`);
       }
@@ -114,7 +151,7 @@ function ServiceAgentPlugin(options?: Options): Plugin {
         if (!result)
           return;
 
-        if (module.code === result.code)
+        if (noChange(module, result))
           return [];
 
         const { moduleGraph } = server;
@@ -141,6 +178,21 @@ function ServiceAgentPlugin(options?: Options): Plugin {
       cache.clear();
     }
   };
+}
+
+function noChange(a: AgentModule, b: AgentModule){
+  if (a.exports.length !== b.exports.length || a.watch.length !== b.watch.length)
+    return false;
+
+  for (let i = 0; i < a.exports.length; i++)
+    if (JSON.stringify(a.exports[i]) !== JSON.stringify(b.exports[i]))
+      return false;
+
+  for (let i = 0; i < a.watch.length; i++)
+    if (a.watch[i] !== b.watch[i])
+      return false;
+
+  return true;
 }
 
 function normalizeInclude(include: Options['include']): TestFunction | undefined {
