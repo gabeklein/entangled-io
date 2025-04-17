@@ -23,7 +23,7 @@ type ExportItem =
 interface AgentModule {
   id: string;
   code: string;
-  watch: Set<string>;
+  watch: string[];
 }
 
 interface CachedModule {
@@ -60,25 +60,25 @@ class AgentModules extends Project {
     this.resolveSourceFileDependencies();
 
     const exports = sourceFile.getExportedDeclarations();
-    const manifest = new Set<ExportItem>();
+    const manifest = [] as ExportItem[];
 
     for(const [ key, [ value ] ] of exports){
       if(Node.isSourceFile(value))
-        manifest.add({
+        manifest.push({
           name: key,
           type: "module",
           path: value.getFilePath()
         });
 
       else if(Node.isFunctionDeclaration(value))
-        manifest.add({
+        manifest.push({
           name: key,
           type: "function",
           async: !!value.getAsyncKeyword()
         });
 
       else if(isErrorType(value))
-        manifest.add({
+        manifest.push({
           name: key,
           type: "error"
         });
@@ -138,12 +138,12 @@ class AgentModules extends Project {
     try {
       const { path, id: resolved } = module;
       const exports = this.include(resolved, reload);
-      const watch = new Set<string>([resolved]);
+      const watch = [resolved];
       const code = this.code(path, exports);
 
       for (const item of exports)
         if (item.type == "module")
-          watch.add(item.path);
+          watch.push(item.path);
 
       const result: AgentModule = { code, id, watch };
 
@@ -154,7 +154,7 @@ class AgentModules extends Project {
     }
   }
 
-  code(path: string, exports: Set<ExportItem>) {
+  code(path: string, exports: ExportItem[]) {
     let handle = "";
     let code = "";
 
