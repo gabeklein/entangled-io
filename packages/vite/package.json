@@ -4,6 +4,16 @@
   "main": "index.js",
   "types": "dist/index.d.ts",
   "module": "dist/index.mjs",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./fetch": {
+      "require": "./dist/fetch.js",
+      "import": "./dist/fetch.mjs"
+    }
+  },
   "license": "ISC",
   "files": [
     "dist",

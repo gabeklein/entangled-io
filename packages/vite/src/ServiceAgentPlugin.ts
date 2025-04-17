@@ -2,7 +2,7 @@ import { Plugin, Rollup } from 'vite';
 import { AgentModule, AgentModules } from './AgentModules';
 import { Options, TestFunction } from './types';
 
-const DEFAULT_AGENT = require.resolve("../runtime/fetch.ts");
+const DEFAULT_AGENT = "@entangled/vite/fetch";
 
 const VIRTUAL = "\0virtual:entangle:";
 const AGENT_ID = VIRTUAL.slice(0, -1);
@@ -27,6 +27,9 @@ function ServiceAgentPlugin(options?: Options): Plugin {
     enforce: 'pre',
 
     async resolveId(source, importer) {
+      if (source === AGENT_ID)
+        return source;
+
       if (source.startsWith(VIRTUAL))
         return source;
 
@@ -65,14 +68,14 @@ function ServiceAgentPlugin(options?: Options): Plugin {
     },
 
     load(id) {
-      if (!id.startsWith(VIRTUAL))
-        return null;
-
       if (id == AGENT_ID)
         return (
           `import * as agent from "${agent}";\n` +
           `export default agent.default(${agentOptions});`
         );
+
+      if (!id.startsWith(VIRTUAL))
+        return null;
 
       try {
         const module = agentModules.get(id);
