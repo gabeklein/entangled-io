@@ -1,8 +1,25 @@
-import { Parser } from './Parser';
+import { Project, Node, ts } from 'ts-morph';
 import { Options } from './types';
 
 const VIRTUAL = "\0virtual:entangle:";
 const AGENT_ID = VIRTUAL.slice(0, -1);
+
+// ExportItem type moved from Parser
+type ExportItem =
+  | {
+      name: string;
+      type: "function";
+      async: boolean;
+    }
+  | {
+      name: string;
+      type: "module";
+      path: string;
+    }
+  | {
+      name: string;
+      type: "error";
+    };
 
 interface AgentModule {
   id: string;
@@ -15,14 +32,65 @@ interface CachedModule {
   id: string;
 }
 
-class AgentModules extends Parser {
+class AgentModules extends Project {
   private cache = new Map<string, AgentModule>();
   private modules = new Map<string, CachedModule>();
   private cacheStrategy: Options['cacheStrategy'];
 
   constructor(cacheStrategy: Options['cacheStrategy'] = 'conservative') {
-    super();
+    super({
+      skipAddingFilesFromTsConfig: true,
+      tsConfigFilePath: ts.findConfigFile(
+        process.cwd(),
+        ts.sys.fileExists
+      ),
+    });
     this.cacheStrategy = cacheStrategy;
+  }
+
+  include(path: string, reload?: boolean){
+    if(reload){
+      const existingSourceFile = this.getSourceFile(path);
+
+      if(existingSourceFile)
+        this.removeSourceFile(existingSourceFile);
+    }
+
+    const sourceFile = this.addSourceFileAtPath(path);
+
+    this.resolveSourceFileDependencies();
+
+    const exports = sourceFile.getExportedDeclarations();
+    const manifest = new Set<ExportItem>();
+
+    for(const [ key, [ value ] ] of exports){
+      if(Node.isSourceFile(value)){
+        manifest.add({
+          name: key,
+          type: "module",
+          path: value.getFilePath()
+        });
+        continue;
+      }
+
+      if(Node.isFunctionDeclaration(value)){
+        manifest.add({
+          name: key,
+          type: "function",
+          async: !!value.getAsyncKeyword()
+        });
+        continue;
+      }
+
+      if(isErrorType(value)){
+        manifest.add({
+          name: key,
+          type: "error"
+        });
+      }
+    }
+
+    return manifest;
   }
 
   clear(): void {
@@ -92,7 +160,7 @@ class AgentModules extends Parser {
     }
   }
 
-  code(path: string, exports: Set<Parser.ExportItem>) {
+  code(path: string, exports: Set<ExportItem>) {
     let handle = "";
     let code = "";
 
@@ -136,6 +204,23 @@ class AgentModules extends Parser {
   set(key: string, info: CachedModule) {
     this.modules.set(key, info);
   }
+}
+
+function isErrorType(node: Node) {
+  try {
+    while (Node.isClassDeclaration(node)) {
+      const exp = node.getExtendsOrThrow().getExpression();
+      if (Node.isIdentifier(exp))
+        node = exp.getSymbolOrThrow().getValueDeclarationOrThrow();
+      else break;
+    }
+    if (
+      Node.isVariableDeclaration(node) &&
+      node.getText() == "Error:ErrorConstructor"
+    )
+      return true;
+  } catch (err) {}
+  return false;
 }
 
 export { AgentModules, AgentModule };
