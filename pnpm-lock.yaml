@@ -37,10 +37,10 @@ importers:
   example/api:
     devDependencies:
       '@entangled/express':
-        specifier: ^2.1.0
+        specifier: ^2.2.0
         version: link:../../packages/express
       '@entangled/vite':
-        specifier: ^2.1.0
+        specifier: ^2.2.0
         version: link:../../packages/vite
       '@types/express':
         specifier: ^4.17.21
@@ -62,10 +62,10 @@ importers:
         version: 18.3.1(react@18.3.1)
     devDependencies:
       '@entangled/vite':
-        specifier: ^2.1.3
+        specifier: ^2.2.0
         version: link:../../packages/vite
       '@example/api':
-        specifier: ^2.1.0
+        specifier: ^2.2.0
         version: link:../api
       '@expressive/react':
         specifier: ^0.52.0
@@ -92,7 +92,7 @@ importers:
   packages/express:
     dependencies:
       '@entangled/interface':
-        specifier: ^2.1.0
+        specifier: ^2.2.0
         version: link:../interface
       '@types/cookie-parser':
         specifier: ^1.4.2
@@ -125,7 +125,7 @@ importers:
   packages/vite:
     dependencies:
       '@entangled/interface':
-        specifier: ^2.1.0
+        specifier: ^2.2.0
         version: link:../interface
       ts-morph:
         specifier: ^21.0.1
