@@ -7,5 +7,3 @@ serve(MODULE_EXPORTS, {
     console.log("Server started on port", port);
   }
 });
-
-console.log("Server started.");
