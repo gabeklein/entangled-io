@@ -1,8 +1,8 @@
 /**
  * Callable as `API.greetings.hi()`
  */
-export async function hi(){
-  return "Hello World!"
+export async function hi(name = "World") {
+  return `Hello ${name}!`
 }
 
 /**
