@@ -65,30 +65,25 @@ class AgentModules extends Project {
     const manifest = new Set<ExportItem>();
 
     for(const [ key, [ value ] ] of exports){
-      if(Node.isSourceFile(value)){
+      if(Node.isSourceFile(value))
         manifest.add({
           name: key,
           type: "module",
           path: value.getFilePath()
         });
-        continue;
-      }
 
-      if(Node.isFunctionDeclaration(value)){
+      else if(Node.isFunctionDeclaration(value))
         manifest.add({
           name: key,
           type: "function",
           async: !!value.getAsyncKeyword()
         });
-        continue;
-      }
 
-      if(isErrorType(value)){
+      else if(isErrorType(value))
         manifest.add({
           name: key,
           type: "error"
         });
-      }
     }
 
     return manifest;
