@@ -1,17 +1,10 @@
 {
   "compilerOptions": {
     "outDir": "./lib",
-    "target": "ES6",
+    "target": "ESNext",
     "moduleResolution": "Node",
-    "lib": ["DOM", "ES2018"],
+    "lib": ["DOM", "ESNext"],
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "noUnusedLocals": true,
-    "paths": {
-      "@entangled/*": [
-        "../../packages/*/src"
-      ]
-    }
+    "noUnusedLocals": true
   },
 }
