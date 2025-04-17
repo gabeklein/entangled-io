@@ -20,7 +20,7 @@ function serve(module: {}, config: Config | number = {}){
   
   const {
     port = 8080,
-    baseUrl = "/",
+    baseUrl = "/api",
     onError,
     onReady
   } = config;
