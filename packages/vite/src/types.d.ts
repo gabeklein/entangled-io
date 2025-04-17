@@ -3,6 +3,8 @@ import type { Rollup } from 'vite';
 
 type AsyncMaybe<T> = T | Promise<T>;
 
+export type CacheStrategy = 'disabled' | 'conservative' | 'aggressive';
+
 export type TestFunction = (
   request: string,
   resolve: () => Promise<Rollup.ResolvedId | null>
@@ -13,7 +15,7 @@ export interface Options {
   agent?: string;
   include?: TestFunction | string | RegExp;
   runtimeOptions?: Record<string, unknown>;
-  cacheStrategy?: 'aggressive' | 'conservative' | 'disabled';
+  cacheStrategy?: CacheStrategy;
   debug?: boolean;
   hmr?: {
     enabled?: boolean;

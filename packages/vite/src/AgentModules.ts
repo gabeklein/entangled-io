@@ -1,5 +1,6 @@
-import { Project, Node, ts } from 'ts-morph';
-import { Options } from './types';
+import { Node, Project, ts } from 'ts-morph';
+
+import { CacheStrategy } from './types';
 
 const VIRTUAL = "\0virtual:entangle:";
 const AGENT_ID = VIRTUAL.slice(0, -1);
@@ -35,9 +36,9 @@ interface CachedModule {
 class AgentModules extends Project {
   private cache = new Map<string, AgentModule>();
   private modules = new Map<string, CachedModule>();
-  private cacheStrategy: Options['cacheStrategy'];
+  private cacheStrategy: CacheStrategy;
 
-  constructor(cacheStrategy: Options['cacheStrategy'] = 'conservative') {
+  constructor(cacheStrategy: CacheStrategy = 'conservative') {
     super({
       skipAddingFilesFromTsConfig: true,
       tsConfigFilePath: ts.findConfigFile(
