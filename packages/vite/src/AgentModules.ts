@@ -1,7 +1,6 @@
 import { Node, Project, ts } from 'ts-morph';
 
 import { CacheStrategy } from './types';
-import { AGENT_ID, VIRTUAL } from './ServiceAgentPlugin';
 
 // ExportItem type moved from Parser
 type ExportItem =
@@ -63,7 +62,7 @@ class AgentModules extends Project {
     const exports = sourceFile.getExportedDeclarations();
     const manifest = [] as ExportItem[];
 
-    for(const [ key, [ value ] ] of exports){
+    for(const [ key, [ value ] ] of exports)
       if(Node.isSourceFile(value))
         manifest.push({
           name: key,
@@ -83,7 +82,6 @@ class AgentModules extends Project {
           name: key,
           type: "error"
         });
-    }
 
     return manifest;
   }
@@ -94,12 +92,9 @@ class AgentModules extends Project {
   }
 
   validateCache(id: string): boolean {
-    if (this.cacheStrategy === 'disabled')
-      return false;
-
     const cached = this.cache.get(id);
 
-    if (!cached)
+    if (this.cacheStrategy === 'disabled' || !cached)
       return false;
 
     if (this.cacheStrategy === 'aggressive')
@@ -108,19 +103,11 @@ class AgentModules extends Project {
     // For conservative strategy, check if watched files still exist and are valid
     try {
       for (const file of cached.watch)
-        if (!this.fileExists(file))
+        if (!this.getSourceFile(file))
           return false;
 
       return true;
     } catch (error) {
-      return false;
-    }
-  }
-
-  fileExists(path: string): boolean {
-    try {
-      return !!this.getSourceFile(path);
-    } catch {
       return false;
     }
   }
