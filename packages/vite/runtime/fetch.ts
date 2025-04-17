@@ -41,7 +41,7 @@ export default function configure(options: ConfigOptions){
 }
 
 async function postRequest<B extends {}>(url: string, body: B){
-  const response = await fetch(url, {
+  const response = await fetch(url, <RequestInit> {
     method: "POST",
     cache: "no-cache",
     headers: {
