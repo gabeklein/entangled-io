@@ -3,11 +3,11 @@ export {
 } from './async_hook';
 
 export {
-  router,
-  router as service
+  router
 } from './router';
 
 export {
   serve,
   serve as default,
+  service,
 } from './serve';
