@@ -22,7 +22,8 @@
     "runtime"
   ],
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "prepublish": "npm run build"
   },
   "publishConfig": {
     "access": "public"
