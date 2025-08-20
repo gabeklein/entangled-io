@@ -10,6 +10,7 @@
   },
   "scripts": {
     "prebuild": "rm -rf dist",
+    "preversion": "pnpm run build",
     "build": "tsup"
   },
   "files": [
