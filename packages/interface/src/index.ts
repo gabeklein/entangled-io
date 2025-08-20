@@ -7,12 +7,16 @@ type Rehydrate = {
 }
 
 const BASE_REHYDRATE = {
-  "Date": (input: string) => new Date(Number(input))
+  "Date": (input: string) => new Date(Number(input)),
+  "Buffer": (input: string) => Buffer.from(input, 'base64')
 }
 
 export function pack(data: any): any {
   if(data instanceof Date)
     return `!Date::${data.getTime()}`;
+    
+  if(data instanceof Buffer)
+    return `!Buffer::${data.toString('base64')}`;
     
   if(typeof data == "function")
     return undefined;
