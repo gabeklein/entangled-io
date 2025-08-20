@@ -1,0 +1,24 @@
+{
+  "name": "@entangled/runner",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx ./start.ts"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.4.0",
+    "express": "^4.17.1",
+    "typescript": "^5.8.3",
+    "vite-plugin-dts": "^4.5.3",
+    "vite-plugin-node-polyfills": "^0.23.0",
+    "tsx": "^4.19.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.1",
+    "vite": "^6.0.0"
+  },
+  "peerDependencies": {
+    "vite": ">=6.0.0"
+  }
+}
