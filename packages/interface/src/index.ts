@@ -8,15 +8,29 @@ type Rehydrate = {
 
 const BASE_REHYDRATE = {
   "Date": (input: string) => new Date(Number(input)),
-  "Buffer": (input: string) => Buffer.from(input, 'base64')
+  "Buffer": (input: string) => {
+    try {
+      return Buffer.from(input, 'base64');
+    } catch {
+      const binaryString = atob(input);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+  }
 }
 
 export function pack(data: any): any {
   if(data instanceof Date)
     return `!Date::${data.getTime()}`;
     
-  if(data instanceof Buffer)
-    return `!Buffer::${data.toString('base64')}`;
+  if(data instanceof ArrayBuffer) {
+    const bytes = new Uint8Array(data);
+    const binaryString = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+    return `!Buffer::${btoa(binaryString)}`;
+  }
     
   if(typeof data == "function")
     return undefined;
