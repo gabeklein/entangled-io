@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.4.2](https://github.com/gabeklein/entangled-io/compare/v2.4.1...v2.4.2) (2025-08-20)
+
+
+### Bug Fixes
+
+* implement ArrayBuffer fallback on Buffer handling ([c5a0921](https://github.com/gabeklein/entangled-io/commit/c5a0921089051f48958bb77162a0feece969e9b6))
+
+
+
+
+
 ## [2.4.1](https://github.com/gabeklein/entangled-io/compare/v2.4.0...v2.4.1) (2025-08-20)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@entangled/vite",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "main": "index.js",
   "types": "dist/index.d.ts",
   "module": "dist/index.mjs",
@@ -29,7 +29,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@entangled/interface": "2.4.1",
+    "@entangled/interface": "2.4.2",
     "ts-morph": "^21.0.1",
     "vite-node": "^3.0.9"
   },
