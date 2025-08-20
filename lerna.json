@@ -5,15 +5,5 @@
   "packages": [
     "example/*",
     "packages/*"
-  ],
-  "command": {
-    "publish": {
-      "conventionalCommits": true,
-      "exact": true,
-      "message": "chore: publish",
-      "allowBranch": [
-        "main"
-      ]
-    }
-  }
+  ]
 }
