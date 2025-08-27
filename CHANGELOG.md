@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.4.3](https://github.com/gabeklein/entangled-io/compare/v2.4.2...v2.4.3) (2025-08-27)
+
+
+### Bug Fixes
+
+* improve error handling in abstract and errors modules ([2035005](https://github.com/gabeklein/entangled-io/commit/203500521e5c29607139d730fec5663786369c11))
+* revert lerna publish command ([9981003](https://github.com/gabeklein/entangled-io/commit/99810036a2e531b1ca31224a25a8ae9d6165b202))
+* update dependencies to version 2.4.2 in pnpm-lock.yaml ([6191da7](https://github.com/gabeklein/entangled-io/commit/6191da7dc2382d2ce8b75a1c1a25753bf115ba7c))
+
+
+
+
+
 ## [2.4.2](https://github.com/gabeklein/entangled-io/compare/v2.4.1...v2.4.2) (2025-08-20)
 
 

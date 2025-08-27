@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.4.3](https://github.com/gabeklein/entangled-io/compare/v2.4.2...v2.4.3) (2025-08-27)
+
+
+### Bug Fixes
+
+* improve error handling in abstract and errors modules ([2035005](https://github.com/gabeklein/entangled-io/commit/203500521e5c29607139d730fec5663786369c11))
+
+
+
+
+
 ## [2.4.2](https://github.com/gabeklein/entangled-io/compare/v2.4.1...v2.4.2) (2025-08-20)
 
 **Note:** Version bump only for package @entangled/express
