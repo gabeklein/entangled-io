@@ -15,7 +15,8 @@ export function abstract(
           let { body } = request;
     
           if(!body)
-            body = []
+            body = [];
+
           else if(Array.isArray(body) ==  false)
             throw BadInput("POST body must be an array")
     
@@ -42,9 +43,11 @@ export function abstract(
           }
         }
         catch(err){
-          if(err instanceof Error)
-            emitCustomError(err, response);
-        } 
+          emitCustomError(response, err);
+        }
+        finally {
+          response.end();
+        }
       }
     );
   }
