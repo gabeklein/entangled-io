@@ -28,7 +28,10 @@ export function setCustomError(
 }
 
 export function emitCustomError(
-  error: Error | RestError, response: Response){
+  response: Response, error?: Error | RestError | string){
+
+  if(!(error instanceof Error))
+    error = new Error(error || "Unknown error");
 
   const statusCode =
     "status" in error ? error.status : 500;

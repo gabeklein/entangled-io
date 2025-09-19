@@ -1,6 +1,6 @@
 {
   "name": "@entangled/interface",
-  "version": "2.3.1",
+  "version": "2.4.2",
   "license": "ISC",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -10,6 +10,7 @@
   },
   "scripts": {
     "prebuild": "rm -rf dist",
+    "preversion": "pnpm run build",
     "build": "tsup"
   },
   "files": [

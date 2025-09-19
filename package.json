@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "start": "concurrently \"npm:start:*\"",
+    "push": "lerna publish --exact --conventional-commits",
     "prepare": "lerna bootstrap",
     "build": "lerna run build",
     "start:api": "npm start --prefix example/api",
