@@ -24,7 +24,7 @@ const BASE_REHYDRATE = {
 
 export function pack(data: any): any {
   if(data instanceof Date)
-    return `!Date::${data.getTime()}`;
+    return "!Date::" + data.getTime();
     
   if(data instanceof ArrayBuffer) {
     const bytes = new Uint8Array(data);
@@ -33,7 +33,7 @@ export function pack(data: any): any {
   }
     
   if(typeof data == "function")
-    return undefined;
+    return "!Callback::" + registerCallback(data);
 
   if(data === null)
     return null;
@@ -52,36 +52,32 @@ export function pack(data: any): any {
 }
 
 export function unpack(data: any, handle?: Rehydrate): any {
-  handle = {
-    ...BASE_REHYDRATE,
-    ...handle
-  }
-
-  if(typeof data == "string")
-    return rehydrate(data, handle) || data;
-
-  else if(Array.isArray(data))
+  if(Array.isArray(data))
     return data.map(x => unpack(x, handle));
-
-  else if(typeof data == "object")
+  
+  if(typeof data == "object"){
     for(const k in data)  
       data[k] = unpack(data[k], handle);
-      
-  return data;
-}
 
-function rehydrate(data: string, handle: Rehydrate){
+    return data;
+  }
+
+  if(typeof data != "string")
+    throw new Error("unpack only works on strings or arrays/objects of strings");
+
   const match = shouldParse.exec(data);
 
   if(!match)
-    return null;
+    return data;
+  
+  handle = { ...BASE_REHYDRATE, ...handle };
 
-  const key = match[1];
+  const [key, value] = match.slice(1);
 
-  if(!handle[key])
-    throw new Error(
-      `Tried to unpack data but no handler for "${key}" provided by client.`
-    );
+  if(handle[key])
+    return handle[key](value);
 
-  return handle[key](match[2]);
+  throw new Error(
+    `Tried to unpack data but no handler for "${key}" provided by client.`
+  );
 }
