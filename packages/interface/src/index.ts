@@ -1,18 +1,16 @@
-export { default } from "./namespace";
-
-const shouldParse = /^!(\w+)::(.*)$/;
+const shouldParse = /^\0(\w+)::(.*)$/;
 
 type Rehydrate = {
   [type: string]: (body: string) => any;
 }
 
 const BASE_REHYDRATE = {
-  "Date": (input: string) => new Date(Number(input)),
-  "Buffer": (input: string) => {
+  "Date": (epoch: string) => new Date(Number(epoch)),
+  "Buffer": (data: string) => {
     try {
-      return Buffer.from(input, 'base64');
+      return Buffer.from(data, 'base64');
     } catch {
-      const binaryString = atob(input);
+      const binaryString = atob(data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
@@ -24,24 +22,18 @@ const BASE_REHYDRATE = {
 
 export function pack(data: any): any {
   if(data instanceof Date)
-    return "!Date::" + data.getTime();
+    return "\0Date::" + data.getTime();
     
   if(data instanceof ArrayBuffer) {
     const bytes = new Uint8Array(data);
     const binaryString = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
-    return `!Buffer::${btoa(binaryString)}`;
+    return `\0Buffer::` + btoa(binaryString);
   }
-    
-  if(typeof data == "function")
-    return "!Callback::" + registerCallback(data);
-
-  if(data === null)
-    return null;
 
   if(data instanceof Array)
     return data.map(pack);
 
-  if(typeof data == "object"){
+  if(typeof data == "object" && data){
     const map = {} as typeof data;
     for(const k in data)
       map[k] = pack(data[k])
@@ -81,3 +73,5 @@ export function unpack(data: any, handle?: Rehydrate): any {
     `Tried to unpack data but no handler for "${key}" provided by client.`
   );
 }
+
+export { default } from "./namespace";
