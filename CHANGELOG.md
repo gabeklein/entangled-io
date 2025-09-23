@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.4.5](https://github.com/gabeklein/entangled-io/compare/v2.4.4...v2.4.5) (2025-09-23)
+
+
+### Bug Fixes
+
+* enhance unpack function to handle null input and remove string type restriction ([cad27eb](https://github.com/gabeklein/entangled-io/commit/cad27eba350e266ed634e1b92566378606798e37))
+
+
+
+
+
 ## [2.4.4](https://github.com/gabeklein/entangled-io/compare/v2.4.3...v2.4.4) (2025-09-23)
 
 

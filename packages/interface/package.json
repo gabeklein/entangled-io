@@ -1,6 +1,6 @@
 {
   "name": "@entangled/interface",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "license": "ISC",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
