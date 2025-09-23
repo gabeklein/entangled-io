@@ -1,4 +1,4 @@
-import { pack, unpack } from '@entangled/interface';
+import { i } from './interface';
 import { RequestHandler } from 'express';
 
 import { createContext } from './async_hook';
@@ -20,9 +20,9 @@ export function abstract(
           else if(Array.isArray(body) ==  false)
             throw BadInput("POST body must be an array")
     
-          body = unpack(body);
+          body = i.unpack(body);
     
-          let output = await handler.apply(null, body);
+          let output = await handler(...body);
 
           try { 
             if(response.headersSent)
@@ -33,7 +33,7 @@ export function abstract(
             if(output == null || typeof output !== "object")
               output = { response: output };
               
-            response.json(pack(output));
+            response.json(i.pack(output));
           }
           catch(err){
             throw Internal(

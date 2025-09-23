@@ -1,4 +1,4 @@
-import { pack, unpack } from '@entangled/interface';
+import { i } from './interface';
 
 import { newCustomError, notAsyncError, throwRemoteError } from './errors';
 
@@ -48,10 +48,10 @@ async function postRequest<B extends {}>(url: string, body: B){
       ['Content-Type']: 'application/json',
       ['Accept']: 'application/json'
     },
-    body: JSON.stringify(pack(body))
+    body: JSON.stringify(i.pack(body))
   });
 
-  const output = await response.json().then(unpack);
+  const output = await response.json().then(x => i.unpack(x));
   const { status } = response;
 
   if(status >= 300)

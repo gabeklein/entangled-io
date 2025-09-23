@@ -1,79 +1,76 @@
 const shouldParse = /^\0(\w+)::(.*)$/;
 
-type Rehydrate = {
-  [type: string]: (body: string) => any;
-}
+export class Interface {
+  pack(data: any){
+    if(data instanceof Date)
+      return "\0Date::" + data.getTime();
 
-const BASE_REHYDRATE = {
-  "Date": (epoch: string) => new Date(Number(epoch)),
-  "Buffer": (data: string) => {
-    try {
-      return Buffer.from(data, 'base64');
-    } catch {
-      const binaryString = atob(data);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      return bytes.buffer;
+    if(data instanceof ArrayBuffer)
+      data = new Uint8Array(data);
+
+    if(data instanceof Uint8Array){
+      const binaryString = Array.from(data, byte => String.fromCharCode(byte)).join('');
+      return `\0Buffer::` + btoa(binaryString);
     }
-  }
-}
 
-export function pack(data: any): any {
-  if(data instanceof Date)
-    return "\0Date::" + data.getTime();
+    if(data instanceof Array)
+      return data.map(this.pack, this);
 
-  if(data instanceof ArrayBuffer)
-    data = new Uint8Array(data);
-
-  if(data instanceof Uint8Array){
-    const binaryString = Array.from(data, byte => String.fromCharCode(byte)).join('');
-    return `\0Buffer::` + btoa(binaryString);
-  }
-
-  if(data instanceof Array)
-    return data.map(pack);
-
-  if(typeof data == "object" && data){
-    const map = {} as typeof data;
-    for(const k in data)
-      map[k] = pack(data[k])
-    return map;
-  }
-
-  return data;
-}
-
-export function unpack(data: any, handle?: Rehydrate): any {
-  if(Array.isArray(data))
-    return data.map(x => unpack(x, handle));
-  
-  if(typeof data == "object"){
-    for(const k in data)  
-      data[k] = unpack(data[k], handle);
+    if(typeof data == "object"){
+      const map = {} as typeof data;
+      for(const k in data)
+        map[k] = this.pack(data[k])
+      return map;
+    }
 
     return data;
   }
 
-  if(typeof data != "string")
+  unpack(data: any){
+    if(Array.isArray(data))
+      return data.map(x => this.unpack(x));
+    
+    if(typeof data == "object"){
+      for(const k in data)  
+        data[k] = this.unpack(data[k]);
+
+      return data;
+    }
+
+    if(typeof data == "string"){
+      const match = shouldParse.exec(data);
+
+      if(match)
+        return this.parse(...match.slice(1) as [string, string]);
+
+      return data;
+    }
+
     throw new Error("unpack only works on strings or arrays/objects of strings");
+  }
 
-  const match = shouldParse.exec(data);
+  parse(type: string, body: string){
+    if(type === "Date")
+      return new Date(Number(body));
 
-  if(!match)
-    return data;
-  
-  handle = { ...BASE_REHYDRATE, ...handle };
+    if(type === "Buffer"){
+      try {
+        return Buffer.from(body, 'base64');
+      } catch {
+        const binaryString = atob(body);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer;
+      }
+    }
 
-  const [key, value] = match.slice(1);
-
-  if(handle[key])
-    return handle[key](value);
-
-  throw new Error(
-    `Tried to unpack data but no handler for "${key}" provided by client.`
-  );
+    throw new Error(
+      `Tried to unpack data but no handler for "${type}" provided by client.`
+    );
+  }
 }
 
 export { default } from "./namespace";
+export { CallableTransport } from './callback';
