@@ -44,6 +44,9 @@ export function pack(data: any): any {
 }
 
 export function unpack(data: any, handle?: Rehydrate): any {
+  if(data == null)
+    return data;
+
   if(Array.isArray(data))
     return data.map(x => unpack(x, handle));
   
@@ -53,9 +56,6 @@ export function unpack(data: any, handle?: Rehydrate): any {
 
     return data;
   }
-
-  if(typeof data != "string")
-    throw new Error("unpack only works on strings or arrays/objects of strings");
 
   const match = shouldParse.exec(data);
 
