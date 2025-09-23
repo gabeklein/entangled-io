@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.4.6](https://github.com/gabeklein/entangled-io/compare/v2.4.5...v2.4.6) (2025-09-23)
+
+
+### Bug Fixes
+
+* streamline buffer handling in pack function for ArrayBuffer ([372d402](https://github.com/gabeklein/entangled-io/commit/372d40247a681e06486ef682a1be86e29b6c7bd1))
+
+
+
+
+
 ## [2.4.5](https://github.com/gabeklein/entangled-io/compare/v2.4.4...v2.4.5) (2025-09-23)
 
 
