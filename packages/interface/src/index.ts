@@ -15,6 +15,9 @@ export class Interface {
 
     if(data instanceof Array)
       return data.map(this.pack, this);
+      
+    // if(typeof data == "function")
+    //   return "\0Callback::" + createCallback(data);
 
     if(typeof data == "object"){
       const map = {} as typeof data;
@@ -65,6 +68,12 @@ export class Interface {
         return bytes.buffer;
       }
     }
+
+    // if(type === "Callback"){
+    //   throw new Error(
+    //     `Tried to unpack a Callback, but no callback handler was provided by client.`
+    //   );
+    // }
 
     throw new Error(
       `Tried to unpack data but no handler for "${type}" provided by client.`

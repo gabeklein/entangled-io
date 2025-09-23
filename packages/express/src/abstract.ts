@@ -7,13 +7,13 @@ import { BadInput, emitCustomError, Internal } from './errors';
 export function abstract(
   handler: Function): RequestHandler {
 
-  return async (request, response) => {
+  return async (req, res) => {
+    let { body } = req;
+
     return createContext(
-      { req: request, res: response },
+      { req, res },
       async () => {
         try {
-          let { body } = request;
-    
           if(!body)
             body = [];
 
@@ -25,15 +25,15 @@ export function abstract(
           let output = await handler(...body);
 
           try { 
-            if(response.headersSent)
+            if(res.headersSent)
               return;
 
-            response.status(200)
+            res.status(200)
 
             if(output == null || typeof output !== "object")
               output = { response: output };
               
-            response.json(i.pack(output));
+            res.json(i.pack(output));
           }
           catch(err){
             throw Internal(
@@ -43,10 +43,10 @@ export function abstract(
           }
         }
         catch(err){
-          emitCustomError(response, err);
+          emitCustomError(res, err);
         }
         finally {
-          response.end();
+          res.end();
         }
       }
     );
