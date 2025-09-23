@@ -1,6 +1,6 @@
 {
   "name": "@example/client",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "private": true,
   "main": "src",
   "license": "ISC",
@@ -9,8 +9,8 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "@entangled/vite": "2.4.2",
-    "@example/api": "2.4.3",
+    "@entangled/vite": "2.4.4",
+    "@example/api": "2.4.4",
     "@expressive/react": "^0.52.0",
     "@expressive/vite-plugin": "^0.2.5",
     "@types/react": "^18.3.7",

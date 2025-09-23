@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.4.4](https://github.com/gabeklein/entangled-io/compare/v2.4.3...v2.4.4) (2025-09-23)
+
+
+### Bug Fixes
+
+* correct parsing logic and improve buffer handling in pack function ([5d9bc16](https://github.com/gabeklein/entangled-io/commit/5d9bc165dc77c619bc6eaeebc46251fed587b655))
+* refactor unpack function for improved readability and error handling ([ae4f583](https://github.com/gabeklein/entangled-io/commit/ae4f5834f9323c92241dd47aef13b0e4a16fc2fc))
+
+
+
+
+
 ## [2.4.2](https://github.com/gabeklein/entangled-io/compare/v2.4.1...v2.4.2) (2025-08-20)
 
 
