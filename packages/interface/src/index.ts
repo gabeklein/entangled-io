@@ -25,8 +25,11 @@ export function pack(data: any): any {
     return "\0Date::" + data.getTime();
     
   if(data instanceof ArrayBuffer) {
-    const bytes = new Uint8Array(data);
-    const binaryString = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+    data = new Uint8Array(data);
+  }
+
+  if(data instanceof Uint8Array){
+    const binaryString = Array.from(data, byte => String.fromCharCode(byte)).join('');
     return `\0Buffer::` + btoa(binaryString);
   }
 
