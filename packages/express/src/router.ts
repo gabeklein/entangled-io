@@ -26,7 +26,7 @@ export function router(exports: {}): express.Router {
     prefix = ""){
 
     if(typeof handle == "function")
-      router.post(prefix, abstract(handle))
+      router.all(prefix, abstract(handle))
     else if(handle.prototype instanceof Error)
       setCustomError(handle as any, prefix);
     else

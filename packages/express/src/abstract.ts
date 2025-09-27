@@ -12,17 +12,17 @@ export function abstract(
       { req: request, res: response },
       async () => {
         try {
-          let { body } = request;
-    
-          if(!body)
-            body = [];
+          let { body = [], query } = request;
 
-          else if(Array.isArray(body) ==  false)
-            throw BadInput("POST body must be an array")
-    
-          body = unpack(body);
-    
-          let output = await handler.apply(null, body);
+          if(request.method === 'GET' || request.method === 'DELETE')
+            body = [query]
+
+          if(Array.isArray(body))
+            body = unpack(body);
+          else
+            throw BadInput("POST body must be an array");
+  
+          let output = await handler(...body);
 
           try { 
             if(response.headersSent)
@@ -46,6 +46,9 @@ export function abstract(
           emitCustomError(response, err);
         }
         finally {
+          if(response.headersSent || response.getHeader('Content-Type') == 'text/event-stream')
+            return;
+
           response.end();
         }
       }
