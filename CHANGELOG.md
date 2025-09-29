@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.4.7](https://github.com/gabeklein/entangled-io/compare/v2.4.6...v2.4.7) (2025-09-29)
+
+
+### Bug Fixes
+
+* improve request body handling in abstract function and allow all HTTP methods in router ([6427296](https://github.com/gabeklein/entangled-io/commit/6427296fef049e9fea180e5e6d51d57fcaa07b59))
+
+
+
+
+
 ## [2.4.6](https://github.com/gabeklein/entangled-io/compare/v2.4.5...v2.4.6) (2025-09-23)
 
 
