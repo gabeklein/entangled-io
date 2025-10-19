@@ -34,7 +34,7 @@ export function router(exports: {}): express.Router {
         let route = prefix;
 
         if(name !== "default")
-          route += `/${name}`;
+          route += "/" + name;
 
         register(handle[name], route);
       }
