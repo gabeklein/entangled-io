@@ -3,6 +3,7 @@ import { unpack } from "@entangled/interface";
 const CUSTOM_ERROR = new Map<string, typeof HttpError>();
 
 export function notAsyncError(name: string){
+  // This allows for returning a function with the correct name.
   const Module = {
     [name](){
       throw new Error(`'${name}' is not an async function. It cannot be called by client.`);
