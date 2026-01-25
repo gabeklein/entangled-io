@@ -22,7 +22,7 @@ const BASE_REHYDRATE = {
 
 export function pack(data: any): any {
   if(data instanceof Date)
-    return "\0Date::" + data.getTime();
+    return "\0Date::" + data.toString().replace(/^[A-Z][a-z]{2} | \(.*\)$/g, '');
     
   if(data instanceof ArrayBuffer) {
     data = new Uint8Array(data);
