@@ -1,5 +1,5 @@
 
-<h1 align="center">Entangled ⇝ IO</h1>
+<h1 align="center">Expressive RPC</h1>
 
 <p align="center">Spooky <code>action()</code> at a distance. 🧙‍♂️</p>
 
