@@ -9,7 +9,7 @@
 
 <br/>
 
-<p align="center">Entangled-IO is a set of developer tools, designed to bridge the gap between client and server applications written in typescript. With simple helpers on the backend, and webpack-plugin on the front, you can effectively call functions from server-side apps as if they were local within your client-side apps.</p>
+<p align="center">Expressive RPC is a set of developer tools, designed to bridge the gap between client and server applications written in typescript. With simple helpers on the backend, and webpack-plugin on the front, you can effectively call functions from server-side apps as if they were local within your client-side apps.</p>
 <br/>
 
 ## Installation
@@ -30,7 +30,7 @@ npm link my-service
 
 ## Abstract
 
-Entangled-IO, when added to a project using typescript, allows you to `import` and call within one app, functions which only really exist on another. It combines web-hosting and a special type of `export`, to create what we'll call `window-functions`, an abstraction on top of a pretty neat compiler trick. 🎩🐰
+RPC, when added to a project using typescript, allows you to `import` and call within one app, functions which only really exist on another. It combines web-hosting and a special type of `export`, to create what we'll call `window-functions`, an abstraction on top of a pretty neat compiler trick. 🎩🐰
 
 In-use, a window function and it's import/export between apps, *is not real*, but a handy neumonic to help you and your bundler (such as [Webpack](https://github.com/webpack/webpack)) establish a form of API. With the concept, we can auto-generate code to implement these functions on a client (at runtime, where actual logic is unavailable) using http instead.
 
